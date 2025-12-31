@@ -1,0 +1,58 @@
+export const translations = {
+  en: {
+    welcome: 'Welcome to Holistic Life Coaching',
+    login: 'Login',
+    register: 'Register',
+    email: 'Email',
+    password: 'Password',
+    fullName: 'Full Name',
+    home: 'Home',
+    calculators: 'Calculators',
+    bookings: 'Bookings',
+    chat: 'Chat',
+    profile: 'Profile',
+    bmi: 'BMI Calculator',
+    tdee: 'TDEE Calculator',
+    anxiety: 'Anxiety Assessment',
+    physical: 'Physical',
+    nutritional: 'Nutritional',
+    mental: 'Mental',
+    spiritual: 'Spiritual',
+    logout: 'Logout',
+    admin: 'Admin Dashboard',
+    resources: 'Resources',
+    habits: 'Habit Tracker',
+    intake: 'Assessment',
+  },
+  ar: {
+    welcome: 'مرحبا بكم في التدريب الشامل للحياة',
+    login: 'تسجيل الدخول',
+    register: 'التسجيل',
+    email: 'البريد الإلكتروني',
+    password: 'كلمة المرور',
+    fullName: 'الاسم الكامل',
+    home: 'الرئيسية',
+    calculators: 'الآلات الحاسبة',
+    bookings: 'الحجوزات',
+    chat: 'المحادثة',
+    profile: 'الملف الشخصي',
+    bmi: 'حاسبة مؤشر كتلة الجسم',
+    tdee: 'حاسبة السعرات الحرارية',
+    anxiety: 'تقييم القلق',
+    physical: 'البدني',
+    nutritional: 'التغذوي',
+    mental: 'النفسي',
+    spiritual: 'الروحي',
+    logout: 'تسجيل الخروج',
+    admin: 'لوحة الإدارة',
+    resources: 'الموارد',
+    habits: 'متتبع العادات',
+    intake: 'التقييم',
+  },
+};
+
+export type LanguageCode = 'en' | 'ar';
+
+export const getTranslation = (key: keyof typeof translations.en, language: LanguageCode = 'en') => {
+  return translations[language][key] || translations.en[key];
+};
