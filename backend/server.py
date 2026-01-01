@@ -562,6 +562,183 @@ async def get_coach_bookings(coach_user: dict = Depends(get_coach_user)):
     bookings = await db.bookings.find({"coach_id": coach_user["_id"]}).sort("created_at", -1).to_list(1000)
     return [BookingResponse(**booking, id=booking["_id"]) for booking in bookings]
 
+@api_router.get("/coach/my-trainees")
+async def get_coach_trainees(coach_user: dict = Depends(get_coach_user)):
+    # Get all clients who have booked with this coach
+    client_ids = await db.bookings.distinct("client_id", {"coach_id": coach_user["_id"]})
+    
+    trainees = []
+    for client_id in client_ids:
+        client = await db.users.find_one({"_id": client_id})
+        if client:
+            # Get remaining hours
+            bookings = await db.bookings.find({
+                "client_id": client_id,
+                "coach_id": coach_user["_id"],
+                "payment_status": "completed"
+            }).to_list(100)
+            
+            total_hours = sum(b.get("hours_purchased", 0) for b in bookings)
+            used_hours = sum(b.get("hours_used", 0) for b in bookings)
+            
+            trainees.append({
+                "id": client["_id"],
+                "email": client["email"],
+                "full_name": client["full_name"],
+                "created_at": client["created_at"],
+                "hours_remaining": total_hours - used_hours
+            })
+    
+    return trainees
+
+@api_router.get("/coach/subscription")
+async def get_coach_subscription(coach_user: dict = Depends(get_coach_user)):
+    subscription = await db.subscriptions.find_one({"coach_id": coach_user["_id"]}, sort=[("created_at", -1)])
+    if subscription:
+        return {
+            "id": subscription["_id"],
+            "plan": subscription["plan"],
+            "status": subscription["status"],
+            "start_date": subscription["start_date"],
+            "end_date": subscription["end_date"],
+            "amount": subscription["amount"]
+        }
+    return None
+
+@api_router.post("/coach/subscribe")
+async def subscribe_coach(data: dict, coach_user: dict = Depends(get_coach_user)):
+    plan = data.get("plan", "monthly")
+    
+    # Calculate dates and amount
+    from datetime import datetime, timedelta
+    start_date = datetime.utcnow()
+    if plan == "yearly":
+        end_date = start_date + timedelta(days=365)
+        amount = 399
+    else:
+        end_date = start_date + timedelta(days=30)
+        amount = 49
+    
+    subscription = {
+        "_id": str(uuid.uuid4()),
+        "coach_id": coach_user["_id"],
+        "plan": plan,
+        "status": "active",
+        "start_date": start_date,
+        "end_date": end_date,
+        "amount": amount,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.subscriptions.insert_one(subscription)
+    
+    # Update coach profile to be active
+    await db.coach_profiles.update_one(
+        {"user_id": coach_user["_id"]},
+        {"$set": {"is_active": True}},
+        upsert=True
+    )
+    
+    return {"message": "Subscription activated", "subscription_id": subscription["_id"]}
+
+# ==================== PUBLIC COACHES LIST ====================
+
+@api_router.get("/coaches")
+async def get_public_coaches():
+    # Get all active coach profiles
+    coach_profiles = await db.coach_profiles.find({"is_active": True}).to_list(100)
+    
+    coaches = []
+    for profile in coach_profiles:
+        user = await db.users.find_one({"_id": profile["user_id"]})
+        if user:
+            # Get average rating
+            reviews = await db.reviews.find({"coach_id": profile["user_id"]}).to_list(1000)
+            avg_rating = sum(r["rating"] for r in reviews) / len(reviews) if reviews else 0
+            
+            coaches.append({
+                "id": user["_id"],
+                "full_name": user["full_name"],
+                "email": user["email"],
+                "bio": profile.get("bio", ""),
+                "specialties": profile.get("specialties", []),
+                "rating": round(avg_rating, 1),
+                "reviews_count": len(reviews),
+                "hourly_rate": profile.get("hourly_rate", 50),
+                "is_active": profile.get("is_active", False),
+                "profile_image": profile.get("profile_image")
+            })
+    
+    return coaches
+
+@api_router.get("/coaches/{coach_id}")
+async def get_coach_profile(coach_id: str):
+    user = await db.users.find_one({"_id": coach_id, "role": "coach"})
+    if not user:
+        raise HTTPException(status_code=404, detail="Coach not found")
+    
+    profile = await db.coach_profiles.find_one({"user_id": coach_id})
+    reviews = await db.reviews.find({"coach_id": coach_id}).sort("created_at", -1).to_list(100)
+    
+    avg_rating = sum(r["rating"] for r in reviews) / len(reviews) if reviews else 0
+    
+    return {
+        "id": user["_id"],
+        "full_name": user["full_name"],
+        "email": user["email"],
+        "bio": profile.get("bio", "") if profile else "",
+        "specialties": profile.get("specialties", []) if profile else [],
+        "rating": round(avg_rating, 1),
+        "reviews_count": len(reviews),
+        "hourly_rate": profile.get("hourly_rate", 50) if profile else 50,
+        "reviews": [
+            {
+                "id": r["_id"],
+                "rating": r["rating"],
+                "comment": r.get("comment", ""),
+                "client_name": r.get("client_name", "متدرب"),
+                "created_at": r["created_at"]
+            }
+            for r in reviews[:20]
+        ]
+    }
+
+@api_router.post("/coaches/{coach_id}/review")
+async def add_coach_review(coach_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "client":
+        raise HTTPException(status_code=403, detail="Only clients can add reviews")
+    
+    review = {
+        "_id": str(uuid.uuid4()),
+        "coach_id": coach_id,
+        "client_id": current_user["_id"],
+        "client_name": current_user["full_name"],
+        "rating": data.get("rating", 5),
+        "comment": data.get("comment", ""),
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.reviews.insert_one(review)
+    return {"message": "Review added", "review_id": review["_id"]}
+
+@api_router.put("/coach/profile")
+async def update_coach_profile(data: dict, coach_user: dict = Depends(get_coach_user)):
+    update_data = {
+        "user_id": coach_user["_id"],
+        "bio": data.get("bio", ""),
+        "specialties": data.get("specialties", []),
+        "hourly_rate": data.get("hourly_rate", 50),
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.coach_profiles.update_one(
+        {"user_id": coach_user["_id"]},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Profile updated"}
+
 # ==================== SOCKET.IO EVENTS ====================
 
 @sio.event
