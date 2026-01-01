@@ -565,4 +565,85 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
   },
+  
+  // Package styles
+  packageCard: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+  },
+  packageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  packageIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FF9800',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  packageInfo: {
+    flex: 1,
+  },
+  packageName: {
+    fontSize: 16,
+    fontFamily: 'Cairo_700Bold',
+    color: '#333',
+    textAlign: 'right',
+  },
+  packageHours: {
+    fontSize: 12,
+    fontFamily: 'Cairo_400Regular',
+    color: '#666',
+    textAlign: 'right',
+  },
+  packagePrice: {
+    alignItems: 'center',
+  },
+  packagePriceAmount: {
+    fontSize: 18,
+    fontFamily: 'Cairo_700Bold',
+    color: '#4CAF50',
+  },
+  packagePricePerHour: {
+    fontSize: 10,
+    fontFamily: 'Cairo_400Regular',
+    color: '#999',
+  },
+  packageDesc: {
+    fontSize: 13,
+    fontFamily: 'Cairo_400Regular',
+    color: '#666',
+    textAlign: 'right',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  bookPackageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF9800',
+    padding: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  bookPackageBtnText: {
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
+    color: '#fff',
+  },
+  noPackages: {
+    fontSize: 14,
+    fontFamily: 'Cairo_400Regular',
+    color: '#999',
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
 });
