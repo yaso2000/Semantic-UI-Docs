@@ -500,6 +500,7 @@ async def get_admin_stats(admin_user: dict = Depends(get_admin_user)):
     total_users = await db.users.count_documents({"role": "client"})
     total_coaches = await db.users.count_documents({"role": "coach"})
     total_bookings = await db.bookings.count_documents({})
+    active_subscriptions = await db.subscriptions.count_documents({"status": "active"})
     total_revenue = await db.bookings.aggregate([
         {"$match": {"payment_status": "completed"}},
         {"$group": {"_id": None, "total": {"$sum": "$amount_paid"}}}
@@ -511,8 +512,136 @@ async def get_admin_stats(admin_user: dict = Depends(get_admin_user)):
         "total_users": total_users,
         "coaches": total_coaches,
         "total_bookings": total_bookings,
-        "total_revenue": revenue
+        "total_revenue": revenue,
+        "active_subscriptions": active_subscriptions
     }
+
+# ==================== ADMIN SUBSCRIPTION MANAGEMENT ====================
+
+@api_router.get("/admin/subscriptions")
+async def get_all_subscriptions(admin_user: dict = Depends(get_admin_user)):
+    subscriptions = await db.subscriptions.find().sort("created_at", -1).to_list(1000)
+    result = []
+    for sub in subscriptions:
+        coach = await db.users.find_one({"_id": sub["coach_id"]})
+        result.append({
+            "id": sub["_id"],
+            "coach_id": sub["coach_id"],
+            "coach_name": coach["full_name"] if coach else "Unknown",
+            "coach_email": coach["email"] if coach else "",
+            "plan": sub["plan"],
+            "status": sub["status"],
+            "start_date": sub["start_date"],
+            "end_date": sub["end_date"],
+            "amount": sub["amount"]
+        })
+    return result
+
+@api_router.post("/admin/grant-subscription")
+async def grant_subscription(data: dict, admin_user: dict = Depends(get_admin_user)):
+    coach_id = data.get("coach_id")
+    plan = data.get("plan", "monthly")
+    duration_months = data.get("duration_months", 1)
+    
+    if not coach_id:
+        raise HTTPException(status_code=400, detail="Coach ID required")
+    
+    # Check if coach exists
+    coach = await db.users.find_one({"_id": coach_id, "role": "coach"})
+    if not coach:
+        raise HTTPException(status_code=404, detail="Coach not found")
+    
+    from datetime import datetime, timedelta
+    start_date = datetime.utcnow()
+    
+    if plan == "yearly":
+        end_date = start_date + timedelta(days=365 * duration_months // 12)
+        amount = 399 * duration_months // 12
+    else:
+        end_date = start_date + timedelta(days=30 * duration_months)
+        amount = 49 * duration_months
+    
+    subscription = {
+        "_id": str(uuid.uuid4()),
+        "coach_id": coach_id,
+        "plan": plan,
+        "status": "active",
+        "start_date": start_date,
+        "end_date": end_date,
+        "amount": amount,
+        "granted_by": admin_user["_id"],
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.subscriptions.insert_one(subscription)
+    
+    # Activate coach profile
+    await db.coach_profiles.update_one(
+        {"user_id": coach_id},
+        {"$set": {"is_active": True}},
+        upsert=True
+    )
+    
+    return {"message": "Subscription granted", "subscription_id": subscription["_id"]}
+
+@api_router.put("/admin/subscriptions/{subscription_id}/cancel")
+async def cancel_subscription(subscription_id: str, admin_user: dict = Depends(get_admin_user)):
+    result = await db.subscriptions.update_one(
+        {"_id": subscription_id},
+        {"$set": {"status": "cancelled"}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    
+    # Get subscription to deactivate coach
+    subscription = await db.subscriptions.find_one({"_id": subscription_id})
+    if subscription:
+        await db.coach_profiles.update_one(
+            {"user_id": subscription["coach_id"]},
+            {"$set": {"is_active": False}}
+        )
+    
+    return {"message": "Subscription cancelled"}
+
+@api_router.get("/admin/coaches-with-status")
+async def get_coaches_with_status(admin_user: dict = Depends(get_admin_user)):
+    coaches = await db.users.find({"role": "coach"}).to_list(1000)
+    result = []
+    
+    for coach in coaches:
+        # Check for active subscription
+        subscription = await db.subscriptions.find_one({
+            "coach_id": coach["_id"],
+            "status": "active"
+        })
+        
+        result.append({
+            "id": coach["_id"],
+            "full_name": coach["full_name"],
+            "email": coach["email"],
+            "created_at": coach["created_at"],
+            "has_subscription": subscription is not None,
+            "subscription_status": subscription["status"] if subscription else None
+        })
+    
+    return result
+
+@api_router.put("/admin/users/{user_id}/role")
+async def change_user_role(user_id: str, data: dict, admin_user: dict = Depends(get_admin_user)):
+    new_role = data.get("role")
+    if new_role not in ["client", "coach"]:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    
+    result = await db.users.update_one(
+        {"_id": user_id},
+        {"$set": {"role": new_role}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "Role updated"}
 
 # ==================== COACH ENDPOINTS ====================
 
