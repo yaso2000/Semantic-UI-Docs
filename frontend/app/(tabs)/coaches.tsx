@@ -16,6 +16,25 @@ import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/ca
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
+// ألوان مختلفة لكل حرف
+const LETTER_COLORS: { [key: string]: string } = {
+  'ا': '#E91E63', 'أ': '#E91E63', 'إ': '#E91E63', 'آ': '#E91E63',
+  'ب': '#9C27B0', 'ت': '#673AB7', 'ث': '#3F51B5',
+  'ج': '#2196F3', 'ح': '#03A9F4', 'خ': '#00BCD4',
+  'د': '#009688', 'ذ': '#4CAF50', 'ر': '#8BC34A',
+  'ز': '#CDDC39', 'س': '#FFC107', 'ش': '#FF9800',
+  'ص': '#FF5722', 'ض': '#795548', 'ط': '#607D8B',
+  'ظ': '#9E9E9E', 'ع': '#E91E63', 'غ': '#9C27B0',
+  'ف': '#673AB7', 'ق': '#3F51B5', 'ك': '#2196F3',
+  'ل': '#03A9F4', 'م': '#00BCD4', 'ن': '#009688',
+  'ه': '#4CAF50', 'و': '#8BC34A', 'ي': '#FFC107',
+};
+
+const getLetterColor = (name: string): string => {
+  const firstLetter = name?.trim().charAt(0) || '?';
+  return LETTER_COLORS[firstLetter] || '#FF9800';
+};
+
 interface Coach {
   id: string;
   full_name: string;
