@@ -158,6 +158,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  adminMenuItem: {
+    backgroundColor: '#E3F2FD',
+    borderBottomWidth: 2,
+    borderBottomColor: '#2196F3',
+  },
   menuIconContainer: {
     width: 40,
     height: 40,
