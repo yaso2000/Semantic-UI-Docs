@@ -70,6 +70,13 @@ export default function BodyFatCalculator() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.navigationHeader}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-forward" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>حاسبة نسبة الدهون</Text>
+        <View style={{ width: 40 }} />
+      </View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
