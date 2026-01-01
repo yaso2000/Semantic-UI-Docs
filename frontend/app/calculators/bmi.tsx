@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useRouter } from 'expo-router';
 
 export default function BMICalculator() {
+  const router = useRouter();
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [result, setResult] = useState<any>(null);
