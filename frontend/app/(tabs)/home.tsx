@@ -10,10 +10,16 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 
 export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  
+  const [fontsLoaded] = useFonts({
+    Cairo_400Regular,
+    Cairo_700Bold,
+  });
 
   useEffect(() => {
     loadUser();
@@ -30,45 +36,49 @@ export default function HomeScreen() {
     }
   };
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome, {user?.full_name || 'User'}!</Text>
-          <Text style={styles.subtitle}>Your Holistic Wellness Journey</Text>
+          <Text style={styles.title}>أهلاً {user?.full_name || 'بك'}!</Text>
+          <Text style={styles.subtitle}>رحلتك نحو الحياة الأفضل</Text>
         </View>
 
         <View style={styles.pillarsSection}>
-          <Text style={styles.sectionTitle}>Four Pillars of Wellness</Text>
+          <Text style={styles.sectionTitle}>الركائز الأربع للعافية</Text>
           <View style={styles.pillarsGrid}>
             <TouchableOpacity style={[styles.pillarCard, { backgroundColor: '#E8F5E9' }]}>
               <Ionicons name="barbell" size={40} color="#4CAF50" />
-              <Text style={styles.pillarTitle}>Physical</Text>
-              <Text style={styles.pillarSubtitle}>Fitness & Health</Text>
+              <Text style={styles.pillarTitle}>البدنية</Text>
+              <Text style={styles.pillarSubtitle}>اللياقة والصحة</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.pillarCard, { backgroundColor: '#FFF3E0' }]}>
               <Ionicons name="nutrition" size={40} color="#FF9800" />
-              <Text style={styles.pillarTitle}>Nutritional</Text>
-              <Text style={styles.pillarSubtitle}>Diet & Nutrition</Text>
+              <Text style={styles.pillarTitle}>التغذوية</Text>
+              <Text style={styles.pillarSubtitle}>النظام الغذائي</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.pillarCard, { backgroundColor: '#F3E5F5' }]}>
               <Ionicons name="happy" size={40} color="#9C27B0" />
-              <Text style={styles.pillarTitle}>Mental</Text>
-              <Text style={styles.pillarSubtitle}>Mind & Wellness</Text>
+              <Text style={styles.pillarTitle}>النفسية</Text>
+              <Text style={styles.pillarSubtitle}>العقل والوعي</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.pillarCard, { backgroundColor: '#E0F7FA' }]}>
               <Ionicons name="leaf" size={40} color="#00BCD4" />
-              <Text style={styles.pillarTitle}>Spiritual</Text>
-              <Text style={styles.pillarSubtitle}>Inner Peace</Text>
+              <Text style={styles.pillarTitle}>الروحية</Text>
+              <Text style={styles.pillarSubtitle}>السلام الداخلي</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>الإجراءات السريعة</Text>
           
           <TouchableOpacity 
             style={styles.actionButton}
@@ -78,10 +88,10 @@ export default function HomeScreen() {
               <Ionicons name="calculator" size={24} color="#2196F3" />
             </View>
             <View style={styles.actionText}>
-              <Text style={styles.actionTitle}>Health Calculators</Text>
-              <Text style={styles.actionSubtitle}>BMI, TDEE & Anxiety Assessment</Text>
+              <Text style={styles.actionTitle}>الحاسبات الصحية</Text>
+              <Text style={styles.actionSubtitle}>11 حاسبة متخصصة</Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#999" />
+            <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -92,10 +102,10 @@ export default function HomeScreen() {
               <Ionicons name="calendar" size={24} color="#4CAF50" />
             </View>
             <View style={styles.actionText}>
-              <Text style={styles.actionTitle}>Book a Session</Text>
-              <Text style={styles.actionSubtitle}>Schedule coaching hours</Text>
+              <Text style={styles.actionTitle}>حجز جلسة</Text>
+              <Text style={styles.actionSubtitle}>احجز ساعات التدريب</Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#999" />
+            <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -106,10 +116,10 @@ export default function HomeScreen() {
               <Ionicons name="chatbubbles" size={24} color="#FF9800" />
             </View>
             <View style={styles.actionText}>
-              <Text style={styles.actionTitle}>Chat with Coach</Text>
-              <Text style={styles.actionSubtitle}>Direct messaging</Text>
+              <Text style={styles.actionTitle}>محادثة المدرب</Text>
+              <Text style={styles.actionSubtitle}>تواصل مباشر</Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#999" />
+            <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -132,11 +142,15 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'Cairo_700Bold',
+    textAlign: 'right',
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
     marginTop: 4,
+    fontFamily: 'Cairo_400Regular',
+    textAlign: 'right',
   },
   pillarsSection: {
     marginBottom: 32,
@@ -146,6 +160,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 16,
+    fontFamily: 'Cairo_700Bold',
+    textAlign: 'right',
   },
   pillarsGrid: {
     flexDirection: 'row',
@@ -164,11 +180,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginTop: 12,
+    fontFamily: 'Cairo_700Bold',
   },
   pillarSubtitle: {
     fontSize: 12,
     color: '#666',
     marginTop: 4,
+    fontFamily: 'Cairo_400Regular',
   },
   actionsSection: {
     marginBottom: 32,
@@ -193,19 +211,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginLeft: 16,
   },
   actionText: {
     flex: 1,
+    alignItems: 'flex-end',
   },
   actionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+    fontFamily: 'Cairo_700Bold',
+    textAlign: 'right',
   },
   actionSubtitle: {
     fontSize: 14,
     color: '#666',
     marginTop: 2,
+    fontFamily: 'Cairo_400Regular',
+    textAlign: 'right',
   },
 });
