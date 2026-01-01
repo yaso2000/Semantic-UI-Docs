@@ -161,6 +161,63 @@ const mentalTools = [
   },
 ];
 
+const spiritualTools = [
+  {
+    id: 'meditation-timer',
+    title: 'مؤقت التأمل',
+    subtitle: 'Meditation Timer',
+    icon: 'flower',
+    color: '#7C4DFF',
+    bg: '#EDE7F6',
+    route: '/calculators/meditation-timer',
+  },
+  {
+    id: 'breathing-exercise',
+    title: 'تمارين التنفس',
+    subtitle: 'Breathing Exercises',
+    icon: 'fitness',
+    color: '#2196F3',
+    bg: '#E3F2FD',
+    route: '/calculators/breathing-exercise',
+  },
+  {
+    id: 'gratitude-journal',
+    title: 'دفتر الامتنان',
+    subtitle: 'Gratitude Journal',
+    icon: 'heart',
+    color: '#FF9800',
+    bg: '#FFF8E1',
+    route: '/calculators/gratitude-journal',
+  },
+  {
+    id: 'core-values',
+    title: 'القيم الأساسية',
+    subtitle: 'Core Values',
+    icon: 'diamond',
+    color: '#9C27B0',
+    bg: '#F3E5F5',
+    route: '/calculators/core-values',
+  },
+  {
+    id: 'reflection-prompts',
+    title: 'تأملات عميقة',
+    subtitle: 'Reflection Prompts',
+    icon: 'bulb',
+    color: '#00BCD4',
+    bg: '#E0F7FA',
+    route: '/calculators/reflection-prompts',
+  },
+  {
+    id: 'wheel-of-life',
+    title: 'عجلة الحياة',
+    subtitle: 'Wheel of Life',
+    icon: 'pie-chart',
+    color: '#E91E63',
+    bg: '#FCE4EC',
+    route: '/calculators/wheel-of-life',
+  },
+];
+
 export default function CalculatorsScreen() {
   const router = useRouter();
   
