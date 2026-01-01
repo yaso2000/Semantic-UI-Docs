@@ -212,6 +212,42 @@ export default function CoachProfileScreen() {
           </View>
         )}
 
+        {/* قسم الباقات */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>الباقات المتاحة</Text>
+          {packages.length > 0 ? (
+            packages.map((pkg) => (
+              <View key={pkg.id} style={styles.packageCard}>
+                <View style={styles.packageHeader}>
+                  <View style={styles.packageIcon}>
+                    <Ionicons name="pricetag" size={20} color="#fff" />
+                  </View>
+                  <View style={styles.packageInfo}>
+                    <Text style={styles.packageName}>{pkg.name}</Text>
+                    <Text style={styles.packageHours}>{pkg.hours} ساعة تدريبية</Text>
+                  </View>
+                  <View style={styles.packagePrice}>
+                    <Text style={styles.packagePriceAmount}>${pkg.price}</Text>
+                    <Text style={styles.packagePricePerHour}>${pkg.hourly_rate}/ساعة</Text>
+                  </View>
+                </View>
+                {pkg.description && (
+                  <Text style={styles.packageDesc}>{pkg.description}</Text>
+                )}
+                <TouchableOpacity
+                  style={styles.bookPackageBtn}
+                  onPress={() => Alert.alert('قريباً', 'سيتم تفعيل خاصية الحجز قريباً')}
+                >
+                  <Ionicons name="calendar" size={18} color="#fff" />
+                  <Text style={styles.bookPackageBtnText}>احجز الآن</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noPackages}>لا توجد باقات متاحة حالياً</Text>
+          )}
+        </View>
+
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>التقييمات ({coach.reviews_count})</Text>
