@@ -9,9 +9,10 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="fitness" size={80} color="#2196F3" />
-        <Text style={styles.title}>Holistic Life Coaching</Text>
-        <Text style={styles.subtitle}>Transform Your Life</Text>
+        <Ionicons name="chatbubble-ellipses" size={80} color="#2196F3" />
+        <Text style={styles.title}>Ask Yazo</Text>
+        <Text style={styles.subtitle}>رحلتك نحو الحياة الأفضل</Text>
+        <Text style={styles.subtitleEn}>Your Journey to a Better Life</Text>
       </View>
 
       <View style={styles.buttonsContainer}>
@@ -19,37 +20,46 @@ export default function Index() {
           style={styles.button}
           onPress={() => router.push('/(auth)/login')}
         >
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={styles.buttonText}>تسجيل الدخول / Login</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           style={[styles.button, styles.buttonSecondary]}
           onPress={() => router.push('/(auth)/register')}
         >
-          <Text style={[styles.buttonText, styles.buttonTextSecondary]}>Register</Text>
+          <Text style={[styles.buttonText, styles.buttonTextSecondary]}>التسجيل / Register</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.pillarsContainer}>
-        <Text style={styles.pillarsTitle}>Four Pillars of Wellness</Text>
+        <Text style={styles.pillarsTitle}>أربع ركائز للعافية</Text>
+        <Text style={styles.pillarsTitleEn}>Four Pillars of Wellness</Text>
         <View style={styles.pillarsGrid}>
           <View style={styles.pillarCard}>
             <Ionicons name="barbell" size={32} color="#4CAF50" />
-            <Text style={styles.pillarText}>Physical</Text>
+            <Text style={styles.pillarText}>البدني</Text>
+            <Text style={styles.pillarTextEn}>Physical</Text>
           </View>
           <View style={styles.pillarCard}>
             <Ionicons name="nutrition" size={32} color="#FF9800" />
-            <Text style={styles.pillarText}>Nutritional</Text>
+            <Text style={styles.pillarText}>التغذوي</Text>
+            <Text style={styles.pillarTextEn}>Nutritional</Text>
           </View>
           <View style={styles.pillarCard}>
             <Ionicons name="happy" size={32} color="#9C27B0" />
-            <Text style={styles.pillarText}>Mental</Text>
+            <Text style={styles.pillarText}>النفسي</Text>
+            <Text style={styles.pillarTextEn}>Mental</Text>
           </View>
           <View style={styles.pillarCard}>
             <Ionicons name="leaf" size={32} color="#00BCD4" />
-            <Text style={styles.pillarText}>Spiritual</Text>
+            <Text style={styles.pillarText}>الروحي</Text>
+            <Text style={styles.pillarTextEn}>Spiritual</Text>
           </View>
         </View>
+      </View>
+
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>askyazo.com</Text>
       </View>
     </View>
   );
@@ -67,16 +77,22 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   title: {
-    fontSize: 32,
+    fontSize: 38,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2196F3',
     marginTop: 16,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#666',
     marginTop: 8,
+    fontWeight: '600',
+  },
+  subtitleEn: {
+    fontSize: 16,
+    color: '#999',
+    marginTop: 4,
   },
   buttonsContainer: {
     marginBottom: 48,
@@ -109,6 +125,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 4,
+  },
+  pillarsTitleEn: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#666',
     marginBottom: 24,
   },
   pillarsGrid: {
@@ -131,8 +153,25 @@ const styles = StyleSheet.create({
   },
   pillarText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#333',
     marginTop: 8,
+  },
+  pillarTextEn: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#2196F3',
+    fontWeight: '600',
   },
 });

@@ -26,12 +26,12 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!email || !password || !fullName) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('خطأ / Error', 'الرجاء ملء جميع الحقول / Please fill in all fields');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert('خطأ / Error', 'يجب أن تكون كلمة المرور 6 أحرف على الأقل / Password must be at least 6 characters');
       return;
     }
 
@@ -49,10 +49,10 @@ export default function RegisterScreen() {
       await AsyncStorage.setItem('token', access_token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
       
-      Alert.alert('Success', 'Account created successfully!');
+      Alert.alert('نجح / Success', 'تم إنشاء الحساب بنجاح! / Account created successfully!');
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.response?.data?.detail || 'An error occurred');
+      Alert.alert('فشل التسجيل / Registration Failed', error.response?.data?.detail || 'حدث خطأ / An error occurred');
     } finally {
       setLoading(false);
     }
@@ -65,9 +65,10 @@ export default function RegisterScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Ionicons name="fitness" size={60} color="#2196F3" />
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Start Your Wellness Journey</Text>
+          <Ionicons name="chatbubble-ellipses" size={60} color="#2196F3" />
+          <Text style={styles.title}>Ask Yazo</Text>
+          <Text style={styles.subtitle}>إنشاء حساب جديد</Text>
+          <Text style={styles.subtitleEn}>Create New Account</Text>
         </View>
 
         <View style={styles.form}>
@@ -75,7 +76,7 @@ export default function RegisterScreen() {
             <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Full Name"
+              placeholder="الاسم الكامل / Full Name"
               value={fullName}
               onChangeText={setFullName}
               placeholderTextColor="#999"
@@ -86,7 +87,7 @@ export default function RegisterScreen() {
             <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder="البريد الإلكتروني / Email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -99,7 +100,7 @@ export default function RegisterScreen() {
             <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Password (min 6 characters)"
+              placeholder="كلمة المرور (6 أحرف على الأقل)"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -113,7 +114,7 @@ export default function RegisterScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Creating Account...' : 'Register'}
+              {loading ? 'جاري الإنشاء...' : 'إنشاء حساب / Register'}
             </Text>
           </TouchableOpacity>
 
@@ -121,7 +122,8 @@ export default function RegisterScreen() {
             style={styles.linkButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.linkText}>Already have an account? Login</Text>
+            <Text style={styles.linkText}>لديك حساب بالفعل؟ سجل الدخول</Text>
+            <Text style={styles.linkTextEn}>Already have an account? Login</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -144,15 +146,21 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2196F3',
     marginTop: 16,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#666',
     marginTop: 8,
+    fontWeight: '600',
+  },
+  subtitleEn: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 2,
   },
   form: {
     width: '100%',
@@ -199,5 +207,11 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#2196F3',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  linkTextEn: {
+    color: '#2196F3',
+    fontSize: 14,
+    marginTop: 2,
   },
 });

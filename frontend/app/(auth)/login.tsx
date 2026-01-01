@@ -25,7 +25,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('خطأ / Error', 'الرجاء ملء جميع الحقول / Please fill in all fields');
       return;
     }
 
@@ -41,10 +41,10 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('token', access_token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
       
-      Alert.alert('Success', 'Logged in successfully!');
+      Alert.alert('نجح / Success', 'تم تسجيل الدخول بنجاح! / Logged in successfully!');
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred');
+      Alert.alert('فشل تسجيل الدخول / Login Failed', error.response?.data?.detail || 'حدث خطأ / An error occurred');
     } finally {
       setLoading(false);
     }
@@ -57,9 +57,10 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Ionicons name="fitness" size={60} color="#2196F3" />
-          <Text style={styles.title}>Holistic Life Coaching</Text>
-          <Text style={styles.subtitle}>Welcome Back</Text>
+          <Ionicons name="chatbubble-ellipses" size={60} color="#2196F3" />
+          <Text style={styles.title}>Ask Yazo</Text>
+          <Text style={styles.subtitle}>مرحباً بعودتك</Text>
+          <Text style={styles.subtitleEn}>Welcome Back</Text>
         </View>
 
         <View style={styles.form}>
@@ -67,7 +68,7 @@ export default function LoginScreen() {
             <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder="البريد الإلكتروني / Email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -80,7 +81,7 @@ export default function LoginScreen() {
             <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder="كلمة المرور / Password"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -94,7 +95,7 @@ export default function LoginScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول / Login'}
             </Text>
           </TouchableOpacity>
 
@@ -102,7 +103,8 @@ export default function LoginScreen() {
             style={styles.linkButton}
             onPress={() => router.push('/(auth)/register')}
           >
-            <Text style={styles.linkText}>Don't have an account? Register</Text>
+            <Text style={styles.linkText}>ليس لديك حساب؟ سجل الآن</Text>
+            <Text style={styles.linkTextEn}>Don't have an account? Register</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -125,15 +127,21 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2196F3',
     marginTop: 16,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#666',
     marginTop: 8,
+    fontWeight: '600',
+  },
+  subtitleEn: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 2,
   },
   form: {
     width: '100%',
@@ -180,5 +188,11 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#2196F3',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  linkTextEn: {
+    color: '#2196F3',
+    fontSize: 14,
+    marginTop: 2,
   },
 });
