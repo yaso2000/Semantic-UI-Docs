@@ -528,7 +528,7 @@ async def join(sid, data):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Holistic Life Coaching API", "version": "1.0"}
+    return {"message": "Ask Yazo API", "version": "1.0", "domain": "askyazo.com"}
 
 # Include router
 app.include_router(api_router)
