@@ -197,10 +197,24 @@ export default function AdminDashboard() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push('/(tabs)/chat')}
+            onPress={() => router.push('/admin/settings' as any)}
           >
             <View style={[styles.menuIcon, { backgroundColor: '#E3F2FD' }]}>
-              <Ionicons name="chatbubbles" size={22} color="#2196F3" />
+              <Ionicons name="options" size={22} color="#2196F3" />
+            </View>
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>إعدادات المنصة</Text>
+              <Text style={styles.menuSubtitle}>حدود الأسعار والإعدادات العامة</Text>
+            </View>
+            <Ionicons name="chevron-back" size={20} color="#999" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/(tabs)/chat')}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#FFEBEE' }]}>
+              <Ionicons name="chatbubbles" size={22} color="#F44336" />
             </View>
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>المحادثات</Text>
