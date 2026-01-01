@@ -230,6 +230,23 @@ export default function CalculatorsScreen() {
             ))}
           </View>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🧠 التقييم النفسي والعقلي</Text>
+          <View style={styles.grid}>
+            {mentalTools.map((tool) => (
+              <TouchableOpacity
+                key={tool.id}
+                style={[styles.card, { backgroundColor: tool.bg }]}
+                onPress={() => router.push(tool.route as any)}
+              >
+                <Ionicons name={tool.icon as any} size={32} color={tool.color} />
+                <Text style={styles.cardTitle}>{tool.title}</Text>
+                <Text style={styles.cardSubtitle}>{tool.subtitle}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
