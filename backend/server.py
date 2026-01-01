@@ -176,6 +176,11 @@ async def get_admin_user(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
+async def get_coach_user(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") not in ["coach", "admin"]:
+        raise HTTPException(status_code=403, detail="Coach access required")
+    return current_user
+
 # ==================== AUTH ENDPOINTS ====================
 
 @api_router.post("/auth/register", response_model=TokenResponse)
