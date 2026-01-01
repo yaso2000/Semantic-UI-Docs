@@ -1,25 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  ActivityIndicator,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
+  FlatList,
+  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { format } from 'date-fns';
 
-export default function UsersManagement() {
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  created_at: string;
+}
+
+export default function AdminUsers() {
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
-  const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+  const router = useRouter();
+
+  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   useEffect(() => {
     loadUsers();
@@ -28,12 +38,12 @@ export default function UsersManagement() {
   const loadUsers = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await fetch(`${API_URL}/api/admin/users`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      setUsers(response.data);
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to load users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
       console.error('Error loading users:', error);
     } finally {
       setLoading(false);
@@ -46,27 +56,25 @@ export default function UsersManagement() {
     loadUsers();
   };
 
-  const renderUserCard = ({ item }: { item: any }) => (
+  const renderUser = ({ item }: { item: User }) => (
     <View style={styles.userCard}>
-      <View style={styles.userAvatar}>
-        <Ionicons name="person" size={32} color="#2196F3" />
+      <View style={styles.avatar}>
+        <Ionicons name="person" size={28} color="#fff" />
       </View>
       <View style={styles.userInfo}>
         <Text style={styles.userName}>{item.full_name}</Text>
         <Text style={styles.userEmail}>{item.email}</Text>
         <Text style={styles.userDate}>
-          Joined: {format(new Date(item.created_at), 'MMM dd, yyyy')}
+          انضم في {new Date(item.created_at).toLocaleDateString('ar-SA')}
         </Text>
       </View>
-      <View style={styles.userActions}>
-        <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="chatbubble" size={20} color="#2196F3" />
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.chatButton}>
+        <Ionicons name="chatbubble" size={20} color="#2196F3" />
+      </TouchableOpacity>
     </View>
   );
 
-  if (loading) {
+  if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2196F3" />
@@ -77,20 +85,30 @@ export default function UsersManagement() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Total Users: {users.length}</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-forward" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>المتدربين</Text>
+        <View style={styles.countBadge}>
+          <Text style={styles.countText}>{users.length}</Text>
+        </View>
       </View>
+
       <FlatList
         data={users}
-        renderItem={renderUserCard}
+        renderItem={renderUser}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No users found</Text>
+            <Text style={styles.emptyText}>لا يوجد متدربين بعد</Text>
           </View>
         }
       />
@@ -109,23 +127,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
     backgroundColor: '#fff',
-    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
-  headerText: {
-    fontSize: 16,
-    fontWeight: '600',
+  backButton: {
+    marginLeft: 16,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: 'Cairo_700Bold',
     color: '#333',
+    textAlign: 'right',
+  },
+  countBadge: {
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  countText: {
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
+    color: '#fff',
   },
   listContent: {
     padding: 16,
   },
   userCard: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     elevation: 2,
@@ -133,54 +170,54 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    alignItems: 'center',
   },
-  userAvatar: {
+  avatar: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginLeft: 16,
   },
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontFamily: 'Cairo_700Bold',
     color: '#333',
+    textAlign: 'right',
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: 'Cairo_400Regular',
     color: '#666',
+    textAlign: 'right',
     marginTop: 2,
   },
   userDate: {
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: 'Cairo_400Regular',
     color: '#999',
+    textAlign: 'right',
     marginTop: 4,
   },
-  userActions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+  chatButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E3F2FD',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  emptyState: {
     alignItems: 'center',
-    paddingTop: 100,
+    paddingTop: 80,
   },
   emptyText: {
     fontSize: 16,
+    fontFamily: 'Cairo_400Regular',
     color: '#999',
     marginTop: 16,
   },

@@ -2,65 +2,53 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  ScrollView,
+  TextInput,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  Alert,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
 export default function PackageForm() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   const [name, setName] = useState('');
   const [hours, setHours] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-  const [packageId, setPackageId] = useState('');
-  
-  const router = useRouter();
-  const params = useLocalSearchParams();
-  const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   useEffect(() => {
     if (params.packageData) {
       try {
         const pkg = JSON.parse(params.packageData as string);
-        setIsEdit(true);
-        setPackageId(pkg.id);
-        setName(pkg.name);
-        setHours(pkg.hours.toString());
-        setPrice(pkg.price.toString());
-        setDescription(pkg.description);
-      } catch (error) {
-        console.error('Error parsing package data:', error);
+        setIsEditing(true);
+        setName(pkg.name || '');
+        setHours(String(pkg.hours || ''));
+        setPrice(String(pkg.price || ''));
+        setDescription(pkg.description || '');
+      } catch (e) {
+        console.error('Error parsing package data:', e);
       }
     }
-  }, [params]);
+  }, [params.packageData]);
 
-  const handleSave = async () => {
-    if (!name || !hours || !price || !description) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    const hoursNum = parseFloat(hours);
-    const priceNum = parseFloat(price);
-
-    if (isNaN(hoursNum) || hoursNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid number of hours');
-      return;
-    }
-
-    if (isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid price');
+  const handleSubmit = async () => {
+    if (!name.trim() || !hours || !price) {
+      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
       return;
     }
 
@@ -68,117 +56,164 @@ export default function PackageForm() {
     try {
       const token = await AsyncStorage.getItem('token');
       const packageData = {
-        name,
-        hours: hoursNum,
-        price: priceNum,
-        description,
+        name: name.trim(),
+        hours: parseInt(hours),
+        price: parseFloat(price),
+        description: description.trim(),
         active: true,
       };
 
-      if (isEdit) {
-        await axios.put(`${API_URL}/api/packages/${packageId}`, packageData, {
-          headers: { Authorization: `Bearer ${token}` }
+      let response;
+      if (isEditing && params.packageData) {
+        const pkg = JSON.parse(params.packageData as string);
+        response = await fetch(`${API_URL}/api/packages/${pkg.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(packageData),
         });
-        Alert.alert('Success', 'Package updated successfully');
       } else {
-        await axios.post(`${API_URL}/api/packages`, packageData, {
-          headers: { Authorization: `Bearer ${token}` }
+        response = await fetch(`${API_URL}/api/packages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(packageData),
         });
-        Alert.alert('Success', 'Package created successfully');
       }
-      router.back();
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to save package');
+
+      if (response.ok) {
+        Alert.alert(
+          'نجاح',
+          isEditing ? 'تم تحديث الباقة بنجاح' : 'تم إنشاء الباقة بنجاح',
+          [{ text: 'حسناً', onPress: () => router.back() }]
+        );
+      } else {
+        const error = await response.json();
+        Alert.alert('خطأ', error.detail || 'حدث خطأ أثناء الحفظ');
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'حدث خطأ في الاتصال بالخادم');
     } finally {
       setLoading(false);
     }
   };
 
-  const pricePerHour = hours && price ? (parseFloat(price) / parseFloat(hours)).toFixed(2) : '0.00';
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView>
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="arrow-forward" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>
+              {isEditing ? 'تعديل الباقة' : 'إضافة باقة جديدة'}
+            </Text>
+          </View>
+
           <View style={styles.form}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Package Name *</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="pricetag" size={20} color="#666" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g., Starter Package"
-                  value={name}
-                  onChangeText={setName}
-                  placeholderTextColor="#999"
-                />
-              </View>
+              <Text style={styles.label}>اسم الباقة *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="مثال: باقة المبتدئين"
+                placeholderTextColor="#999"
+                value={name}
+                onChangeText={setName}
+              />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Number of Hours *</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="time" size={20} color="#666" style={styles.inputIcon} />
+            <View style={styles.row}>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.label}>عدد الساعات *</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g., 10"
+                  placeholder="10"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
                   value={hours}
                   onChangeText={setHours}
-                  keyboardType="numeric"
-                  placeholderTextColor="#999"
                 />
               </View>
-            </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Price (USD) *</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="cash" size={20} color="#666" style={styles.inputIcon} />
+              <View style={[styles.inputGroup, { flex: 1, marginLeft: 12 }]}>
+                <Text style={styles.label}>السعر ($) *</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g., 299.99"
+                  placeholder="100"
+                  placeholderTextColor="#999"
+                  keyboardType="decimal-pad"
                   value={price}
                   onChangeText={setPrice}
-                  keyboardType="numeric"
-                  placeholderTextColor="#999"
                 />
               </View>
             </View>
 
             {hours && price && (
-              <View style={styles.calculationCard}>
-                <Text style={styles.calculationLabel}>Price per hour:</Text>
-                <Text style={styles.calculationValue}>${pricePerHour}/hr</Text>
+              <View style={styles.pricePerHour}>
+                <Ionicons name="calculator" size={20} color="#4CAF50" />
+                <Text style={styles.pricePerHourText}>
+                  ${(parseFloat(price) / parseInt(hours)).toFixed(2)} للساعة الواحدة
+                </Text>
               </View>
             )}
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description *</Text>
-              <View style={[styles.inputContainer, styles.textAreaContainer]}>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  placeholder="Describe what's included in this package..."
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  placeholderTextColor="#999"
-                />
+              <Text style={styles.label}>وصف الباقة</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="وصف مفصل للباقة والخدمات المقدمة..."
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
+
+            <View style={styles.previewCard}>
+              <Text style={styles.previewTitle}>معاينة الباقة</Text>
+              <View style={styles.previewContent}>
+                <View style={styles.previewHeader}>
+                  <View style={styles.previewIcon}>
+                    <Ionicons name="fitness" size={24} color="#fff" />
+                  </View>
+                  <View style={styles.previewInfo}>
+                    <Text style={styles.previewName}>{name || 'اسم الباقة'}</Text>
+                    <Text style={styles.previewHours}>
+                      {hours || '0'} ساعة تدريبية
+                    </Text>
+                  </View>
+                  <Text style={styles.previewPrice}>${price || '0'}</Text>
+                </View>
+                {description && (
+                  <Text style={styles.previewDescription}>{description}</Text>
+                )}
               </View>
             </View>
 
             <TouchableOpacity
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-              onPress={handleSave}
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
               disabled={loading}
             >
-              <Ionicons name="checkmark-circle" size={24} color="#fff" />
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : isEdit ? 'Update Package' : 'Create Package'}
+              <Text style={styles.submitButtonText}>
+                {loading ? 'جاري الحفظ...' : isEditing ? 'تحديث الباقة' : 'إنشاء الباقة'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -193,85 +228,144 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  backButton: {
+    marginLeft: 16,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: 'Cairo_700Bold',
+    color: '#333',
+    textAlign: 'right',
   },
   form: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 20,
   },
   inputGroup: {
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
     color: '#333',
     marginBottom: 8,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  inputIcon: {
-    marginRight: 8,
+    textAlign: 'right',
   },
   input: {
-    flex: 1,
-    height: 48,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
     fontSize: 16,
+    fontFamily: 'Cairo_400Regular',
     color: '#333',
-  },
-  textAreaContainer: {
-    alignItems: 'flex-start',
-    paddingVertical: 12,
+    textAlign: 'right',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   textArea: {
-    height: 100,
+    minHeight: 100,
+    paddingTop: 16,
   },
-  calculationCard: {
+  row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+  },
+  pricePerHour: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     backgroundColor: '#E8F5E9',
+    padding: 12,
     borderRadius: 8,
+    marginBottom: 20,
+    gap: 8,
+  },
+  pricePerHourText: {
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
+    color: '#4CAF50',
+  },
+  previewCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 16,
     marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
   },
-  calculationLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#4CAF50',
+  previewTitle: {
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
+    color: '#999',
+    marginBottom: 12,
+    textAlign: 'center',
   },
-  calculationValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    backgroundColor: '#2196F3',
-    borderRadius: 8,
+  previewContent: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
     padding: 16,
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  previewIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
+    marginLeft: 12,
   },
-  saveButtonDisabled: {
-    backgroundColor: '#90CAF9',
+  previewInfo: {
+    flex: 1,
   },
-  saveButtonText: {
+  previewName: {
+    fontSize: 16,
+    fontFamily: 'Cairo_700Bold',
+    color: '#333',
+    textAlign: 'right',
+  },
+  previewHours: {
+    fontSize: 12,
+    fontFamily: 'Cairo_400Regular',
+    color: '#666',
+    textAlign: 'right',
+  },
+  previewPrice: {
+    fontSize: 20,
+    fontFamily: 'Cairo_700Bold',
+    color: '#4CAF50',
+  },
+  previewDescription: {
+    fontSize: 14,
+    fontFamily: 'Cairo_400Regular',
+    color: '#666',
+    marginTop: 12,
+    textAlign: 'right',
+    lineHeight: 22,
+  },
+  submitButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  submitButtonText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Cairo_700Bold',
     color: '#fff',
   },
 });
