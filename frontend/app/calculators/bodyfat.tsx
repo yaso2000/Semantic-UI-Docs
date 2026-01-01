@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useRouter } from 'expo-router';
 
 export default function BodyFatCalculator() {
+  const router = useRouter();
   const [gender, setGender] = useState('male');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
