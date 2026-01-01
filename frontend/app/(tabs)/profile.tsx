@@ -5,15 +5,22 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  ScrollView,
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  
+  const [fontsLoaded] = useFonts({
+    Cairo_400Regular,
+    Cairo_700Bold,
+  });
 
   useEffect(() => {
     loadUser();
@@ -32,19 +39,23 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      'تسجيل الخروج',
+      'هل أنت متأكد من تسجيل الخروج؟',
       [
         {
-          text: 'Cancel',
+          text: 'إلغاء',
           style: 'cancel',
         },
         {
-          text: 'Logout',
+          text: 'خروج',
           onPress: async () => {
-            await AsyncStorage.removeItem('token');
-            await AsyncStorage.removeItem('user');
-            router.replace('/');  
+            try {
+              await AsyncStorage.removeItem('token');
+              await AsyncStorage.removeItem('user');
+              router.replace('/');
+            } catch (error) {
+              console.error('Error logging out:', error);
+            }
           },
           style: 'destructive',
         },
@@ -52,67 +63,92 @@ export default function ProfileScreen() {
     );
   };
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={48} color="#2196F3" />
-        </View>
-        <Text style={styles.name}>{user?.full_name || 'User'}</Text>
-        <Text style={styles.email}>{user?.email || 'email@example.com'}</Text>
-      </View>
-
-      <View style={styles.menuSection}>
-        {user?.role === 'admin' && (
-          <TouchableOpacity 
-            style={[styles.menuItem, styles.adminMenuItem]}
-            onPress={() => router.push('/admin/dashboard')}
-          >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#E3F2FD' }]}>
-              <Ionicons name="shield-checkmark" size={24} color="#2196F3" />
+      <ScrollView>
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Ionicons name="person" size={48} color="#2196F3" />
+          </View>
+          <Text style={styles.name}>{user?.full_name || 'المستخدم'}</Text>
+          <Text style={styles.email}>{user?.email || 'email@example.com'}</Text>
+          {user?.role === 'admin' && (
+            <View style={styles.adminBadge}>
+              <Ionicons name="shield-checkmark" size={14} color="#fff" />
+              <Text style={styles.adminBadgeText}>مدير</Text>
             </View>
-            <Text style={[styles.menuText, { fontWeight: '600' }]}>Admin Dashboard</Text>
-            <Ionicons name="chevron-forward" size={24} color="#2196F3" />
+          )}
+        </View>
+
+        <View style={styles.menuSection}>
+          {user?.role === 'admin' && (
+            <TouchableOpacity 
+              style={[styles.menuItem, styles.adminMenuItem]}
+              onPress={() => router.push('/admin/dashboard')}
+            >
+              <View style={[styles.menuIconContainer, { backgroundColor: '#E3F2FD' }]}>
+                <Ionicons name="shield-checkmark" size={24} color="#2196F3" />
+              </View>
+              <Text style={styles.menuText}>لوحة التحكم</Text>
+              <Ionicons name="chevron-back" size={24} color="#2196F3" />
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuIconContainer}>
+              <Ionicons name="clipboard" size={24} color="#2196F3" />
+            </View>
+            <Text style={styles.menuText}>استبيان القبول</Text>
+            <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
-        )}
 
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconContainer}>
-            <Ionicons name="clipboard" size={24} color="#2196F3" />
-          </View>
-          <Text style={styles.menuText}>Intake Assessment</Text>
-          <Ionicons name="chevron-forward" size={24} color="#999" />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="folder" size={24} color="#4CAF50" />
+            </View>
+            <Text style={styles.menuText}>مكتبة الموارد</Text>
+            <Ionicons name="chevron-back" size={24} color="#999" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconContainer}>
-            <Ionicons name="folder" size={24} color="#4CAF50" />
-          </View>
-          <Text style={styles.menuText}>Resource Library</Text>
-          <Ionicons name="chevron-forward" size={24} color="#999" />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={[styles.menuIconContainer, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="checkmark-done" size={24} color="#FF9800" />
+            </View>
+            <Text style={styles.menuText}>متتبع العادات</Text>
+            <Ionicons name="chevron-back" size={24} color="#999" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconContainer}>
-            <Ionicons name="checkmark-done" size={24} color="#FF9800" />
-          </View>
-          <Text style={styles.menuText}>Habit Tracker</Text>
-          <Ionicons name="chevron-forward" size={24} color="#999" />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={[styles.menuIconContainer, { backgroundColor: '#F3E5F5' }]}>
+              <Ionicons name="settings" size={24} color="#9C27B0" />
+            </View>
+            <Text style={styles.menuText}>الإعدادات</Text>
+            <Ionicons name="chevron-back" size={24} color="#999" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconContainer}>
-            <Ionicons name="settings" size={24} color="#666" />
-          </View>
-          <Text style={styles.menuText}>Settings</Text>
-          <Ionicons name="chevron-forward" size={24} color="#999" />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={[styles.menuIconContainer, { backgroundColor: '#E0F7FA' }]}>
+              <Ionicons name="help-circle" size={24} color="#00BCD4" />
+            </View>
+            <Text style={styles.menuText}>المساعدة والدعم</Text>
+            <Ionicons name="chevron-back" size={24} color="#999" />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out" size={24} color="#F44336" />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>تسجيل الخروج</Text>
         </TouchableOpacity>
-      </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>اسأل يازو - Ask Yazo</Text>
+          <Text style={styles.versionText}>الإصدار 1.0.0</Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -139,13 +175,29 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Cairo_700Bold',
     color: '#333',
   },
   email: {
-    fontSize: 16,
+    fontSize: 14,
+    fontFamily: 'Cairo_400Regular',
     color: '#666',
     marginTop: 4,
+  },
+  adminBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 12,
+    gap: 4,
+  },
+  adminBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Cairo_700Bold',
+    color: '#fff',
   },
   menuSection: {
     backgroundColor: '#fff',
@@ -164,30 +216,50 @@ const styles = StyleSheet.create({
     borderBottomColor: '#2196F3',
   },
   menuIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginLeft: 16,
   },
   menuText: {
     flex: 1,
     fontSize: 16,
+    fontFamily: 'Cairo_400Regular',
     color: '#333',
+    textAlign: 'right',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 16,
     marginTop: 16,
+    marginHorizontal: 16,
     backgroundColor: '#FFEBEE',
+    borderRadius: 12,
+    gap: 8,
   },
   logoutText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Cairo_700Bold',
     color: '#F44336',
-    marginLeft: 12,
+  },
+  footer: {
+    alignItems: 'center',
+    padding: 24,
+  },
+  footerText: {
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
+    color: '#999',
+  },
+  versionText: {
+    fontSize: 12,
+    fontFamily: 'Cairo_400Regular',
+    color: '#ccc',
+    marginTop: 4,
   },
 });
