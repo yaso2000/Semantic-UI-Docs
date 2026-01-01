@@ -779,11 +779,6 @@ async def get_public_coach_packages(coach_id: str):
 
 # ==================== COACH ENDPOINTS ====================
 
-async def get_coach_user(current_user: dict = Depends(get_current_user)):
-    if current_user.get("role") not in ["coach", "admin"]:
-        raise HTTPException(status_code=403, detail="Coach access required")
-    return current_user
-
 @api_router.get("/coach/stats")
 async def get_coach_stats(coach_user: dict = Depends(get_coach_user)):
     # Get clients who have booked with this coach
