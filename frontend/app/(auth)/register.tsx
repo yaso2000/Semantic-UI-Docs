@@ -11,16 +11,18 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
   const router = useRouter();
+
+  const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
   const handleRegister = async () => {
     if (!email || !password || !fullName) {
@@ -35,10 +37,22 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      await register(email, password, fullName);
+      const response = await axios.post(`${API_URL}/api/auth/register`, {
+        email,
+        password,
+        full_name: fullName,
+        role: 'client'
+      });
+
+      const { access_token, user } = response.data;
+      
+      await AsyncStorage.setItem('token', access_token);
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      
+      Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message);
+      Alert.alert('Registration Failed', error.response?.data?.detail || 'An error occurred');
     } finally {
       setLoading(false);
     }
