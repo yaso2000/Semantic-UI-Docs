@@ -18,8 +18,10 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
 interface AdminStats {
   total_users: number;
+  coaches: number;
   total_bookings: number;
   total_revenue: number;
+  active_subscriptions: number;
 }
 
 export default function AdminDashboard() {
@@ -81,96 +83,130 @@ export default function AdminDashboard() {
         </View>
 
         <View style={styles.statsGrid}>
-          <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
-            <View style={[styles.statIcon, { backgroundColor: '#2196F3' }]}>
-              <Ionicons name="people" size={28} color="#fff" />
-            </View>
+          <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
+            <Ionicons name="people" size={28} color="#4CAF50" />
             <Text style={styles.statNumber}>{stats?.total_users || 0}</Text>
             <Text style={styles.statLabel}>المتدربين</Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
-            <View style={[styles.statIcon, { backgroundColor: '#4CAF50' }]}>
-              <Ionicons name="calendar" size={28} color="#fff" />
-            </View>
-            <Text style={styles.statNumber}>{stats?.total_bookings || 0}</Text>
-            <Text style={styles.statLabel}>الحجوزات</Text>
+          <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+            <Ionicons name="fitness" size={28} color="#FF9800" />
+            <Text style={styles.statNumber}>{stats?.coaches || 0}</Text>
+            <Text style={styles.statLabel}>المدربين</Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
-            <View style={[styles.statIcon, { backgroundColor: '#FF9800' }]}>
-              <Ionicons name="cash" size={28} color="#fff" />
-            </View>
-            <Text style={styles.statNumber}>${stats?.total_revenue || 0}</Text>
-            <Text style={styles.statLabel}>الإيرادات</Text>
+          <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+            <Ionicons name="card" size={28} color="#2196F3" />
+            <Text style={styles.statNumber}>{stats?.active_subscriptions || 0}</Text>
+            <Text style={styles.statLabel}>اشتراك نشط</Text>
           </View>
         </View>
 
+        {/* قسم إدارة المتدربين */}
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>إدارة التطبيق</Text>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="school" size={20} color="#4CAF50" />
+            <Text style={[styles.sectionTitle, { color: '#4CAF50' }]}>إدارة المتدربين</Text>
+          </View>
 
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => router.push('/admin/packages' as any)}
           >
             <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
-              <Ionicons name="pricetag" size={24} color="#4CAF50" />
+              <Ionicons name="pricetag" size={22} color="#4CAF50" />
             </View>
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>إدارة الباقات</Text>
-              <Text style={styles.menuSubtitle}>إضافة وتعديل وحذف الباقات</Text>
+              <Text style={styles.menuSubtitle}>باقات التدريب للمتدربين</Text>
             </View>
-            <Ionicons name="chevron-back" size={24} color="#999" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push('/admin/bookings' as any)}
-          >
-            <View style={[styles.menuIcon, { backgroundColor: '#E3F2FD' }]}>
-              <Ionicons name="calendar" size={24} color="#2196F3" />
-            </View>
-            <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>إدارة الحجوزات</Text>
-              <Text style={styles.menuSubtitle}>عرض وإدارة جميع الحجوزات</Text>
-            </View>
-            <Ionicons name="chevron-back" size={24} color="#999" />
+            <Ionicons name="chevron-back" size={20} color="#999" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => router.push('/admin/users' as any)}
           >
-            <View style={[styles.menuIcon, { backgroundColor: '#F3E5F5' }]}>
-              <Ionicons name="people" size={24} color="#9C27B0" />
+            <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="people" size={22} color="#4CAF50" />
             </View>
             <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>إدارة المتدربين</Text>
-              <Text style={styles.menuSubtitle}>عرض بيانات المتدربين</Text>
+              <Text style={styles.menuTitle}>قائمة المتدربين</Text>
+              <Text style={styles.menuSubtitle}>عرض وإدارة المتدربين</Text>
             </View>
-            <Ionicons name="chevron-back" size={24} color="#999" />
+            <Ionicons name="chevron-back" size={20} color="#999" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/admin/bookings' as any)}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="calendar" size={22} color="#4CAF50" />
+            </View>
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>حجوزات المتدربين</Text>
+              <Text style={styles.menuSubtitle}>عرض جميع الحجوزات</Text>
+            </View>
+            <Ionicons name="chevron-back" size={20} color="#999" />
+          </TouchableOpacity>
+        </View>
+
+        {/* قسم إدارة المدربين */}
+        <View style={styles.menuSection}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="fitness" size={20} color="#FF9800" />
+            <Text style={[styles.sectionTitle, { color: '#FF9800' }]}>إدارة المدربين</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/admin/subscriptions' as any)}
+          >
             <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
-              <Ionicons name="folder" size={24} color="#FF9800" />
+              <Ionicons name="card" size={22} color="#FF9800" />
             </View>
             <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>مكتبة الموارد</Text>
-              <Text style={styles.menuSubtitle}>رفع وإدارة الملفات والمصادر</Text>
+              <Text style={styles.menuTitle}>إدارة الاشتراكات</Text>
+              <Text style={styles.menuSubtitle}>اشتراكات المدربين الشهرية/السنوية</Text>
             </View>
-            <Ionicons name="chevron-back" size={24} color="#999" />
+            <Ionicons name="chevron-back" size={20} color="#999" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIcon, { backgroundColor: '#FFEBEE' }]}>
-              <Ionicons name="chatbubbles" size={24} color="#F44336" />
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/admin/coaches' as any)}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="people" size={22} color="#FF9800" />
+            </View>
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>قائمة المدربين</Text>
+              <Text style={styles.menuSubtitle}>عرض وتحويل الصفات</Text>
+            </View>
+            <Ionicons name="chevron-back" size={20} color="#999" />
+          </TouchableOpacity>
+        </View>
+
+        {/* قسم عام */}
+        <View style={styles.menuSection}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="settings" size={20} color="#2196F3" />
+            <Text style={[styles.sectionTitle, { color: '#2196F3' }]}>عام</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/(tabs)/chat')}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#E3F2FD' }]}>
+              <Ionicons name="chatbubbles" size={22} color="#2196F3" />
             </View>
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>المحادثات</Text>
-              <Text style={styles.menuSubtitle}>التواصل مع المتدربين</Text>
+              <Text style={styles.menuSubtitle}>التواصل مع المستخدمين</Text>
             </View>
-            <Ionicons name="chevron-back" size={24} color="#999" />
+            <Ionicons name="chevron-back" size={20} color="#999" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -179,107 +215,101 @@ export default function AdminDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#2196F3',
   },
   backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 16,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    color: '#fff',
     textAlign: 'right',
   },
   statsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     padding: 16,
-    gap: 12,
+    gap: 10,
   },
   statCard: {
     flex: 1,
-    minWidth: '30%',
-    padding: 16,
-    borderRadius: 16,
+    padding: 14,
+    borderRadius: 14,
     alignItems: 'center',
-  },
-  statIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
+    marginTop: 8,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    marginTop: 4,
+    marginTop: 2,
   },
   menuSection: {
     backgroundColor: '#fff',
-    margin: 16,
-    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 14,
     padding: 16,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    marginBottom: 16,
-    textAlign: 'right',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#f5f5f5',
   },
   menuIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: 12,
   },
-  menuContent: {
-    flex: 1,
-  },
+  menuContent: { flex: 1 },
   menuTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     textAlign: 'right',
   },
   menuSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
     textAlign: 'right',
-    marginTop: 2,
+    marginTop: 1,
   },
 });
