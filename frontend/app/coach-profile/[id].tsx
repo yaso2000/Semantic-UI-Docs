@@ -26,6 +26,15 @@ interface Review {
   created_at: string;
 }
 
+interface Package {
+  id: string;
+  name: string;
+  hours: number;
+  price: number;
+  hourly_rate: number;
+  description: string;
+}
+
 interface CoachProfile {
   id: string;
   full_name: string;
