@@ -184,6 +184,28 @@ function CoachHome({ user, router }: { user: any; router: any }) {
       <View style={styles.menuSection}>
         <Text style={styles.sectionTitle}>إدارة التدريب</Text>
 
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/coach/profile' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
+            <Ionicons name="person-circle" size={22} color="#FF9800" />
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>بروفايلي</Text>
+            <Text style={styles.menuSubtitle}>تعديل السيرة والتخصصات</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color="#999" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/coach/packages' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
+            <Ionicons name="pricetags" size={22} color="#FF9800" />
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>باقاتي</Text>
+            <Text style={styles.menuSubtitle}>إدارة باقات التدريب</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color="#999" />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/my-trainees')}>
           <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
             <Ionicons name="school" size={22} color="#4CAF50" />
