@@ -986,6 +986,7 @@ async def update_coach_profile(data: dict, coach_user: dict = Depends(get_coach_
         "bio": data.get("bio", ""),
         "specialties": data.get("specialties", []),
         "hourly_rate": data.get("hourly_rate", 50),
+        "profile_image": data.get("profile_image"),
         "updated_at": datetime.utcnow()
     }
     
@@ -994,6 +995,13 @@ async def update_coach_profile(data: dict, coach_user: dict = Depends(get_coach_
         {"$set": update_data},
         upsert=True
     )
+    
+    # Also update user's profile_image
+    if data.get("profile_image") is not None:
+        await db.users.update_one(
+            {"_id": coach_user["_id"]},
+            {"$set": {"profile_image": data.get("profile_image")}}
+        )
     
     return {"message": "Profile updated"}
 
