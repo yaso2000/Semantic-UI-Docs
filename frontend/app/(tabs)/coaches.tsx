@@ -234,6 +234,11 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
   },
+  avatarLetter: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
   coachInfo: { flex: 1 },
   coachName: {
     fontSize: 18,
