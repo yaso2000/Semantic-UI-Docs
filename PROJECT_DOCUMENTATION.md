@@ -201,7 +201,7 @@ A comprehensive bilingual (English/Arabic) mobile application for holistic life 
 
 ## 🌐 API Base URL
 
-Development: https://wellness-hub-372.preview.emergentagent.com/api
+Development: https://life-coach-app-2.preview.emergentagent.com/api
 
 ## 💳 Payment Integration
 
@@ -241,7 +241,7 @@ STRIPE_PUBLISHABLE_KEY="pk_test_..."
 
 ### Frontend (.env)
 ```
-EXPO_PUBLIC_BACKEND_URL=https://wellness-hub-372.preview.emergentagent.com
+EXPO_PUBLIC_BACKEND_URL=https://life-coach-app-2.preview.emergentagent.com
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
