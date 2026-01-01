@@ -940,6 +940,13 @@ async def get_coach_profile(coach_id: str):
     
     avg_rating = sum(r["rating"] for r in reviews) / len(reviews) if reviews else 0
     
+    # Get profile image from profile or user
+    profile_image = None
+    if profile and profile.get("profile_image"):
+        profile_image = profile.get("profile_image")
+    elif user.get("profile_image"):
+        profile_image = user.get("profile_image")
+    
     return {
         "id": user["_id"],
         "full_name": user["full_name"],
@@ -949,6 +956,7 @@ async def get_coach_profile(coach_id: str):
         "rating": round(avg_rating, 1),
         "reviews_count": len(reviews),
         "hourly_rate": profile.get("hourly_rate", 50) if profile else 50,
+        "profile_image": profile_image,
         "reviews": [
             {
                 "id": r["_id"],
