@@ -490,9 +490,15 @@ async def get_all_users(admin_user: dict = Depends(get_admin_user)):
     users = await db.users.find({"role": "client"}).to_list(1000)
     return [{"id": u["_id"], "email": u["email"], "full_name": u["full_name"], "created_at": u["created_at"]} for u in users]
 
+@api_router.get("/admin/coaches")
+async def get_all_coaches(admin_user: dict = Depends(get_admin_user)):
+    coaches = await db.users.find({"role": "coach"}).to_list(1000)
+    return [{"id": u["_id"], "email": u["email"], "full_name": u["full_name"], "created_at": u["created_at"]} for u in coaches]
+
 @api_router.get("/admin/stats")
 async def get_admin_stats(admin_user: dict = Depends(get_admin_user)):
     total_users = await db.users.count_documents({"role": "client"})
+    total_coaches = await db.users.count_documents({"role": "coach"})
     total_bookings = await db.bookings.count_documents({})
     total_revenue = await db.bookings.aggregate([
         {"$match": {"payment_status": "completed"}},
@@ -503,9 +509,58 @@ async def get_admin_stats(admin_user: dict = Depends(get_admin_user)):
     
     return {
         "total_users": total_users,
+        "coaches": total_coaches,
         "total_bookings": total_bookings,
         "total_revenue": revenue
     }
+
+# ==================== COACH ENDPOINTS ====================
+
+async def get_coach_user(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") not in ["coach", "admin"]:
+        raise HTTPException(status_code=403, detail="Coach access required")
+    return current_user
+
+@api_router.get("/coach/stats")
+async def get_coach_stats(coach_user: dict = Depends(get_coach_user)):
+    # Get clients who have booked with this coach
+    total_clients = await db.bookings.distinct("client_id", {"coach_id": coach_user["_id"]})
+    total_bookings = await db.bookings.count_documents({"coach_id": coach_user["_id"]})
+    total_revenue = await db.bookings.aggregate([
+        {"$match": {"coach_id": coach_user["_id"], "payment_status": "completed"}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount_paid"}}}
+    ]).to_list(1)
+    
+    revenue = total_revenue[0]["total"] if total_revenue else 0
+    
+    return {
+        "clients": len(total_clients),
+        "bookings": total_bookings,
+        "revenue": revenue
+    }
+
+@api_router.get("/coach/clients")
+async def get_coach_clients(coach_user: dict = Depends(get_coach_user)):
+    # Get all unique client IDs from bookings
+    client_ids = await db.bookings.distinct("client_id", {"coach_id": coach_user["_id"]})
+    
+    clients = []
+    for client_id in client_ids:
+        client = await db.users.find_one({"_id": client_id})
+        if client:
+            clients.append({
+                "id": client["_id"],
+                "email": client["email"],
+                "full_name": client["full_name"],
+                "created_at": client["created_at"]
+            })
+    
+    return clients
+
+@api_router.get("/coach/bookings")
+async def get_coach_bookings(coach_user: dict = Depends(get_coach_user)):
+    bookings = await db.bookings.find({"coach_id": coach_user["_id"]}).sort("created_at", -1).to_list(1000)
+    return [BookingResponse(**booking, id=booking["_id"]) for booking in bookings]
 
 # ==================== SOCKET.IO EVENTS ====================
 
