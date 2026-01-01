@@ -101,11 +101,13 @@ export default function CoachesScreen() {
       onPress={() => router.push(`/coach-profile/${item.id}` as any)}
     >
       <View style={styles.coachHeader}>
-        <View style={styles.avatar}>
+        <View style={[styles.avatar, !item.profile_image && { backgroundColor: getLetterColor(item.full_name) }]}>
           {item.profile_image ? (
             <Image source={{ uri: item.profile_image }} style={styles.avatarImage} />
           ) : (
-            <Ionicons name="person" size={32} color="#fff" />
+            <Text style={styles.avatarLetter}>
+              {item.full_name?.trim().charAt(0).toUpperCase() || '?'}
+            </Text>
           )}
         </View>
         <View style={styles.coachInfo}>
