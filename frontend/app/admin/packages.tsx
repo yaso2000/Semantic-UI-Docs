@@ -12,15 +12,26 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+interface Package {
+  id: string;
+  name: string;
+  hours: number;
+  price: number;
+  description: string;
+}
 
 export default function PackagesManagement() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [packages, setPackages] = useState<any[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
   const router = useRouter();
-  const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   useEffect(() => {
     loadPackages();
@@ -28,10 +39,11 @@ export default function PackagesManagement() {
 
   const loadPackages = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/packages`);
-      setPackages(response.data);
+      const response = await fetch(`${API_URL}/api/packages`);
+      const data = await response.json();
+      setPackages(data);
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to load packages');
+      Alert.alert('خطأ', 'فشل في تحميل الباقات');
       console.error('Error loading packages:', error);
     } finally {
       setLoading(false);
@@ -46,23 +58,28 @@ export default function PackagesManagement() {
 
   const handleDeletePackage = async (packageId: string, packageName: string) => {
     Alert.alert(
-      'Delete Package',
-      `Are you sure you want to delete "${packageName}"?`,
+      'حذف الباقة',
+      `هل أنت متأكد من حذف "${packageName}"؟`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'إلغاء', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'حذف',
           style: 'destructive',
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem('token');
-              await axios.delete(`${API_URL}/api/packages/${packageId}`, {
-                headers: { Authorization: `Bearer ${token}` }
+              const response = await fetch(`${API_URL}/api/packages/${packageId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
               });
-              Alert.alert('Success', 'Package deleted successfully');
-              loadPackages();
+              if (response.ok) {
+                Alert.alert('نجاح', 'تم حذف الباقة بنجاح');
+                loadPackages();
+              } else {
+                Alert.alert('خطأ', 'فشل في حذف الباقة');
+              }
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete package');
+              Alert.alert('خطأ', 'فشل في حذف الباقة');
             }
           },
         },
@@ -71,21 +88,21 @@ export default function PackagesManagement() {
   };
 
   const handleCreatePackage = () => {
-    router.push('/admin/package-form');
+    router.push('/admin/package-form' as any);
   };
 
-  const handleEditPackage = (pkg: any) => {
+  const handleEditPackage = (pkg: Package) => {
     router.push({
-      pathname: '/admin/package-form',
+      pathname: '/admin/package-form' as any,
       params: { packageData: JSON.stringify(pkg) },
     });
   };
 
-  const renderPackageCard = ({ item }: { item: any }) => (
+  const renderPackageCard = ({ item }: { item: Package }) => (
     <View style={styles.packageCard}>
       <View style={styles.packageHeader}>
         <View style={styles.packageIcon}>
-          <Ionicons name="time" size={28} color="#4CAF50" />
+          <Ionicons name="fitness" size={28} color="#fff" />
         </View>
         <View style={styles.packageInfo}>
           <Text style={styles.packageName}>{item.name}</Text>
@@ -96,7 +113,7 @@ export default function PackagesManagement() {
       <View style={styles.packageDetails}>
         <View style={styles.detailItem}>
           <Ionicons name="time-outline" size={20} color="#666" />
-          <Text style={styles.detailText}>{item.hours} hours</Text>
+          <Text style={styles.detailText}>{item.hours} ساعة</Text>
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="cash-outline" size={20} color="#666" />
@@ -104,7 +121,7 @@ export default function PackagesManagement() {
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="calculator-outline" size={20} color="#666" />
-          <Text style={styles.detailText}>${(item.price / item.hours).toFixed(2)}/hr</Text>
+          <Text style={styles.detailText}>${(item.price / item.hours).toFixed(2)}/ساعة</Text>
         </View>
       </View>
 
@@ -114,20 +131,20 @@ export default function PackagesManagement() {
           onPress={() => handleEditPackage(item)}
         >
           <Ionicons name="create" size={20} color="#2196F3" />
-          <Text style={[styles.actionBtnText, { color: '#2196F3' }]}>Edit</Text>
+          <Text style={[styles.actionBtnText, { color: '#2196F3' }]}>تعديل</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.actionBtn, styles.deleteBtn]}
           onPress={() => handleDeletePackage(item.id, item.name)}
         >
           <Ionicons name="trash" size={20} color="#F44336" />
-          <Text style={[styles.actionBtnText, { color: '#F44336' }]}>Delete</Text>
+          <Text style={[styles.actionBtnText, { color: '#F44336' }]}>حذف</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  if (loading) {
+  if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2196F3" />
@@ -137,6 +154,15 @@ export default function PackagesManagement() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-forward" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>إدارة الباقات</Text>
+      </View>
       <FlatList
         data={packages}
         renderItem={renderPackageCard}
@@ -148,8 +174,8 @@ export default function PackagesManagement() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="pricetags-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No packages available</Text>
-            <Text style={styles.emptySubtext}>Create your first coaching package</Text>
+            <Text style={styles.emptyText}>لا توجد باقات حالياً</Text>
+            <Text style={styles.emptySubtext}>أنشئ أول باقة تدريبية</Text>
           </View>
         }
       />
@@ -170,13 +196,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  backButton: {
+    marginLeft: 16,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: 'Cairo_700Bold',
+    color: '#333',
+    textAlign: 'right',
+  },
   listContent: {
     padding: 16,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   packageCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     elevation: 2,
@@ -193,23 +237,26 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginLeft: 16,
   },
   packageInfo: {
     flex: 1,
   },
   packageName: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Cairo_700Bold',
     color: '#333',
+    textAlign: 'right',
   },
   packageDescription: {
     fontSize: 14,
+    fontFamily: 'Cairo_400Regular',
     color: '#666',
     marginTop: 4,
+    textAlign: 'right',
   },
   packageDetails: {
     flexDirection: 'row',
@@ -227,7 +274,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Cairo_700Bold',
     color: '#666',
   },
   packageActions: {
@@ -251,7 +298,7 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Cairo_700Bold',
   },
   emptyContainer: {
     flex: 1,
@@ -261,23 +308,24 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Cairo_700Bold',
     color: '#999',
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: 'Cairo_400Regular',
     color: '#bbb',
     marginTop: 4,
   },
   fab: {
     position: 'absolute',
-    right: 20,
+    left: 20,
     bottom: 20,
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,

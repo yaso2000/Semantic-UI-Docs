@@ -88,7 +88,7 @@ export default function ProfileScreen() {
           {user?.role === 'admin' && (
             <TouchableOpacity 
               style={[styles.menuItem, styles.adminMenuItem]}
-              onPress={() => router.push('/admin/dashboard' as any)}
+              onPress={() => router.push('/admin' as any)}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: '#E3F2FD' }]}>
                 <Ionicons name="shield-checkmark" size={24} color="#2196F3" />
