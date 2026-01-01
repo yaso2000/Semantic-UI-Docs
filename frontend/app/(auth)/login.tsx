@@ -11,15 +11,17 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const router = useRouter();
+
+  const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -29,10 +31,20 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      await login(email, password);
+      const response = await axios.post(`${API_URL}/api/auth/login`, {
+        email,
+        password
+      });
+
+      const { access_token, user } = response.data;
+      
+      await AsyncStorage.setItem('token', access_token);
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      
+      Alert.alert('Success', 'Logged in successfully!');
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message);
+      Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred');
     } finally {
       setLoading(false);
     }
