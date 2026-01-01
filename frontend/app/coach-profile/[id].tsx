@@ -50,6 +50,7 @@ interface CoachProfile {
 export default function CoachProfileScreen() {
   const { id } = useLocalSearchParams();
   const [coach, setCoach] = useState<CoachProfile | null>(null);
+  const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [newRating, setNewRating] = useState(5);
@@ -60,7 +61,10 @@ export default function CoachProfileScreen() {
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   useEffect(() => {
-    if (id) loadCoach();
+    if (id) {
+      loadCoach();
+      loadPackages();
+    }
   }, [id]);
 
   const loadCoach = async () => {
@@ -74,6 +78,18 @@ export default function CoachProfileScreen() {
       console.error('Error loading coach:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPackages = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/coaches/${id}/packages`);
+      if (response.ok) {
+        const data = await response.json();
+        setPackages(data);
+      }
+    } catch (error) {
+      console.error('Error loading packages:', error);
     }
   };
 
