@@ -643,6 +643,135 @@ async def change_user_role(user_id: str, data: dict, admin_user: dict = Depends(
     
     return {"message": "Role updated"}
 
+# ==================== ADMIN SETTINGS ====================
+
+@api_router.get("/admin/settings")
+async def get_admin_settings(admin_user: dict = Depends(get_admin_user)):
+    settings = await db.settings.find_one({"type": "platform"})
+    if not settings:
+        return {"min_hourly_rate": 20, "max_hourly_rate": 200}
+    return {
+        "min_hourly_rate": settings.get("min_hourly_rate", 20),
+        "max_hourly_rate": settings.get("max_hourly_rate", 200)
+    }
+
+@api_router.put("/admin/settings")
+async def update_admin_settings(data: dict, admin_user: dict = Depends(get_admin_user)):
+    await db.settings.update_one(
+        {"type": "platform"},
+        {"$set": {
+            "min_hourly_rate": data.get("min_hourly_rate", 20),
+            "max_hourly_rate": data.get("max_hourly_rate", 200),
+            "updated_at": datetime.utcnow()
+        }},
+        upsert=True
+    )
+    return {"message": "Settings updated"}
+
+@api_router.get("/settings/price-limits")
+async def get_price_limits():
+    settings = await db.settings.find_one({"type": "platform"})
+    if not settings:
+        return {"min_hourly_rate": 20, "max_hourly_rate": 200}
+    return {
+        "min_hourly_rate": settings.get("min_hourly_rate", 20),
+        "max_hourly_rate": settings.get("max_hourly_rate", 200)
+    }
+
+# ==================== COACH PACKAGES ====================
+
+@api_router.get("/coach/my-packages")
+async def get_coach_packages(coach_user: dict = Depends(get_coach_user)):
+    packages = await db.coach_packages.find({"coach_id": coach_user["_id"]}).to_list(100)
+    return [{
+        "id": p["_id"],
+        "name": p["name"],
+        "hours": p["hours"],
+        "price": p["price"],
+        "hourly_rate": p.get("hourly_rate", p["price"] / p["hours"]),
+        "description": p.get("description", "")
+    } for p in packages]
+
+@api_router.post("/coach/my-packages")
+async def create_coach_package(data: dict, coach_user: dict = Depends(get_coach_user)):
+    # Validate price limits
+    settings = await db.settings.find_one({"type": "platform"})
+    min_rate = settings.get("min_hourly_rate", 20) if settings else 20
+    max_rate = settings.get("max_hourly_rate", 200) if settings else 200
+    
+    hourly_rate = data.get("hourly_rate", data["price"] / data["hours"])
+    
+    if hourly_rate < min_rate:
+        raise HTTPException(status_code=400, detail=f"الحد الأدنى لسعر الساعة هو ${min_rate}")
+    if hourly_rate > max_rate:
+        raise HTTPException(status_code=400, detail=f"الحد الأعلى لسعر الساعة هو ${max_rate}")
+    
+    package = {
+        "_id": str(uuid.uuid4()),
+        "coach_id": coach_user["_id"],
+        "name": data["name"],
+        "hours": data["hours"],
+        "price": data["price"],
+        "hourly_rate": hourly_rate,
+        "description": data.get("description", ""),
+        "active": True,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.coach_packages.insert_one(package)
+    return {"message": "Package created", "package_id": package["_id"]}
+
+@api_router.put("/coach/my-packages/{package_id}")
+async def update_coach_package(package_id: str, data: dict, coach_user: dict = Depends(get_coach_user)):
+    # Verify ownership
+    package = await db.coach_packages.find_one({"_id": package_id, "coach_id": coach_user["_id"]})
+    if not package:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
+    # Validate price limits
+    settings = await db.settings.find_one({"type": "platform"})
+    min_rate = settings.get("min_hourly_rate", 20) if settings else 20
+    max_rate = settings.get("max_hourly_rate", 200) if settings else 200
+    
+    hourly_rate = data.get("hourly_rate", data["price"] / data["hours"])
+    
+    if hourly_rate < min_rate:
+        raise HTTPException(status_code=400, detail=f"الحد الأدنى لسعر الساعة هو ${min_rate}")
+    if hourly_rate > max_rate:
+        raise HTTPException(status_code=400, detail=f"الحد الأعلى لسعر الساعة هو ${max_rate}")
+    
+    await db.coach_packages.update_one(
+        {"_id": package_id},
+        {"$set": {
+            "name": data["name"],
+            "hours": data["hours"],
+            "price": data["price"],
+            "hourly_rate": hourly_rate,
+            "description": data.get("description", ""),
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    return {"message": "Package updated"}
+
+@api_router.delete("/coach/my-packages/{package_id}")
+async def delete_coach_package(package_id: str, coach_user: dict = Depends(get_coach_user)):
+    result = await db.coach_packages.delete_one({"_id": package_id, "coach_id": coach_user["_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Package not found")
+    return {"message": "Package deleted"}
+
+@api_router.get("/coaches/{coach_id}/packages")
+async def get_public_coach_packages(coach_id: str):
+    packages = await db.coach_packages.find({"coach_id": coach_id, "active": True}).to_list(100)
+    return [{
+        "id": p["_id"],
+        "name": p["name"],
+        "hours": p["hours"],
+        "price": p["price"],
+        "hourly_rate": p.get("hourly_rate", p["price"] / p["hours"]),
+        "description": p.get("description", "")
+    } for p in packages]
+
 # ==================== COACH ENDPOINTS ====================
 
 async def get_coach_user(current_user: dict = Depends(get_current_user)):
