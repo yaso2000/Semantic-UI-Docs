@@ -113,6 +113,54 @@ const calculators = [
   },
 ];
 
+const mentalTools = [
+  {
+    id: 'pss10',
+    title: 'مقياس التوتر المُدرَك',
+    subtitle: 'PSS-10',
+    icon: 'brain',
+    color: '#9C27B0',
+    bg: '#F3E5F5',
+    route: '/calculators/pss10',
+  },
+  {
+    id: 'gad7',
+    title: 'مقياس القلق العام',
+    subtitle: 'GAD-7',
+    icon: 'pulse',
+    color: '#E91E63',
+    bg: '#FCE4EC',
+    route: '/calculators/gad7',
+  },
+  {
+    id: 'swls',
+    title: 'مقياس الرضا عن الحياة',
+    subtitle: 'SWLS',
+    icon: 'happy',
+    color: '#FF9800',
+    bg: '#FFF3E0',
+    route: '/calculators/swls',
+  },
+  {
+    id: 'who5',
+    title: 'مؤشر الرفاهية WHO-5',
+    subtitle: 'Well-Being Index',
+    icon: 'sunny',
+    color: '#2196F3',
+    bg: '#E3F2FD',
+    route: '/calculators/who5',
+  },
+  {
+    id: 'mood-tracker',
+    title: 'متتبع المزاج اليومي',
+    subtitle: 'Daily Mood Tracker',
+    icon: 'calendar',
+    color: '#00BCD4',
+    bg: '#E0F7FA',
+    route: '/calculators/mood-tracker',
+  },
+];
+
 export default function CalculatorsScreen() {
   const router = useRouter();
   
