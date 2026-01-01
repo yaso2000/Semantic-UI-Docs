@@ -95,6 +95,39 @@ export default function CoachProfileEdit() {
     }
   };
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('خطأ', 'نحتاج إذن الوصول للصور');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      setProfile({ ...profile, profile_image: base64Image });
+    }
+  };
+
+  const removeImage = () => {
+    Alert.alert('حذف الصورة', 'هل تريد حذف صورة البروفايل؟', [
+      { text: 'إلغاء', style: 'cancel' },
+      { 
+        text: 'حذف', 
+        style: 'destructive',
+        onPress: () => setProfile({ ...profile, profile_image: null })
+      }
+    ]);
+  };
+
   const handleSave = async () => {
     if (!profile.bio.trim()) {
       Alert.alert('خطأ', 'يرجى كتابة نبذة عنك');
@@ -150,6 +183,16 @@ export default function CoachProfileEdit() {
     });
   };
 
+  // الحصول على لون الحرف الأول
+  const getLetterColor = (name: string) => {
+    const colors: { [key: string]: string } = {
+      'ا': '#E91E63', 'أ': '#E91E63', 'م': '#00BCD4', 'ع': '#E91E63',
+      'ب': '#9C27B0', 'ت': '#673AB7', 'ث': '#3F51B5', 'ج': '#2196F3',
+    };
+    const firstLetter = name?.trim().charAt(0).toLowerCase() || '?';
+    return colors[firstLetter] || '#FF9800';
+  };
+
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -172,10 +215,48 @@ export default function CoachProfileEdit() {
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
+          {/* صورة البروفايل */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="camera" size={24} color="#FF9800" />
+              <Text style={styles.sectionTitle}>صورة البروفايل</Text>
+            </View>
+            <Text style={styles.sectionDesc}>
+              أضف صورة شخصية لتظهر للمتدربين
+            </Text>
+
+            <View style={styles.imageContainer}>
+              {profile.profile_image ? (
+                <View style={styles.imageWrapper}>
+                  <Image 
+                    source={{ uri: profile.profile_image }} 
+                    style={styles.profileImage}
+                  />
+                  <TouchableOpacity style={styles.removeImageBtn} onPress={removeImage}>
+                    <Ionicons name="close-circle" size={28} color="#F44336" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={[styles.placeholderImage, { backgroundColor: getLetterColor(userName) }]}>
+                  <Text style={styles.placeholderLetter}>
+                    {userName?.trim().charAt(0).toUpperCase() || '?'}
+                  </Text>
+                </View>
+              )}
+
+              <TouchableOpacity style={styles.changeImageBtn} onPress={pickImage}>
+                <Ionicons name="camera" size={20} color="#FF9800" />
+                <Text style={styles.changeImageText}>
+                  {profile.profile_image ? 'تغيير الصورة' : 'إضافة صورة'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           {/* نبذة عني */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="person-circle" size={24} color="#FF9800" />
+              <Ionicons name="person-circle" size={24} color="#4CAF50" />
               <Text style={styles.sectionTitle}>نبذة عني</Text>
             </View>
             <Text style={styles.sectionDesc}>
@@ -190,6 +271,7 @@ export default function CoachProfileEdit() {
               multiline
               numberOfLines={5}
               textAlignVertical="top"
+              maxLength={500}
             />
             <Text style={styles.charCount}>{profile.bio.length}/500 حرف</Text>
           </View>
@@ -197,7 +279,7 @@ export default function CoachProfileEdit() {
           {/* التخصصات */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="ribbon" size={24} color="#4CAF50" />
+              <Ionicons name="ribbon" size={24} color="#9C27B0" />
               <Text style={styles.sectionTitle}>التخصصات</Text>
             </View>
             <Text style={styles.sectionDesc}>
@@ -209,7 +291,7 @@ export default function CoachProfileEdit() {
                 <View key={index} style={styles.specialtyTag}>
                   <Text style={styles.specialtyTagText}>{specialty}</Text>
                   <TouchableOpacity onPress={() => removeSpecialty(specialty)}>
-                    <Ionicons name="close-circle" size={20} color="#4CAF50" />
+                    <Ionicons name="close-circle" size={20} color="#9C27B0" />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -220,7 +302,7 @@ export default function CoachProfileEdit() {
                 style={styles.addSpecialtyBtn}
                 onPress={() => setShowSpecialtyPicker(!showSpecialtyPicker)}
               >
-                <Ionicons name="add-circle" size={22} color="#4CAF50" />
+                <Ionicons name="add-circle" size={22} color="#9C27B0" />
                 <Text style={styles.addSpecialtyText}>إضافة تخصص</Text>
               </TouchableOpacity>
             )}
@@ -361,6 +443,58 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     lineHeight: 22,
   },
+
+  // Image styles
+  imageContainer: {
+    alignItems: 'center',
+  },
+  imageWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: '#FF9800',
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+  },
+  placeholderImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  placeholderLetter: {
+    fontSize: 48,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  changeImageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FF9800',
+    gap: 8,
+  },
+  changeImageText: {
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
+    color: '#FF9800',
+  },
   
   textArea: {
     backgroundColor: '#f9f9f9',
@@ -392,7 +526,7 @@ const styles = StyleSheet.create({
   specialtyTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
@@ -401,7 +535,7 @@ const styles = StyleSheet.create({
   specialtyTagText: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
-    color: '#4CAF50',
+    color: '#9C27B0',
   },
   addSpecialtyBtn: {
     flexDirection: 'row',
@@ -410,14 +544,14 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#9C27B0',
     borderStyle: 'dashed',
     gap: 8,
   },
   addSpecialtyText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
+    color: '#9C27B0',
   },
   
   specialtyPicker: {
@@ -473,7 +607,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 10,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#9C27B0',
     justifyContent: 'center',
     alignItems: 'center',
   },
