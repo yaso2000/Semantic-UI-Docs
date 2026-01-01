@@ -50,12 +50,14 @@ export default function CoachProfileEdit() {
   const [profile, setProfile] = useState<CoachProfile>({
     bio: '',
     specialties: [],
-    hourly_rate: 50
+    hourly_rate: 50,
+    profile_image: null
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newSpecialty, setNewSpecialty] = useState('');
   const [showSpecialtyPicker, setShowSpecialtyPicker] = useState(false);
+  const [userName, setUserName] = useState('');
   const router = useRouter();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
@@ -71,6 +73,7 @@ export default function CoachProfileEdit() {
       const user = userStr ? JSON.parse(userStr) : null;
       
       if (user) {
+        setUserName(user.full_name || '');
         const response = await fetch(`${API_URL}/api/coaches/${user.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -80,7 +83,8 @@ export default function CoachProfileEdit() {
           setProfile({
             bio: data.bio || '',
             specialties: data.specialties || [],
-            hourly_rate: data.hourly_rate || 50
+            hourly_rate: data.hourly_rate || 50,
+            profile_image: data.profile_image || null
           });
         }
       }
