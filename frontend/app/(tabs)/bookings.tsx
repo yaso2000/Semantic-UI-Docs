@@ -138,9 +138,17 @@ export default function BookingsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>احجز مع يازو</Text>
         <Text style={styles.headerSubtitle}>باقات التدريب الشخصي</Text>
-        <View style={styles.hoursBox}>
-          <Ionicons name="time" size={20} color="#4CAF50" />
-          <Text style={styles.hoursText}>{getTotalHours()} ساعة متبقية</Text>
+        <View style={styles.hoursContainer}>
+          <View style={styles.hoursBox}>
+            <Ionicons name="time" size={20} color="#4CAF50" />
+            <Text style={styles.hoursText}>{getTotalHours()} ساعة متبقية</Text>
+          </View>
+          {getPendingHours() > 0 && (
+            <View style={[styles.hoursBox, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="hourglass" size={18} color="#FF9800" />
+              <Text style={[styles.hoursText, { color: '#FF9800' }]}>{getPendingHours()} في الانتظار</Text>
+            </View>
+          )}
         </View>
       </View>
 
