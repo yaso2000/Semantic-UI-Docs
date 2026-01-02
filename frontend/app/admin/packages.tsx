@@ -77,7 +77,7 @@ export default function PackagesManagement() {
   };
 
   const handleDeletePackage = async (packageId: string, packageName: string) => {
-    Alert.alert(
+    showAlert(
       'حذف الباقة',
       `هل أنت متأكد من حذف "${packageName}"؟`,
       [
@@ -93,13 +93,13 @@ export default function PackagesManagement() {
                 headers: { 'Authorization': `Bearer ${token}` }
               });
               if (response.ok) {
-                Alert.alert('نجاح', 'تم حذف الباقة بنجاح');
+                showAlert('نجاح', 'تم حذف الباقة بنجاح');
                 loadPackages();
               } else {
-                Alert.alert('خطأ', 'فشل في حذف الباقة');
+                showAlert('خطأ', 'فشل في حذف الباقة');
               }
             } catch (error) {
-              Alert.alert('خطأ', 'فشل في حذف الباقة');
+              showAlert('خطأ', 'فشل في حذف الباقة');
             }
           },
         },
