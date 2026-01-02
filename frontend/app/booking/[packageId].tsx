@@ -15,23 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStripePayment, StripeWrapper } from '../../src/hooks/useStripePayment';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
-
-// Conditionally import Stripe only on native platforms
-let StripeProvider: any = null;
-let useStripe: any = null;
-
-if (Platform.OS !== 'web') {
-  try {
-    const stripe = require('@stripe/stripe-react-native');
-    StripeProvider = stripe.StripeProvider;
-    useStripe = stripe.useStripe;
-  } catch (e) {
-    console.log('Stripe not available on web');
-  }
-}
 
 interface Package {
   id: string;
@@ -55,20 +42,20 @@ function BookingContent() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>(Platform.OS === 'web' ? 'cash' : 'stripe');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('cash');
   const router = useRouter();
   
-  // Use Stripe hooks only on native
-  const stripeHooks = Platform.OS !== 'web' && useStripe ? useStripe() : { initPaymentSheet: null, presentPaymentSheet: null };
-  const { initPaymentSheet, presentPaymentSheet } = stripeHooks;
+  const { initPaymentSheet, presentPaymentSheet, isAvailable: isStripeAvailable } = useStripePayment();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
-  const isStripeAvailable = Platform.OS !== 'web' && initPaymentSheet && presentPaymentSheet;
-
   useEffect(() => {
     loadData();
-  }, [packageId, coachId]);
+    // Set default payment method based on platform
+    if (isStripeAvailable) {
+      setPaymentMethod('stripe');
+    }
+  }, [packageId, coachId, isStripeAvailable]);
 
   const loadData = async () => {
     try {
@@ -164,7 +151,6 @@ function BookingContent() {
 
       if (error) {
         if (error.code === 'Canceled') {
-          // User canceled - do nothing
           setProcessing(false);
           return;
         }
@@ -479,15 +465,10 @@ function BookingContent() {
 }
 
 export default function BookingScreen() {
-  // On web, don't wrap with StripeProvider
-  if (Platform.OS === 'web' || !StripeProvider) {
-    return <BookingContent />;
-  }
-
   return (
-    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+    <StripeWrapper publishableKey={STRIPE_PUBLISHABLE_KEY}>
       <BookingContent />
-    </StripeProvider>
+    </StripeWrapper>
   );
 }
 
