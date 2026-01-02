@@ -495,4 +495,12 @@ const styles = StyleSheet.create({
   menuContent: { flex: 1 },
   menuTitle: { fontSize: 15, fontFamily: 'Cairo_700Bold', color: '#333', textAlign: 'right' },
   menuSubtitle: { fontSize: 11, fontFamily: 'Cairo_400Regular', color: '#999', textAlign: 'right', marginTop: 1 },
+  
+  // Extra Tools (Trainee)
+  extraToolsSection: { marginTop: 20, marginBottom: 20 },
+  extraToolsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 },
+  extraToolCard: { width: '47%', backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
+  extraToolIcon: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
+  extraToolTitle: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#333', textAlign: 'center', marginBottom: 4 },
+  extraToolDesc: { fontSize: 11, fontFamily: 'Cairo_400Regular', color: '#888', textAlign: 'center' },
 });
