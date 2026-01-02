@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
   bookingCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12 },
   bookingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   bookingName: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333' },
+  coachNameText: { fontSize: 13, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 2 },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
   statusText: { fontSize: 12, fontFamily: 'Cairo_700Bold' },
   bookingDetails: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#f0f0f0' },
