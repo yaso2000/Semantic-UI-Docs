@@ -149,6 +149,75 @@ export default function BookingsScreen() {
     );
   }
 
+  // ============ واجهة الأدمن (يازو) - عرض الحجوزات الواردة ============
+  if (userRole === 'admin') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.header, { backgroundColor: '#FF9800', margin: 16, borderRadius: 16, padding: 20 }]}>
+          <Text style={[styles.headerTitle, { color: '#fff' }]}>الحجوزات الواردة</Text>
+          <Text style={[styles.headerSubtitle, { color: 'rgba(255,255,255,0.9)' }]}>
+            {allBookings.length} حجز
+          </Text>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.content}>
+          {allBookings.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="calendar-outline" size={60} color="#ccc" />
+              <Text style={styles.emptyText}>لا توجد حجوزات حالياً</Text>
+            </View>
+          ) : (
+            allBookings.map((booking: any) => (
+              <View key={booking.id || booking._id} style={styles.bookingCard}>
+                <View style={styles.bookingHeader}>
+                  <View style={[styles.statusBadge, 
+                    booking.booking_status === 'confirmed' ? styles.statusConfirmed :
+                    booking.booking_status === 'pending' ? styles.statusPending :
+                    styles.statusCompleted
+                  ]}>
+                    <Text style={styles.statusText}>
+                      {booking.booking_status === 'confirmed' ? 'مؤكد' :
+                       booking.booking_status === 'pending' ? 'في الانتظار' : 'مكتمل'}
+                    </Text>
+                  </View>
+                  <Text style={styles.bookingDate}>
+                    {new Date(booking.created_at).toLocaleDateString('ar-SA')}
+                  </Text>
+                </View>
+                
+                <View style={styles.bookingDetails}>
+                  <View style={styles.bookingRow}>
+                    <Ionicons name="person" size={18} color="#666" />
+                    <Text style={styles.bookingLabel}>المتدرب:</Text>
+                    <Text style={styles.bookingValue}>{booking.client_name || 'غير محدد'}</Text>
+                  </View>
+                  <View style={styles.bookingRow}>
+                    <Ionicons name="pricetag" size={18} color="#666" />
+                    <Text style={styles.bookingLabel}>الباقة:</Text>
+                    <Text style={styles.bookingValue}>{booking.package_name}</Text>
+                  </View>
+                  <View style={styles.bookingRow}>
+                    <Ionicons name="time" size={18} color="#666" />
+                    <Text style={styles.bookingLabel}>الساعات:</Text>
+                    <Text style={styles.bookingValue}>
+                      {booking.hours_used || 0} / {booking.hours_purchased} ساعة
+                    </Text>
+                  </View>
+                  <View style={styles.bookingRow}>
+                    <Ionicons name="cash" size={18} color="#666" />
+                    <Text style={styles.bookingLabel}>المبلغ:</Text>
+                    <Text style={styles.bookingValue}>${booking.amount}</Text>
+                  </View>
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // ============ واجهة المتدرب - عرض الباقات والحجوزات ============
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
