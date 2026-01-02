@@ -187,12 +187,8 @@ export default function IntakeQuestionnaireScreen() {
       });
       
       await AsyncStorage.setItem('intake_completed', 'true');
+      setSavedAnswers(answers);
       setCompleted(true);
-      Alert.alert(
-        'شكراً لك! 🎉',
-        'تم حفظ إجاباتك بنجاح. سيساعدنا هذا في تقديم تجربة تدريب مخصصة لك.',
-        [{ text: 'حسناً', onPress: () => router.back() }]
-      );
     } catch (error) {
       Alert.alert('خطأ', 'فشل في حفظ الإجابات');
     } finally {
