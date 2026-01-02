@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -24,6 +24,9 @@ export default function RegisterScreen() {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [nameFocused, setNameFocused] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const router = useRouter();
 
   const [fontsLoaded] = useFonts({
@@ -70,7 +73,7 @@ export default function RegisterScreen() {
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       </View>
     );
   }
@@ -80,17 +83,20 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header with back button */}
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.teal} />
         </TouchableOpacity>
 
         {/* Logo Section */}
         <View style={styles.logoSection}>
           <View style={styles.logoContainer}>
-            <Ionicons name="person-add" size={45} color={COLORS.gold} />
+            <Ionicons name="person-add" size={42} color={COLORS.teal} />
           </View>
           <Text style={styles.title}>إنشاء حساب</Text>
           <Text style={styles.subtitle}>انضم لعائلة اسأل يازو</Text>
@@ -98,52 +104,83 @@ export default function RegisterScreen() {
 
         {/* Form */}
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="الاسم الكامل"
-              value={fullName}
-              onChangeText={setFullName}
-              placeholderTextColor={COLORS.textMuted}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="البريد الإلكتروني"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholderTextColor={COLORS.textMuted}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="كلمة المرور (6 أحرف على الأقل)"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              placeholderTextColor={COLORS.textMuted}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons 
-                name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                size={22} 
-                color={COLORS.textMuted} 
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>الاسم الكامل</Text>
+            <View style={[
+              styles.inputContainer,
+              nameFocused && styles.inputContainerFocused
+            ]}>
+              <TextInput
+                style={styles.input}
+                placeholder="أدخل اسمك الكامل"
+                value={fullName}
+                onChangeText={setFullName}
+                placeholderTextColor={COLORS.textMuted}
+                onFocus={() => setNameFocused(true)}
+                onBlur={() => setNameFocused(false)}
               />
-            </TouchableOpacity>
+              <Ionicons 
+                name="person-outline" 
+                size={20} 
+                color={nameFocused ? COLORS.teal : COLORS.textMuted} 
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>البريد الإلكتروني</Text>
+            <View style={[
+              styles.inputContainer,
+              emailFocused && styles.inputContainerFocused
+            ]}>
+              <TextInput
+                style={styles.input}
+                placeholder="example@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor={COLORS.textMuted}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+              />
+              <Ionicons 
+                name="mail-outline" 
+                size={20} 
+                color={emailFocused ? COLORS.teal : COLORS.textMuted} 
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>كلمة المرور</Text>
+            <View style={[
+              styles.inputContainer,
+              passwordFocused && styles.inputContainerFocused
+            ]}>
+              <TextInput
+                style={styles.input}
+                placeholder="6 أحرف على الأقل"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholderTextColor={COLORS.textMuted}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons 
+                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={20} 
+                  color={passwordFocused ? COLORS.teal : COLORS.textMuted} 
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Info Box */}
           <View style={styles.infoBox}>
-            <Ionicons name="information-circle" size={20} color={COLORS.gold} />
+            <Ionicons name="information-circle" size={20} color={COLORS.sage} />
             <Text style={styles.infoText}>
               بإنشاء حسابك، ستتمكن من حجز جلسات تدريبية مع يازو والوصول لجميع الأدوات
             </Text>
@@ -153,14 +190,15 @@ export default function RegisterScreen() {
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleRegister}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
               <Text style={styles.buttonText}>جاري إنشاء الحساب...</Text>
             ) : (
-              <>
+              <View style={styles.buttonContent}>
+                <Ionicons name="checkmark-circle" size={22} color={COLORS.white} />
                 <Text style={styles.buttonText}>إنشاء الحساب</Text>
-                <Ionicons name="checkmark-circle" size={22} color={COLORS.primary} />
-              </>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -178,20 +216,20 @@ export default function RegisterScreen() {
           <Text style={styles.featuresTitle}>ماذا ستحصل عليه؟</Text>
           <View style={styles.featuresList}>
             <View style={styles.featureItem}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="chatbubbles" size={18} color={COLORS.gold} />
+              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.teal}15` }]}>
+                <Ionicons name="chatbubbles" size={18} color={COLORS.teal} />
               </View>
               <Text style={styles.featureText}>محادثة مباشرة مع يازو</Text>
             </View>
             <View style={styles.featureItem}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="calendar" size={18} color={COLORS.gold} />
+              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.sage}25` }]}>
+                <Ionicons name="calendar" size={18} color={COLORS.sageDark} />
               </View>
               <Text style={styles.featureText}>حجز جلسات تدريبية</Text>
             </View>
             <View style={styles.featureItem}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="calculator" size={18} color={COLORS.gold} />
+              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.gold}20` }]}>
+                <Ionicons name="calculator" size={18} color={COLORS.goldDark} />
               </View>
               <Text style={styles.featureText}>أدوات وحاسبات متقدمة</Text>
             </View>
@@ -205,82 +243,94 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
+    padding: SPACING.lg,
     paddingTop: 60,
   },
 
   backBtn: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: SPACING.md,
+    right: SPACING.md,
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    ...SHADOWS.md,
     zIndex: 10,
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: 32,
-    marginTop: 20,
+    marginBottom: SPACING.xl,
+    marginTop: SPACING.lg,
   },
   logoContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: `${COLORS.teal}30`,
   },
   title: {
     fontSize: 28,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-    marginBottom: 8,
+    color: COLORS.teal,
+    marginBottom: SPACING.xs,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
+    color: COLORS.textSecondary,
   },
 
   // Form
   form: {
     width: '100%',
   },
+  inputGroup: {
+    marginBottom: SPACING.md,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+    textAlign: 'right',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    marginBottom: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    borderWidth: 1.5,
     borderColor: COLORS.border,
+    ...SHADOWS.sm,
   },
-  inputIcon: {
-    marginRight: 12,
+  inputContainerFocused: {
+    borderColor: COLORS.teal,
+    borderWidth: 2,
   },
   input: {
     flex: 1,
-    height: 54,
+    height: 52,
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.text,
@@ -290,94 +340,95 @@ const styles = StyleSheet.create({
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 20,
-    gap: 10,
+    backgroundColor: `${COLORS.sage}15`,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    gap: SPACING.sm,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderColor: `${COLORS.sage}40`,
   },
   infoText: {
     flex: 1,
     fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.goldLight,
+    color: COLORS.textSecondary,
     textAlign: 'right',
     lineHeight: 22,
   },
 
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: COLORS.teal,
+    borderRadius: RADIUS.md,
+    height: 52,
     justifyContent: 'center',
-    backgroundColor: COLORS.gold,
-    borderRadius: 16,
-    height: 56,
-    gap: 8,
+    alignItems: 'center',
+    ...SHADOWS.md,
   },
   buttonDisabled: {
-    backgroundColor: COLORS.goldDark,
+    backgroundColor: COLORS.tealLight,
     opacity: 0.7,
   },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
   buttonText: {
-    color: COLORS.primary,
+    color: COLORS.white,
     fontSize: 18,
     fontFamily: FONTS.bold,
   },
   linkButton: {
-    marginTop: 20,
+    marginTop: SPACING.lg,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   linkText: {
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     fontSize: 15,
     fontFamily: FONTS.regular,
   },
   linkTextHighlight: {
-    color: COLORS.gold,
+    color: COLORS.teal,
     fontSize: 15,
     fontFamily: FONTS.bold,
   },
 
   // Features
   featuresSection: {
-    marginTop: 32,
-    paddingTop: 24,
+    marginTop: SPACING.xl,
+    paddingTop: SPACING.lg,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: COLORS.divider,
   },
   featuresTitle: {
     fontSize: 16,
     fontFamily: FONTS.semiBold,
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
   },
   featuresList: {
-    gap: 12,
+    gap: SPACING.md,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: SPACING.md,
   },
   featureIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.secondary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
   },
   featureText: {
     flex: 1,
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'right',
   },
 });
