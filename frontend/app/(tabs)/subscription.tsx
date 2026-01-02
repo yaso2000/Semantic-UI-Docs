@@ -8,14 +8,28 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+
+// Conditionally import Stripe only on native platforms
+let StripeProvider: any = null;
+let useStripe: any = null;
+
+if (Platform.OS !== 'web') {
+  try {
+    const stripe = require('@stripe/stripe-react-native');
+    StripeProvider = stripe.StripeProvider;
+    useStripe = stripe.useStripe;
+  } catch (e) {
+    console.log('Stripe not available');
+  }
+}
 
 interface Subscription {
   id: string;
@@ -61,7 +75,11 @@ function SubscriptionContent() {
   const [subscribing, setSubscribing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  // Use Stripe hooks only on native
+  const stripeHooks = Platform.OS !== 'web' && useStripe ? useStripe() : { initPaymentSheet: null, presentPaymentSheet: null };
+  const { initPaymentSheet, presentPaymentSheet } = stripeHooks;
+
+  const isStripeAvailable = Platform.OS !== 'web' && initPaymentSheet && presentPaymentSheet;
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -87,6 +105,8 @@ function SubscriptionContent() {
   };
 
   const initializePaymentSheet = async () => {
+    if (!initPaymentSheet) return false;
+    
     try {
       const token = await AsyncStorage.getItem('token');
       
@@ -135,14 +155,51 @@ function SubscriptionContent() {
       [
         { text: 'إلغاء', style: 'cancel', onPress: () => setSelectedPlan(null) },
         {
-          text: 'متابعة للدفع',
-          onPress: () => processPayment(planId)
+          text: isStripeAvailable ? 'متابعة للدفع' : 'تواصل معنا',
+          onPress: () => isStripeAvailable ? processPayment(planId) : handleManualSubscription(planId)
         }
       ]
     );
   };
 
+  const handleManualSubscription = async (planId: string) => {
+    // For web or when Stripe is not available
+    setSubscribing(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/subscriptions/activate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ plan: planId })
+      });
+
+      if (response.ok) {
+        Alert.alert(
+          'تم طلب الاشتراك! 📧',
+          'سيتم التواصل معك لترتيب الدفع وتفعيل اشتراكك.',
+          [{ text: 'حسناً', onPress: () => loadSubscription() }]
+        );
+      } else {
+        const error = await response.json();
+        Alert.alert('خطأ', error.detail || 'فشل في طلب الاشتراك');
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'حدث خطأ في الاتصال');
+    } finally {
+      setSubscribing(false);
+      setSelectedPlan(null);
+    }
+  };
+
   const processPayment = async (planId: string) => {
+    if (!presentPaymentSheet) {
+      handleManualSubscription(planId);
+      return;
+    }
+    
     setSubscribing(true);
     try {
       // Initialize payment sheet
@@ -277,7 +334,10 @@ function SubscriptionContent() {
         <View style={styles.securityInfo}>
           <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
           <Text style={styles.securityText}>
-            دفع آمن ومشفر عبر Stripe - لا نقوم بتخزين بيانات بطاقتك
+            {isStripeAvailable 
+              ? 'دفع آمن ومشفر عبر Stripe - لا نقوم بتخزين بيانات بطاقتك'
+              : 'يمكنك الاشتراك عبر التطبيق على الهاتف أو التواصل معنا'
+            }
           </Text>
         </View>
 
@@ -329,7 +389,7 @@ function SubscriptionContent() {
                 ) : (
                   <View style={styles.subscribeBtnContent}>
                     <Ionicons 
-                      name="card" 
+                      name={isStripeAvailable ? "card" : "mail"} 
                       size={20} 
                       color={plan.popular ? '#fff' : '#FF9800'} 
                     />
@@ -337,7 +397,7 @@ function SubscriptionContent() {
                       styles.subscribeBtnText,
                       plan.popular && styles.subscribeBtnTextPopular
                     ]}>
-                      {isActive ? 'مشترك حالياً' : 'اشترك الآن'}
+                      {isActive ? 'مشترك حالياً' : (isStripeAvailable ? 'اشترك الآن' : 'طلب اشتراك')}
                     </Text>
                   </View>
                 )}
@@ -347,29 +407,36 @@ function SubscriptionContent() {
         </View>
 
         {/* طرق الدفع المقبولة */}
-        <View style={styles.paymentMethods}>
-          <Text style={styles.paymentMethodsTitle}>طرق الدفع المقبولة</Text>
-          <View style={styles.paymentMethodsIcons}>
-            <View style={styles.paymentIcon}>
-              <Ionicons name="card" size={24} color="#1976D2" />
-              <Text style={styles.paymentIconText}>Visa/MC</Text>
-            </View>
-            <View style={styles.paymentIcon}>
-              <Ionicons name="logo-apple" size={24} color="#333" />
-              <Text style={styles.paymentIconText}>Apple Pay</Text>
-            </View>
-            <View style={styles.paymentIcon}>
-              <Ionicons name="logo-google" size={24} color="#EA4335" />
-              <Text style={styles.paymentIconText}>Google Pay</Text>
+        {isStripeAvailable && (
+          <View style={styles.paymentMethods}>
+            <Text style={styles.paymentMethodsTitle}>طرق الدفع المقبولة</Text>
+            <View style={styles.paymentMethodsIcons}>
+              <View style={styles.paymentIcon}>
+                <Ionicons name="card" size={24} color="#1976D2" />
+                <Text style={styles.paymentIconText}>Visa/MC</Text>
+              </View>
+              <View style={styles.paymentIcon}>
+                <Ionicons name="logo-apple" size={24} color="#333" />
+                <Text style={styles.paymentIconText}>Apple Pay</Text>
+              </View>
+              <View style={styles.paymentIcon}>
+                <Ionicons name="logo-google" size={24} color="#EA4335" />
+                <Text style={styles.paymentIconText}>Google Pay</Text>
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 export default function SubscriptionScreen() {
+  // On web, don't wrap with StripeProvider
+  if (Platform.OS === 'web' || !StripeProvider) {
+    return <SubscriptionContent />;
+  }
+
   return (
     <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
       <SubscriptionContent />
