@@ -8,13 +8,13 @@ import {
   ScrollView,
   Alert,
   Platform,
-  Image,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
@@ -70,17 +70,31 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={50} color={COLORS.gold} />
+            <Ionicons name="person" size={48} color={COLORS.teal} />
           </View>
           <Text style={styles.userName}>{user?.full_name || 'المستخدم'}</Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
-          <View style={styles.badge}>
-            <Ionicons name={user?.role === 'admin' ? 'star' : 'person'} size={14} color={COLORS.primary} />
-            <Text style={styles.badgeText}>
+          <View style={[
+            styles.badge,
+            { backgroundColor: user?.role === 'admin' ? `${COLORS.teal}15` : `${COLORS.sage}20` }
+          ]}>
+            <Ionicons 
+              name={user?.role === 'admin' ? 'star' : 'person'} 
+              size={14} 
+              color={user?.role === 'admin' ? COLORS.teal : COLORS.sageDark} 
+            />
+            <Text style={[
+              styles.badgeText,
+              { color: user?.role === 'admin' ? COLORS.teal : COLORS.sageDark }
+            ]}>
               {user?.role === 'admin' ? 'يازو - المدرب' : 'متدرب'}
             </Text>
           </View>
@@ -94,26 +108,31 @@ export default function ProfileScreen() {
               <MenuItem 
                 icon="people" 
                 title="المتدربين" 
+                color={COLORS.teal}
                 onPress={() => router.push('/(tabs)/my-trainees' as any)} 
               />
               <MenuItem 
                 icon="time" 
                 title="سجل الجلسات" 
+                color={COLORS.sageDark}
                 onPress={() => router.push('/coach/sessions' as any)} 
               />
               <MenuItem 
                 icon="pricetags" 
                 title="باقات التدريب" 
+                color={COLORS.goldDark}
                 onPress={() => router.push('/admin/packages' as any)} 
               />
               <MenuItem 
                 icon="wallet" 
                 title="المدفوعات" 
+                color={COLORS.spiritual}
                 onPress={() => router.push('/admin/payments' as any)} 
               />
               <MenuItem 
                 icon="person-add" 
                 title="إدارة المستخدمين" 
+                color={COLORS.info}
                 onPress={() => router.push('/admin/users' as any)} 
               />
             </>
@@ -125,16 +144,19 @@ export default function ProfileScreen() {
               <MenuItem 
                 icon="clipboard" 
                 title="استبيان القبول" 
+                color={COLORS.teal}
                 onPress={() => router.push('/intake-questionnaire' as any)} 
               />
               <MenuItem 
                 icon="folder" 
                 title="مكتبة الموارد" 
+                color={COLORS.sageDark}
                 onPress={() => router.push('/resources' as any)} 
               />
               <MenuItem 
                 icon="checkmark-done" 
                 title="متتبع العادات" 
+                color={COLORS.goldDark}
                 onPress={() => router.push('/habit-tracker' as any)} 
               />
             </>
@@ -144,18 +166,20 @@ export default function ProfileScreen() {
           <MenuItem 
             icon="settings" 
             title="الإعدادات" 
+            color={COLORS.textSecondary}
             onPress={() => router.push('/settings' as any)} 
           />
           <MenuItem 
             icon="help-circle" 
             title="المساعدة والدعم" 
+            color={COLORS.info}
             onPress={() => router.push('/help' as any)} 
           />
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out" size={24} color={COLORS.error} />
+          <Ionicons name="log-out" size={22} color={COLORS.error} />
           <Text style={styles.logoutText}>تسجيل الخروج</Text>
         </TouchableOpacity>
 
@@ -170,14 +194,14 @@ export default function ProfileScreen() {
 }
 
 // Menu Item Component
-function MenuItem({ icon, title, onPress }: { icon: string; title: string; onPress: () => void }) {
+function MenuItem({ icon, title, color, onPress }: { icon: string; title: string; color: string; onPress: () => void }) {
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <View style={styles.menuIconContainer}>
-        <Ionicons name={icon as any} size={22} color={COLORS.gold} />
+    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+      <View style={[styles.menuIconContainer, { backgroundColor: `${color}15` }]}>
+        <Ionicons name={icon as any} size={22} color={color} />
       </View>
       <Text style={styles.menuText}>{title}</Text>
-      <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+      <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
     </TouchableOpacity>
   );
 }
@@ -185,89 +209,84 @@ function MenuItem({ icon, title, onPress }: { icon: string; title: string; onPre
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: SPACING.lg,
+    paddingBottom: SPACING['2xl'],
   },
   
   // Header
   header: {
     alignItems: 'center',
-    marginBottom: 30,
-    paddingVertical: 30,
-    backgroundColor: COLORS.secondary,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    marginBottom: SPACING.lg,
+    paddingVertical: SPACING.xl,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.xl,
+    ...SHADOWS.md,
   },
   avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: `${COLORS.teal}30`,
   },
   userName: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    marginBottom: 12,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gold,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.md,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: RADIUS.full,
     gap: 6,
   },
   badgeText: {
     fontSize: 12,
     fontFamily: FONTS.semiBold,
-    color: COLORS.primary,
   },
 
   // Menu
   menuSection: {
-    gap: 12,
-    marginBottom: 24,
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    ...SHADOWS.sm,
   },
   menuIconContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    marginLeft: SPACING.md,
   },
   menuText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: FONTS.semiBold,
-    color: COLORS.white,
+    color: COLORS.text,
     textAlign: 'right',
   },
 
@@ -276,16 +295,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.secondary,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.error,
-    gap: 8,
-    marginBottom: 24,
+    backgroundColor: COLORS.errorLight,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: FONTS.semiBold,
     color: COLORS.error,
   },
@@ -297,7 +314,7 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
-    color: COLORS.gold,
+    color: COLORS.teal,
   },
   versionText: {
     fontSize: 12,

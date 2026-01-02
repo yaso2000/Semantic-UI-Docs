@@ -20,7 +20,7 @@ import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -184,7 +184,7 @@ export default function ChatScreen() {
   }, []);
 
   const getLetterColor = (name: string): string => {
-    const colors = [COLORS.gold, '#4CAF50', '#2196F3', '#9C27B0', '#E91E63', '#00BCD4', '#FF9800'];
+    const colors = [COLORS.teal, COLORS.sage, COLORS.gold, COLORS.spiritual, COLORS.info];
     const index = (name?.charCodeAt(0) || 0) % colors.length;
     return colors[index];
   };
@@ -203,9 +203,9 @@ export default function ChatScreen() {
         width: size, 
         height: size, 
         borderRadius: size / 2,
-        backgroundColor: getLetterColor(contact.full_name)
+        backgroundColor: `${getLetterColor(contact.full_name)}20`
       }]}>
-        <Text style={[styles.avatarLetter, { fontSize: size * 0.4 }]}>
+        <Text style={[styles.avatarLetter, { fontSize: size * 0.4, color: getLetterColor(contact.full_name) }]}>
           {contact.full_name?.charAt(0).toUpperCase() || '?'}
         </Text>
       </View>
@@ -216,9 +216,10 @@ export default function ChatScreen() {
     <TouchableOpacity
       style={styles.contactCard}
       onPress={() => selectContact(item)}
+      activeOpacity={0.7}
     >
       <View style={styles.contactAvatar}>
-        {renderAvatar(item, 56)}
+        {renderAvatar(item, 52)}
         {item.unread_count > 0 && (
           <View style={styles.unreadBadge}>
             <Text style={styles.unreadText}>{item.unread_count}</Text>
@@ -244,7 +245,7 @@ export default function ChatScreen() {
         <View style={styles.contactMeta}>
           {item.hours_remaining !== undefined && item.hours_remaining > 0 && (
             <View style={styles.hoursBadge}>
-              <Ionicons name="time" size={12} color={COLORS.gold} />
+              <Ionicons name="time" size={12} color={COLORS.teal} />
               <Text style={styles.hoursText}>{item.hours_remaining} ساعة متبقية</Text>
             </View>
           )}
@@ -273,8 +274,8 @@ export default function ChatScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-        <ActivityIndicator size="large" color={COLORS.gold} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <ActivityIndicator size="large" color={COLORS.teal} />
         <Text style={styles.loadingText}>جاري التحميل...</Text>
       </View>
     );
@@ -283,7 +284,7 @@ export default function ChatScreen() {
   if (selectedContact) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.chatHeader}>
           <TouchableOpacity 
             style={styles.backButton}
@@ -292,7 +293,7 @@ export default function ChatScreen() {
               loadContacts();
             }}
           >
-            <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
+            <Ionicons name="arrow-forward" size={22} color={COLORS.teal} />
           </TouchableOpacity>
           <View style={styles.chatHeaderInfo}>
             {renderAvatar(selectedContact, 44)}
@@ -312,11 +313,13 @@ export default function ChatScreen() {
         >
           {loadingMessages ? (
             <View style={styles.loadingMessages}>
-              <ActivityIndicator color={COLORS.gold} />
+              <ActivityIndicator color={COLORS.teal} />
             </View>
           ) : messages.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="chatbubbles-outline" size={80} color={COLORS.border} />
+              <View style={styles.emptyIcon}>
+                <Ionicons name="chatbubbles-outline" size={60} color={COLORS.teal} />
+              </View>
               <Text style={styles.emptyText}>لا توجد رسائل بعد</Text>
               <Text style={styles.emptySubtext}>ابدأ المحادثة مع {selectedContact.full_name}</Text>
             </View>
@@ -336,9 +339,9 @@ export default function ChatScreen() {
               disabled={!newMessage.trim() || sending}
             >
               {sending ? (
-                <ActivityIndicator color={COLORS.primary} size="small" />
+                <ActivityIndicator color={COLORS.white} size="small" />
               ) : (
-                <Ionicons name="send" size={22} color={COLORS.primary} />
+                <Ionicons name="send" size={20} color={COLORS.white} />
               )}
             </TouchableOpacity>
             <TextInput
@@ -359,15 +362,17 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.header}>
-        <Ionicons name="chatbubbles" size={28} color={COLORS.gold} />
+        <Ionicons name="chatbubbles" size={26} color={COLORS.teal} />
         <Text style={styles.headerTitle}>المحادثات</Text>
       </View>
 
       {contacts.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="chatbubbles-outline" size={80} color={COLORS.border} />
+          <View style={styles.emptyStateIcon}>
+            <Ionicons name="chatbubbles-outline" size={60} color={COLORS.teal} />
+          </View>
           <Text style={styles.emptyStateTitle}>لا توجد محادثات متاحة</Text>
           <Text style={styles.emptyStateText}>
             {user?.role === 'trainee' 
@@ -389,7 +394,7 @@ export default function ChatScreen() {
           keyExtractor={(item) => item.user_id}
           contentContainerStyle={styles.contactsList}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.gold} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.teal} />
           }
         />
       )}
@@ -398,40 +403,40 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
-  loadingText: { fontSize: 16, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 16 },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  loadingText: { fontSize: 15, fontFamily: FONTS.regular, color: COLORS.textSecondary, marginTop: SPACING.md },
   loadingMessages: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    padding: 20,
-    backgroundColor: COLORS.secondary,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    gap: 12,
+    gap: SPACING.sm,
+    ...SHADOWS.sm,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
+    color: COLORS.text,
   },
 
-  contactsList: { padding: 12 },
+  contactsList: { padding: SPACING.md },
   contactCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.sm,
   },
   contactAvatar: {
-    marginLeft: 14,
+    marginLeft: SPACING.md,
     position: 'relative',
   },
   avatarPlaceholder: {
@@ -439,7 +444,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarLetter: {
-    color: COLORS.primary,
     fontFamily: FONTS.bold,
   },
   unreadBadge: {
@@ -467,7 +471,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   contactName: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: FONTS.bold,
     color: COLORS.text,
     textAlign: 'right',
@@ -479,203 +483,218 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   lastMessage: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'right',
     marginBottom: 6,
   },
   noMessages: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.gold,
+    color: COLORS.teal,
     textAlign: 'right',
     marginBottom: 6,
   },
   contactMeta: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 10,
+    gap: SPACING.sm,
   },
   hoursBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    backgroundColor: `${COLORS.teal}10`,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: RADIUS.full,
     gap: 4,
   },
   hoursText: {
     fontSize: 11,
     fontFamily: FONTS.regular,
-    color: COLORS.gold,
+    color: COLORS.teal,
   },
 
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
+    padding: SPACING.xl,
+  },
+  emptyStateIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: `${COLORS.teal}10`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
   },
   emptyStateTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.textMuted,
-    marginTop: 16,
+    color: COLORS.text,
+    marginTop: SPACING.sm,
   },
   emptyStateText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 24,
+    marginTop: SPACING.sm,
+    lineHeight: 22,
   },
   tipBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 24,
-    gap: 12,
+    backgroundColor: `${COLORS.gold}10`,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginTop: SPACING.lg,
+    gap: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.gold,
+    borderColor: `${COLORS.gold}30`,
   },
   tipText: {
     flex: 1,
     fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.goldLight,
+    color: COLORS.goldDark,
     textAlign: 'right',
   },
 
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    backgroundColor: COLORS.secondary,
+    padding: SPACING.md,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    ...SHADOWS.sm,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    marginLeft: SPACING.sm,
   },
   chatHeaderInfo: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 12,
+    gap: SPACING.sm,
   },
   chatHeaderText: {
     alignItems: 'flex-end',
   },
   chatHeaderName: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: FONTS.bold,
     color: COLORS.text,
   },
   chatHeaderStatus: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.gold,
+    color: COLORS.teal,
   },
 
   keyboardView: { flex: 1 },
-  messagesList: { padding: 16, flexGrow: 1 },
+  messagesList: { padding: SPACING.md, flexGrow: 1 },
   
-  messageContainer: { marginBottom: 12, alignItems: 'flex-end' },
+  messageContainer: { marginBottom: SPACING.sm, alignItems: 'flex-end' },
   myMessageContainer: { alignItems: 'flex-start' },
   messageBubble: {
     maxWidth: '80%',
-    borderRadius: 18,
-    padding: 12,
-    paddingHorizontal: 16,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.sm,
+    paddingHorizontal: SPACING.md,
   },
   otherMessage: {
-    backgroundColor: COLORS.secondary,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    ...SHADOWS.sm,
     borderTopRightRadius: 4,
   },
   myMessage: {
-    backgroundColor: COLORS.gold,
+    backgroundColor: COLORS.teal,
     borderTopLeftRadius: 4,
   },
   messageText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: FONTS.regular,
     color: COLORS.text,
-    lineHeight: 24,
+    lineHeight: 22,
     textAlign: 'right',
   },
-  myMessageText: { color: COLORS.primary },
+  myMessageText: { color: COLORS.white },
   msgTime: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
     marginTop: 4,
   },
-  myMsgTime: { color: 'rgba(10, 22, 40, 0.7)' },
+  myMsgTime: { color: 'rgba(255, 255, 255, 0.7)' },
 
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
+    padding: SPACING.xl,
+  },
+  emptyIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: `${COLORS.teal}10`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: FONTS.bold,
-    color: COLORS.textMuted,
-    marginTop: 16,
+    color: COLORS.text,
   },
   emptySubtext: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    marginTop: 8,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
     textAlign: 'center',
   },
 
   inputContainer: {
     flexDirection: 'row',
-    padding: 12,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.secondary,
+    padding: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     alignItems: 'center',
-    gap: 12,
+    gap: SPACING.sm,
   },
   input: {
     flex: 1,
     minHeight: 44,
     maxHeight: 80,
-    backgroundColor: COLORS.primary,
-    borderRadius: 22,
-    paddingHorizontal: 18,
+    backgroundColor: COLORS.beige,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.md,
     paddingVertical: 10,
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: FONTS.regular,
     textAlign: 'right',
     color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border,
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.gold,
+    backgroundColor: COLORS.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
