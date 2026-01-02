@@ -575,14 +575,20 @@ async def update_session(session_id: str, data: dict, coach_user: dict = Depends
 @api_router.delete("/sessions/{session_id}")
 async def delete_session(session_id: str, coach_user: dict = Depends(get_coach_user)):
     """Delete a session"""
-    session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
+    # للأدمن: يمكنه حذف أي جلسة
+    # للمدرب: يمكنه حذف جلساته فقط
+    if coach_user["role"] == "admin":
+        session = await db.sessions.find_one({"_id": session_id})
+    else:
+        session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
+    
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
     # Update booking hours (subtract the session duration)
     booking = await db.bookings.find_one({"_id": session["booking_id"]})
     if booking:
-        new_hours_used = max(0, booking.get("hours_used", 0) - session["duration_hours"])
+        new_hours_used = max(0, booking.get("hours_used", 0) - session.get("duration_hours", 0))
         await db.bookings.update_one(
             {"_id": session["booking_id"]},
             {"$set": {"hours_used": new_hours_used}}
