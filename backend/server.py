@@ -1094,6 +1094,169 @@ async def update_coach_profile(data: dict, coach_user: dict = Depends(get_coach_
     
     return {"message": "Profile updated"}
 
+# ==================== HABIT TRACKER ENDPOINTS ====================
+
+class HabitCreate(BaseModel):
+    name: str
+    icon: str
+    color: str
+    frequency: str = "daily"
+
+class HabitToggle(BaseModel):
+    date: str  # YYYY-MM-DD format
+
+@api_router.get("/habits")
+async def get_habits(current_user: dict = Depends(get_current_user)):
+    """Get all habits for the current user"""
+    habits = await db.habits.find({"user_id": current_user["_id"]}).to_list(100)
+    
+    # If no habits, create default ones
+    if not habits:
+        default_habits = [
+            {"name": "شرب 8 أكواب ماء", "icon": "water", "color": "#2196F3"},
+            {"name": "تمارين رياضية", "icon": "fitness", "color": "#4CAF50"},
+            {"name": "قراءة 15 دقيقة", "icon": "book", "color": "#9C27B0"},
+            {"name": "تأمل صباحي", "icon": "leaf", "color": "#8BC34A"},
+        ]
+        
+        for habit in default_habits:
+            habit_doc = {
+                "_id": str(uuid.uuid4()),
+                "user_id": current_user["_id"],
+                "name": habit["name"],
+                "icon": habit["icon"],
+                "color": habit["color"],
+                "frequency": "daily",
+                "completed_dates": [],
+                "created_at": datetime.utcnow()
+            }
+            await db.habits.insert_one(habit_doc)
+        
+        habits = await db.habits.find({"user_id": current_user["_id"]}).to_list(100)
+    
+    result = []
+    for h in habits:
+        result.append({
+            "id": h["_id"],
+            "name": h["name"],
+            "icon": h["icon"],
+            "color": h["color"],
+            "frequency": h.get("frequency", "daily"),
+            "completedDates": h.get("completed_dates", []),
+            "createdAt": h.get("created_at", datetime.utcnow()).isoformat()
+        })
+    
+    return result
+
+@api_router.post("/habits")
+async def create_habit(habit: HabitCreate, current_user: dict = Depends(get_current_user)):
+    """Create a new habit"""
+    habit_doc = {
+        "_id": str(uuid.uuid4()),
+        "user_id": current_user["_id"],
+        "name": habit.name,
+        "icon": habit.icon,
+        "color": habit.color,
+        "frequency": habit.frequency,
+        "completed_dates": [],
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.habits.insert_one(habit_doc)
+    
+    return {
+        "id": habit_doc["_id"],
+        "name": habit_doc["name"],
+        "icon": habit_doc["icon"],
+        "color": habit_doc["color"],
+        "frequency": habit_doc["frequency"],
+        "completedDates": [],
+        "createdAt": habit_doc["created_at"].isoformat()
+    }
+
+@api_router.post("/habits/{habit_id}/toggle")
+async def toggle_habit(habit_id: str, data: HabitToggle, current_user: dict = Depends(get_current_user)):
+    """Toggle habit completion for a specific date"""
+    habit = await db.habits.find_one({"_id": habit_id, "user_id": current_user["_id"]})
+    
+    if not habit:
+        raise HTTPException(status_code=404, detail="Habit not found")
+    
+    completed_dates = habit.get("completed_dates", [])
+    date_str = data.date
+    
+    if date_str in completed_dates:
+        # Remove the date (uncomplete)
+        completed_dates.remove(date_str)
+        action = "uncompleted"
+    else:
+        # Add the date (complete)
+        completed_dates.append(date_str)
+        action = "completed"
+    
+    await db.habits.update_one(
+        {"_id": habit_id},
+        {"$set": {"completed_dates": completed_dates}}
+    )
+    
+    return {
+        "message": f"Habit {action}",
+        "action": action,
+        "completedDates": completed_dates
+    }
+
+@api_router.delete("/habits/{habit_id}")
+async def delete_habit(habit_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a habit"""
+    result = await db.habits.delete_one({"_id": habit_id, "user_id": current_user["_id"]})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Habit not found")
+    
+    return {"message": "Habit deleted"}
+
+@api_router.get("/habits/stats")
+async def get_habit_stats(current_user: dict = Depends(get_current_user)):
+    """Get habit statistics for the current user"""
+    habits = await db.habits.find({"user_id": current_user["_id"]}).to_list(100)
+    
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    total_habits = len(habits)
+    completed_today = sum(1 for h in habits if today in h.get("completed_dates", []))
+    
+    # Calculate streaks
+    total_streak = 0
+    for habit in habits:
+        streak = 0
+        check_date = datetime.utcnow()
+        for i in range(365):
+            date_str = check_date.strftime("%Y-%m-%d")
+            if date_str in habit.get("completed_dates", []):
+                streak += 1
+                check_date -= timedelta(days=1)
+            else:
+                break
+        total_streak = max(total_streak, streak)
+    
+    # Weekly completion rate
+    week_completions = 0
+    week_possible = total_habits * 7
+    for i in range(7):
+        date = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
+        for h in habits:
+            if date in h.get("completed_dates", []):
+                week_completions += 1
+    
+    weekly_rate = (week_completions / week_possible * 100) if week_possible > 0 else 0
+    
+    return {
+        "total_habits": total_habits,
+        "completed_today": completed_today,
+        "today_progress": (completed_today / total_habits * 100) if total_habits > 0 else 0,
+        "best_streak": total_streak,
+        "weekly_rate": round(weekly_rate, 1)
+    }
+
 # ==================== SOCKET.IO EVENTS ====================
 
 @sio.event
