@@ -4,19 +4,9 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import * as SplashScreen from 'expo-splash-screen';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../src/constants/theme';
 
 SplashScreen.preventAutoHideAsync();
-
-const COLORS = {
-  primary: '#0A1628',
-  secondary: '#1A2744',
-  gold: '#D4AF37',
-  goldLight: '#F4E4BC',
-  white: '#FFFFFF',
-  text: '#E8E8E8',
-  textMuted: '#8A9BB8',
-  border: '#2A3A5C',
-};
 
 export default function Index() {
   const router = useRouter();
@@ -39,44 +29,47 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       <View style={styles.content}>
         {/* Logo Section */}
         <View style={styles.logoSection}>
           <View style={styles.logoContainer}>
-            <Ionicons name="sparkles" size={60} color={COLORS.gold} />
+            <Ionicons name="leaf" size={56} color={COLORS.teal} />
           </View>
           <Text style={styles.title}>اسأل يازو</Text>
           <Text style={styles.titleEn}>Ask Yazo</Text>
-          <Text style={styles.subtitle}>رحلتك نحو الحياة الأفضل</Text>
+          <Text style={styles.subtitle}>رحلتك نحو حياة متوازنة</Text>
         </View>
 
-        {/* Features */}
-        <View style={styles.featuresContainer}>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Ionicons name="barbell" size={24} color={COLORS.gold} />
+        {/* Features - Four Pillars */}
+        <View style={styles.featuresCard}>
+          <Text style={styles.featuresTitle}>الأعمدة الأربعة للحياة المتوازنة</Text>
+          <View style={styles.featuresContainer}>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.physical}15` }]}>
+                <Ionicons name="fitness" size={24} color={COLORS.physical} />
+              </View>
+              <Text style={[styles.featureText, { color: COLORS.physical }]}>البدني</Text>
             </View>
-            <Text style={styles.featureText}>اللياقة البدنية</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Ionicons name="nutrition" size={24} color={COLORS.gold} />
+            <View style={styles.featureItem}>
+              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.nutritional}20` }]}>
+                <Ionicons name="nutrition" size={24} color={COLORS.nutritional} />
+              </View>
+              <Text style={[styles.featureText, { color: COLORS.nutritional }]}>التغذوي</Text>
             </View>
-            <Text style={styles.featureText}>الصحة الغذائية</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Ionicons name="heart" size={24} color={COLORS.gold} />
+            <View style={styles.featureItem}>
+              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.mental}15` }]}>
+                <Ionicons name="happy" size={24} color={COLORS.mental} />
+              </View>
+              <Text style={[styles.featureText, { color: COLORS.mental }]}>النفسي</Text>
             </View>
-            <Text style={styles.featureText}>الصحة النفسية</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Ionicons name="sparkles" size={24} color={COLORS.gold} />
+            <View style={styles.featureItem}>
+              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.spiritual}15` }]}>
+                <Ionicons name="sparkles" size={24} color={COLORS.spiritual} />
+              </View>
+              <Text style={[styles.featureText, { color: COLORS.spiritual }]}>الروحي</Text>
             </View>
-            <Text style={styles.featureText}>الصحة الروحية</Text>
           </View>
         </View>
 
@@ -85,14 +78,16 @@ export default function Index() {
           <TouchableOpacity 
             style={styles.primaryButton}
             onPress={() => router.push('/(auth)/login')}
+            activeOpacity={0.8}
           >
+            <Ionicons name="arrow-back" size={20} color={COLORS.white} />
             <Text style={styles.primaryButtonText}>تسجيل الدخول</Text>
-            <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.secondaryButton}
             onPress={() => router.push('/(auth)/register')}
+            activeOpacity={0.7}
           >
             <Text style={styles.secondaryButtonText}>إنشاء حساب جديد</Text>
           </TouchableOpacity>
@@ -100,7 +95,11 @@ export default function Index() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>منهج 4 ركائز للتغيير الشامل</Text>
+          <View style={styles.footerDivider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.footerText}>ابدأ رحلتك الآن</Text>
+            <View style={styles.dividerLine} />
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -110,118 +109,137 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   content: {
     flex: 1,
-    padding: 24,
+    padding: SPACING.lg,
     justifyContent: 'center',
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: SPACING.xl,
   },
   logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: `${COLORS.teal}25`,
   },
   title: {
-    fontSize: 42,
-    fontFamily: 'Alexandria_700Bold',
-    color: COLORS.gold,
+    fontSize: 40,
+    fontFamily: FONTS.bold,
+    color: COLORS.teal,
     marginBottom: 4,
   },
   titleEn: {
-    fontSize: 18,
-    fontFamily: 'Alexandria_400Regular',
+    fontSize: 16,
+    fontFamily: FONTS.regular,
     color: COLORS.textMuted,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   subtitle: {
     fontSize: 16,
-    fontFamily: 'Alexandria_400Regular',
-    color: COLORS.text,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
   },
 
-  // Features
+  // Features Card
+  featuresCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    marginBottom: SPACING.xl,
+    ...SHADOWS.md,
+  },
+  featuresTitle: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SPACING.md,
+  },
   featuresContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 40,
+    justifyContent: 'space-around',
   },
   featureItem: {
     alignItems: 'center',
-    width: '45%',
+    width: '22%',
   },
   featureIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.secondary,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    marginBottom: SPACING.xs,
   },
   featureText: {
-    fontSize: 12,
-    fontFamily: 'Alexandria_600SemiBold',
-    color: COLORS.text,
+    fontSize: 11,
+    fontFamily: FONTS.semiBold,
+    textAlign: 'center',
   },
 
   // Buttons
   buttonsContainer: {
-    gap: 16,
-    marginBottom: 24,
+    gap: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gold,
-    paddingVertical: 16,
-    borderRadius: 30,
-    gap: 8,
+    backgroundColor: COLORS.teal,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.full,
+    gap: SPACING.sm,
+    ...SHADOWS.md,
   },
   primaryButtonText: {
     fontSize: 18,
-    fontFamily: 'Alexandria_700Bold',
-    color: COLORS.primary,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
   },
   secondaryButton: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    paddingVertical: 16,
-    borderRadius: 30,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.full,
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: COLORS.teal,
   },
   secondaryButtonText: {
     fontSize: 18,
-    fontFamily: 'Alexandria_600SemiBold',
-    color: COLORS.gold,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.teal,
   },
 
   // Footer
   footer: {
     alignItems: 'center',
   },
+  footerDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.divider,
+  },
   footerText: {
-    fontSize: 14,
-    fontFamily: 'Alexandria_400Regular',
+    fontSize: 13,
+    fontFamily: FONTS.regular,
     color: COLORS.textMuted,
+    marginHorizontal: SPACING.md,
   },
 });
