@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,25 +27,6 @@ interface Package {
   description: string;
 }
 
-// دالة Alert تعمل على الويب والموبايل
-const showAlert = (title: string, message: string, buttons?: any[]) => {
-  if (Platform.OS === 'web') {
-    if (buttons && buttons.length > 1) {
-      const confirmed = window.confirm(`${title}\n\n${message}`);
-      if (confirmed && buttons[1]?.onPress) {
-        buttons[1].onPress();
-      }
-    } else {
-      window.alert(`${title}\n\n${message}`);
-      if (buttons && buttons[0]?.onPress) {
-        buttons[0].onPress();
-      }
-    }
-  } else {
-    Alert.alert(title, message, buttons);
-  }
-};
-
 export default function PackagesManagement() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,17 +35,22 @@ export default function PackagesManagement() {
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
-  useEffect(() => {
-    loadPackages();
-  }, []);
+  // تحديث القائمة عند كل زيارة للصفحة
+  useFocusEffect(
+    useCallback(() => {
+      loadPackages();
+    }, [])
+  );
 
   const loadPackages = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/packages`);
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/packages`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const data = await response.json();
       setPackages(data);
     } catch (error: any) {
-      showAlert('خطأ', 'فشل في تحميل الباقات');
       console.error('Error loading packages:', error);
     } finally {
       setLoading(false);
@@ -77,34 +64,54 @@ export default function PackagesManagement() {
   };
 
   const handleDeletePackage = async (packageId: string, packageName: string) => {
-    showAlert(
-      'حذف الباقة',
-      `هل أنت متأكد من حذف "${packageName}"؟`,
-      [
-        { text: 'إلغاء', style: 'cancel' },
-        {
-          text: 'حذف',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem('token');
-              const response = await fetch(`${API_URL}/api/packages/${packageId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
-              if (response.ok) {
-                showAlert('نجاح', 'تم حذف الباقة بنجاح');
-                loadPackages();
-              } else {
-                showAlert('خطأ', 'فشل في حذف الباقة');
-              }
-            } catch (error) {
-              showAlert('خطأ', 'فشل في حذف الباقة');
-            }
-          },
-        },
-      ]
-    );
+    // تأكيد الحذف
+    const confirmed = Platform.OS === 'web' 
+      ? window.confirm(`حذف الباقة\n\nهل أنت متأكد من حذف "${packageName}"؟`)
+      : await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            'حذف الباقة',
+            `هل أنت متأكد من حذف "${packageName}"؟`,
+            [
+              { text: 'إلغاء', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'حذف', style: 'destructive', onPress: () => resolve(true) },
+            ]
+          );
+        });
+
+    if (!confirmed) return;
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/packages/${packageId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        // تحديث القائمة محلياً
+        setPackages(prev => prev.filter(p => p.id !== packageId));
+        
+        if (Platform.OS === 'web') {
+          window.alert('نجاح\n\nتم حذف الباقة بنجاح');
+        } else {
+          Alert.alert('نجاح', 'تم حذف الباقة بنجاح');
+        }
+      } else {
+        const error = await response.json();
+        if (Platform.OS === 'web') {
+          window.alert(`خطأ\n\n${error.detail || 'فشل في حذف الباقة'}`);
+        } else {
+          Alert.alert('خطأ', error.detail || 'فشل في حذف الباقة');
+        }
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      if (Platform.OS === 'web') {
+        window.alert('خطأ\n\nفشل في حذف الباقة');
+      } else {
+        Alert.alert('خطأ', 'فشل في حذف الباقة');
+      }
+    }
   };
 
   const handleCreatePackage = () => {
