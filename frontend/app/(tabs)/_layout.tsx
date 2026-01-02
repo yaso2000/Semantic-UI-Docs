@@ -92,20 +92,19 @@ export default function TabsLayout() {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color="#4CAF50" />
       </View>
     );
   }
 
-  // تحديد التبويبات حسب دور المستخدم
+  // النموذج الجديد: admin = يازو (المدرب والأدمن)، client = المتدرب
   const isClient = userRole === 'client';
-  const isCoach = userRole === 'coach';
-  const isAdmin = userRole === 'admin';
+  const isYazo = userRole === 'admin'; // يازو هو الأدمن والمدرب معاً
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: isCoach ? '#FF9800' : isAdmin ? '#2196F3' : '#4CAF50',
+        tabBarActiveTintColor: isYazo ? '#FF9800' : '#4CAF50',
         tabBarInactiveTintColor: '#999',
         headerShown: false,
         tabBarStyle: {
@@ -123,57 +122,32 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: isAdmin ? 'لوحة التحكم' : isCoach ? 'لوحتي' : 'الأدوات',
+          title: isYazo ? 'لوحة التحكم' : 'الأدوات',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name={isAdmin || isCoach ? 'grid' : 'apps'} size={size} color={color} />
+            <Ionicons name={isYazo ? 'grid' : 'apps'} size={size} color={color} />
           ),
         }}
       />
 
-      {/* الحجوزات - للمتدربين فقط */}
+      {/* الباقات - للمتدربين: عرض باقات يازو */}
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'الحجوزات',
-          href: isClient ? undefined : null,
+          title: isClient ? 'حجوزاتي' : 'الحجوزات',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" size={size} color={color} />
           ),
         }}
       />
 
-      {/* قائمة المدربين - للمتدربين فقط */}
-      <Tabs.Screen
-        name="coaches"
-        options={{
-          title: 'المدربين',
-          href: isClient ? undefined : null,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* الاشتراك - للمدربين فقط */}
-      <Tabs.Screen
-        name="subscription"
-        options={{
-          title: 'اشتراكي',
-          href: isCoach ? undefined : null,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* متدربيني - للمدربين فقط */}
+      {/* متدربيني - ليازو فقط */}
       <Tabs.Screen
         name="my-trainees"
         options={{
-          title: 'متدربيني',
-          href: isCoach ? undefined : null,
+          title: 'المتدربين',
+          href: isYazo ? undefined : null,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="school" size={size} color={color} />
+            <Ionicons name="people" size={size} color={color} />
           ),
         }}
       />
@@ -194,7 +168,6 @@ export default function TabsLayout() {
         }}
         listeners={{
           focus: () => {
-            // Refresh unread count when chat tab is focused
             fetchUnreadCount();
           },
         }}
@@ -211,8 +184,10 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* إخفاء الصفحات القديمة */}
+      {/* إخفاء الصفحات القديمة/غير المستخدمة */}
       <Tabs.Screen name="calculators" options={{ href: null }} />
+      <Tabs.Screen name="coaches" options={{ href: null }} />
+      <Tabs.Screen name="subscription" options={{ href: null }} />
     </Tabs>
   );
 }
