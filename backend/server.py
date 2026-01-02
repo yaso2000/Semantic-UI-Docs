@@ -318,7 +318,11 @@ async def create_booking(booking: dict, current_user: dict = Depends(get_current
     if not package:
         raise HTTPException(status_code=404, detail="Package not found")
     
-    coach_id = booking.get("coach_id") or package.get("coach_id")
+    # في النموذج الجديد: جميع الحجوزات تكون مع يازو (الأدمن)
+    # نبحث عن الأدمن تلقائياً
+    admin_user = await db.users.find_one({"role": "admin"})
+    coach_id = admin_user["_id"] if admin_user else booking.get("coach_id") or package.get("coach_id")
+    coach_name = admin_user.get("full_name", "يازو") if admin_user else "يازو"
     
     # Create booking
     booking_id = str(uuid.uuid4())
@@ -327,6 +331,7 @@ async def create_booking(booking: dict, current_user: dict = Depends(get_current
         "client_id": current_user["_id"],
         "client_name": current_user.get("full_name", "متدرب"),
         "coach_id": coach_id,
+        "coach_name": coach_name,
         "package_id": booking.get("package_id"),
         "package_name": package.get("name"),
         "hours_purchased": package.get("hours"),
