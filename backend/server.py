@@ -699,6 +699,189 @@ async def get_admin_stats(admin_user: dict = Depends(get_admin_user)):
 
 # ==================== ADMIN SUBSCRIPTION MANAGEMENT ====================
 
+# ==================== ADMIN PAYMENT MANAGEMENT ====================
+
+@api_router.get("/admin/payments")
+async def get_all_payments(admin_user: dict = Depends(get_admin_user)):
+    """Get all payments with user details"""
+    payments = await db.payments.find().sort("created_at", -1).to_list(1000)
+    
+    result = []
+    for payment in payments:
+        user = await db.users.find_one({"_id": payment.get("user_id")})
+        
+        result.append({
+            "id": payment["_id"],
+            "user_id": payment.get("user_id"),
+            "user_name": user["full_name"] if user else "غير معروف",
+            "user_email": user["email"] if user else "",
+            "type": payment.get("type", "booking"),  # booking or subscription
+            "amount": payment.get("amount", 0),
+            "status": payment.get("status", "pending"),
+            "payment_method": payment.get("payment_method", "stripe"),
+            "stripe_payment_intent_id": payment.get("stripe_payment_intent_id"),
+            "booking_id": payment.get("booking_id"),
+            "plan": payment.get("plan"),
+            "created_at": payment.get("created_at"),
+        })
+    
+    return result
+
+@api_router.get("/admin/payments/stats")
+async def get_payment_stats(admin_user: dict = Depends(get_admin_user)):
+    """Get payment statistics"""
+    # Total revenue from bookings
+    booking_revenue = await db.payments.aggregate([
+        {"$match": {"type": "booking", "status": "completed"}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]).to_list(1)
+    
+    # Total revenue from subscriptions
+    subscription_revenue = await db.payments.aggregate([
+        {"$match": {"type": "subscription", "status": "completed"}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]).to_list(1)
+    
+    # This month's revenue
+    from datetime import datetime
+    first_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    monthly_revenue = await db.payments.aggregate([
+        {"$match": {"status": "completed", "created_at": {"$gte": first_of_month}}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]).to_list(1)
+    
+    # Today's revenue
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_revenue = await db.payments.aggregate([
+        {"$match": {"status": "completed", "created_at": {"$gte": today_start}}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]).to_list(1)
+    
+    # Count by status
+    total_payments = await db.payments.count_documents({})
+    completed_payments = await db.payments.count_documents({"status": "completed"})
+    pending_payments = await db.payments.count_documents({"status": "pending"})
+    failed_payments = await db.payments.count_documents({"status": "failed"})
+    
+    # Revenue by coach
+    coach_revenues = await db.bookings.aggregate([
+        {"$match": {"payment_status": "completed"}},
+        {"$group": {"_id": "$coach_id", "total": {"$sum": "$amount"}}}
+    ]).to_list(100)
+    
+    coach_details = []
+    for cr in coach_revenues:
+        coach = await db.users.find_one({"_id": cr["_id"]})
+        if coach:
+            coach_details.append({
+                "coach_id": cr["_id"],
+                "coach_name": coach["full_name"],
+                "total_revenue": cr["total"]
+            })
+    
+    return {
+        "total_revenue": (booking_revenue[0]["total"] if booking_revenue else 0) + (subscription_revenue[0]["total"] if subscription_revenue else 0),
+        "booking_revenue": booking_revenue[0]["total"] if booking_revenue else 0,
+        "subscription_revenue": subscription_revenue[0]["total"] if subscription_revenue else 0,
+        "monthly_revenue": monthly_revenue[0]["total"] if monthly_revenue else 0,
+        "today_revenue": today_revenue[0]["total"] if today_revenue else 0,
+        "total_payments": total_payments,
+        "completed_payments": completed_payments,
+        "pending_payments": pending_payments,
+        "failed_payments": failed_payments,
+        "coach_revenues": coach_details
+    }
+
+@api_router.get("/admin/payments/coach/{coach_id}")
+async def get_coach_payments(coach_id: str, admin_user: dict = Depends(get_admin_user)):
+    """Get payments for a specific coach"""
+    # Get bookings for this coach
+    bookings = await db.bookings.find({"coach_id": coach_id}).sort("created_at", -1).to_list(1000)
+    
+    coach = await db.users.find_one({"_id": coach_id})
+    
+    result = []
+    for booking in bookings:
+        client = await db.users.find_one({"_id": booking.get("client_id")})
+        result.append({
+            "id": booking["_id"],
+            "client_name": client["full_name"] if client else "غير معروف",
+            "package_name": booking.get("package_name"),
+            "amount": booking.get("amount"),
+            "payment_status": booking.get("payment_status", "pending"),
+            "booking_status": booking.get("booking_status", "pending"),
+            "created_at": booking.get("created_at"),
+        })
+    
+    # Calculate totals
+    total_earned = sum(b.get("amount", 0) for b in bookings if b.get("payment_status") == "completed")
+    pending_amount = sum(b.get("amount", 0) for b in bookings if b.get("payment_status") == "pending")
+    
+    return {
+        "coach_id": coach_id,
+        "coach_name": coach["full_name"] if coach else "غير معروف",
+        "total_earned": total_earned,
+        "pending_amount": pending_amount,
+        "transactions": result
+    }
+
+@api_router.post("/admin/payments/record-manual")
+async def record_manual_payment(data: dict, admin_user: dict = Depends(get_admin_user)):
+    """Record a manual payment"""
+    payment = {
+        "_id": str(uuid.uuid4()),
+        "user_id": data.get("user_id"),
+        "type": data.get("type", "booking"),
+        "amount": data.get("amount"),
+        "status": "completed",
+        "payment_method": "manual",
+        "booking_id": data.get("booking_id"),
+        "notes": data.get("notes", ""),
+        "recorded_by": admin_user["_id"],
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.payments.insert_one(payment)
+    
+    # If linked to a booking, update booking status
+    if data.get("booking_id"):
+        await db.bookings.update_one(
+            {"_id": data["booking_id"]},
+            {"$set": {"payment_status": "completed"}}
+        )
+    
+    return {"message": "Payment recorded", "id": payment["_id"]}
+
+@api_router.post("/admin/payments/refund/{payment_id}")
+async def process_refund(payment_id: str, data: dict, admin_user: dict = Depends(get_admin_user)):
+    """Process a refund"""
+    payment = await db.payments.find_one({"_id": payment_id})
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    
+    # Record refund
+    refund = {
+        "_id": str(uuid.uuid4()),
+        "original_payment_id": payment_id,
+        "user_id": payment.get("user_id"),
+        "type": "refund",
+        "amount": -data.get("amount", payment.get("amount")),
+        "reason": data.get("reason", ""),
+        "status": "completed",
+        "processed_by": admin_user["_id"],
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.payments.insert_one(refund)
+    
+    # Update original payment status
+    await db.payments.update_one(
+        {"_id": payment_id},
+        {"$set": {"status": "refunded"}}
+    )
+    
+    return {"message": "Refund processed", "id": refund["_id"]}
+
 @api_router.get("/admin/subscriptions")
 async def get_all_subscriptions(admin_user: dict = Depends(get_admin_user)):
     subscriptions = await db.subscriptions.find().sort("created_at", -1).to_list(1000)
