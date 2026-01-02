@@ -9,13 +9,16 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 
 interface Package {
   id: string;
@@ -32,15 +35,17 @@ interface Coach {
   profile_image?: string;
 }
 
-export default function BookingScreen() {
+function BookingContent() {
   const { packageId, coachId } = useLocalSearchParams();
   const [pkg, setPkg] = useState<Package | null>(null);
   const [coach, setCoach] = useState<Coach | null>(null);
   const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [notes, setNotes] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe');
   const router = useRouter();
+  
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -73,10 +78,130 @@ export default function BookingScreen() {
     }
   };
 
-  const handleBooking = async () => {
+  const initializePaymentSheet = async () => {
+    if (!pkg || !coach) return null;
+    
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const amountInCents = Math.round(pkg.price * 100);
+      
+      const response = await fetch(`${API_URL}/api/payments/create-payment-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          package_id: pkg.id,
+          coach_id: coach.id,
+          amount: amountInCents
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to create payment intent');
+      }
+
+      const { paymentIntent, ephemeralKey, customer } = await response.json();
+
+      const { error } = await initPaymentSheet({
+        merchantDisplayName: 'اسأل يازو',
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        paymentIntentClientSecret: paymentIntent,
+        defaultBillingDetails: {
+          name: '',
+        },
+        returnURL: 'askyazo://booking-complete',
+      });
+
+      if (error) {
+        console.error('Error initializing payment sheet:', error);
+        return null;
+      }
+
+      return paymentIntent;
+    } catch (error) {
+      console.error('Error setting up payment:', error);
+      return null;
+    }
+  };
+
+  const handleStripePayment = async () => {
     if (!pkg || !coach) return;
 
-    setBooking(true);
+    setProcessing(true);
+    try {
+      // Initialize payment sheet
+      const paymentIntentSecret = await initializePaymentSheet();
+      
+      if (!paymentIntentSecret) {
+        Alert.alert('خطأ', 'فشل في تهيئة نظام الدفع. يرجى المحاولة مرة أخرى.');
+        setProcessing(false);
+        return;
+      }
+
+      // Present the payment sheet
+      const { error } = await presentPaymentSheet();
+
+      if (error) {
+        if (error.code === 'Canceled') {
+          // User canceled - do nothing
+          setProcessing(false);
+          return;
+        }
+        Alert.alert('خطأ في الدفع', error.message);
+        setProcessing(false);
+        return;
+      }
+
+      // Payment succeeded - confirm booking
+      const token = await AsyncStorage.getItem('token');
+      const confirmResponse = await fetch(`${API_URL}/api/payments/confirm-booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          payment_intent_id: paymentIntentSecret.split('_secret_')[0],
+          package_id: pkg.id,
+          coach_id: coach.id,
+          notes: notes,
+        })
+      });
+
+      if (confirmResponse.ok) {
+        Alert.alert(
+          'تم الدفع والحجز بنجاح! ✅',
+          'تم إرسال طلب الحجز للمدرب وسيتم التواصل معك قريباً.',
+          [
+            { 
+              text: 'عرض حجوزاتي', 
+              onPress: () => router.replace('/(tabs)/bookings' as any)
+            },
+            {
+              text: 'حسناً',
+              onPress: () => router.back()
+            }
+          ]
+        );
+      } else {
+        const error = await confirmResponse.json();
+        Alert.alert('خطأ', error.detail || 'فشل في تأكيد الحجز');
+      }
+    } catch (error: any) {
+      Alert.alert('خطأ', error.message || 'حدث خطأ في عملية الدفع');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleCashPayment = async () => {
+    if (!pkg || !coach) return;
+
+    setProcessing(true);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(`${API_URL}/api/bookings/create`, {
@@ -89,15 +214,14 @@ export default function BookingScreen() {
           package_id: pkg.id,
           coach_id: coach.id,
           notes: notes,
-          scheduled_date: selectedDate || null,
-          payment_method: 'cash' // For now, manual payment
+          payment_method: 'cash'
         })
       });
 
       if (response.ok) {
         Alert.alert(
           'تم الحجز بنجاح! ✅',
-          'تم إرسال طلب الحجز للمدرب. سيتم التواصل معك قريباً.',
+          'تم إرسال طلب الحجز للمدرب. سيتم التواصل معك لترتيب الدفع والجلسات.',
           [
             { 
               text: 'عرض حجوزاتي', 
@@ -116,7 +240,15 @@ export default function BookingScreen() {
     } catch (error) {
       Alert.alert('خطأ', 'حدث خطأ في الاتصال');
     } finally {
-      setBooking(false);
+      setProcessing(false);
+    }
+  };
+
+  const handleBooking = () => {
+    if (paymentMethod === 'stripe') {
+      handleStripePayment();
+    } else {
+      handleCashPayment();
     }
   };
 
@@ -206,6 +338,49 @@ export default function BookingScreen() {
           </View>
         </View>
 
+        {/* اختيار طريقة الدفع */}
+        <View style={styles.paymentMethodSection}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="card" size={20} color="#2196F3" />
+            <Text style={styles.sectionTitle}>طريقة الدفع</Text>
+          </View>
+          
+          <TouchableOpacity
+            style={[styles.paymentOption, paymentMethod === 'stripe' && styles.paymentOptionActive]}
+            onPress={() => setPaymentMethod('stripe')}
+          >
+            <View style={styles.paymentOptionContent}>
+              <View style={[styles.radioOuter, paymentMethod === 'stripe' && styles.radioOuterActive]}>
+                {paymentMethod === 'stripe' && <View style={styles.radioInner} />}
+              </View>
+              <View style={styles.paymentOptionInfo}>
+                <Text style={styles.paymentOptionTitle}>الدفع الإلكتروني</Text>
+                <Text style={styles.paymentOptionDesc}>بطاقة ائتمانية / Apple Pay / Google Pay</Text>
+              </View>
+            </View>
+            <View style={styles.paymentIcons}>
+              <Ionicons name="card" size={24} color="#1976D2" />
+              <Ionicons name="logo-apple" size={24} color="#333" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.paymentOption, paymentMethod === 'cash' && styles.paymentOptionActive]}
+            onPress={() => setPaymentMethod('cash')}
+          >
+            <View style={styles.paymentOptionContent}>
+              <View style={[styles.radioOuter, paymentMethod === 'cash' && styles.radioOuterActive]}>
+                {paymentMethod === 'cash' && <View style={styles.radioInner} />}
+              </View>
+              <View style={styles.paymentOptionInfo}>
+                <Text style={styles.paymentOptionTitle}>الدفع عند الجلسة</Text>
+                <Text style={styles.paymentOptionDesc}>تواصل مع المدرب لترتيب الدفع</Text>
+              </View>
+            </View>
+            <Ionicons name="cash" size={24} color="#4CAF50" />
+          </TouchableOpacity>
+        </View>
+
         {/* ملاحظات */}
         <View style={styles.notesSection}>
           <View style={styles.sectionHeader}>
@@ -225,30 +400,61 @@ export default function BookingScreen() {
         </View>
 
         {/* معلومات الدفع */}
-        <View style={styles.paymentInfo}>
-          <Ionicons name="information-circle" size={20} color="#2196F3" />
-          <Text style={styles.paymentInfoText}>
-            سيتم التواصل معك من قبل المدرب لترتيب موعد الجلسات وطريقة الدفع
-          </Text>
-        </View>
+        {paymentMethod === 'stripe' ? (
+          <View style={styles.paymentInfo}>
+            <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
+            <Text style={styles.paymentInfoText}>
+              دفع آمن ومشفر عبر Stripe. سيتم خصم المبلغ فوراً وتأكيد الحجز.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.paymentInfo}>
+            <Ionicons name="information-circle" size={20} color="#2196F3" />
+            <Text style={styles.paymentInfoText}>
+              سيتم التواصل معك من قبل المدرب لترتيب موعد الجلسات وطريقة الدفع
+            </Text>
+          </View>
+        )}
 
         {/* زر التأكيد */}
         <TouchableOpacity
-          style={[styles.confirmBtn, booking && styles.confirmBtnDisabled]}
+          style={[styles.confirmBtn, processing && styles.confirmBtnDisabled]}
           onPress={handleBooking}
-          disabled={booking}
+          disabled={processing}
         >
-          {booking ? (
+          {processing ? (
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Ionicons name="checkmark-circle" size={24} color="#fff" />
-              <Text style={styles.confirmBtnText}>تأكيد الحجز</Text>
+              <Ionicons 
+                name={paymentMethod === 'stripe' ? 'card' : 'checkmark-circle'} 
+                size={24} 
+                color="#fff" 
+              />
+              <Text style={styles.confirmBtnText}>
+                {paymentMethod === 'stripe' ? `ادفع $${pkg.price} الآن` : 'تأكيد الحجز'}
+              </Text>
             </>
           )}
         </TouchableOpacity>
+
+        {/* شعار الأمان */}
+        {paymentMethod === 'stripe' && (
+          <View style={styles.securityBadge}>
+            <Ionicons name="lock-closed" size={14} color="#999" />
+            <Text style={styles.securityText}>معاملة آمنة ومشفرة بواسطة Stripe</Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+export default function BookingScreen() {
+  return (
+    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+      <BookingContent />
+    </StripeProvider>
   );
 }
 
@@ -396,7 +602,7 @@ const styles = StyleSheet.create({
     color: '#FF9800',
   },
   
-  notesSection: {
+  paymentMethodSection: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
@@ -407,12 +613,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
+  },
+  paymentOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  paymentOptionActive: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#2196F3',
+  },
+  paymentOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  radioOuterActive: {
+    borderColor: '#2196F3',
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#2196F3',
+  },
+  paymentOptionInfo: {
+    flex: 1,
+  },
+  paymentOptionTitle: {
+    fontSize: 15,
+    fontFamily: 'Cairo_700Bold',
+    color: '#333',
+    textAlign: 'right',
+  },
+  paymentOptionDesc: {
+    fontSize: 12,
+    fontFamily: 'Cairo_400Regular',
+    color: '#666',
+    textAlign: 'right',
+  },
+  paymentIcons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  
+  notesSection: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
   },
   notesInput: {
     backgroundColor: '#f9f9f9',
@@ -430,7 +701,7 @@ const styles = StyleSheet.create({
   paymentInfo: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#E8F5E9',
     borderRadius: 12,
     padding: 14,
     marginBottom: 20,
@@ -440,7 +711,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
-    color: '#1976D2',
+    color: '#2E7D32',
     textAlign: 'right',
     lineHeight: 22,
   },
@@ -461,5 +732,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
+  },
+  
+  securityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+  },
+  securityText: {
+    fontSize: 12,
+    fontFamily: 'Cairo_400Regular',
+    color: '#999',
   },
 });
