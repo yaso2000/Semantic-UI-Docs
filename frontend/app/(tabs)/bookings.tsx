@@ -26,11 +26,15 @@ interface Package {
 
 interface Booking {
   id: string;
+  coach_id: string;
+  coach_name: string;
   package_name: string;
   hours_purchased: number;
   hours_used: number;
-  amount_paid: number;
+  amount: number;
   payment_status: string;
+  booking_status: string;
+  notes: string;
   created_at: string;
 }
 
