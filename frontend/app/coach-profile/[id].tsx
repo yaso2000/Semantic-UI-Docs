@@ -262,7 +262,7 @@ export default function CoachProfileScreen() {
                 )}
                 <TouchableOpacity
                   style={styles.bookPackageBtn}
-                  onPress={() => Alert.alert('قريباً', 'سيتم تفعيل خاصية الحجز قريباً')}
+                  onPress={() => router.push(`/booking/${pkg.id}?coachId=${coach.id}` as any)}
                 >
                   <Ionicons name="calendar" size={18} color="#fff" />
                   <Text style={styles.bookPackageBtnText}>احجز الآن</Text>
