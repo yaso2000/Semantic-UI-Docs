@@ -223,7 +223,7 @@ export default function BookingsScreen() {
                   <View style={styles.bookingHeader}>
                     <View>
                       <Text style={styles.bookingName}>{booking.package_name}</Text>
-                      <Text style={styles.coachNameText}>مع {booking.coach_name}</Text>
+                      <Text style={styles.coachNameText}>مع يازو</Text>
                     </View>
                     <View style={[
                       styles.statusBadge,
