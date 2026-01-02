@@ -510,7 +510,20 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 22, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 8 },
   subtitle: { fontSize: 14, color: '#666', fontFamily: 'Cairo_400Regular' },
   
-  // Coach/Admin Header
+  // Yazo Header
+  yazoHeader: { 
+    alignItems: 'center', 
+    marginBottom: 20, 
+    paddingVertical: 24, 
+    backgroundColor: '#FF9800', 
+    borderRadius: 20, 
+    marginHorizontal: -8 
+  },
+  yazoLogo: { fontSize: 28, fontFamily: 'Cairo_700Bold', color: '#fff' },
+  yazoGreeting: { fontSize: 22, fontFamily: 'Cairo_700Bold', color: '#fff', marginTop: 8 },
+  yazoSubtitle: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: 'rgba(255,255,255,0.9)' },
+  
+  // Legacy (for compatibility)
   coachHeader: { alignItems: 'center', marginBottom: 20, paddingVertical: 24, backgroundColor: '#FF9800', borderRadius: 20, marginHorizontal: -8 },
   adminHeader: { alignItems: 'center', marginBottom: 20, paddingVertical: 24, backgroundColor: '#2196F3', borderRadius: 20, marginHorizontal: -8 },
   badge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, gap: 4 },
@@ -518,7 +531,7 @@ const styles = StyleSheet.create({
   headerGreeting: { fontSize: 22, fontFamily: 'Cairo_700Bold', color: '#fff', marginTop: 12 },
   headerSubtitle: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: 'rgba(255,255,255,0.9)' },
   
-  // Subscription Alert
+  // Subscription Alert (unused now but kept for compatibility)
   subscriptionAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF3E0', padding: 16, borderRadius: 12, marginBottom: 16, gap: 12 },
   alertContent: { flex: 1 },
   alertTitle: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#E65100', textAlign: 'right' },
