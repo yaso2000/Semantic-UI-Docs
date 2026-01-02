@@ -42,6 +42,7 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
+      // استخدام replace بدلاً من push لمنع العودة
       router.replace('/');
     } catch (error) {
       console.error('Error logging out:', error);
@@ -49,11 +50,9 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
+    // تسجيل خروج مباشر على الويب بدون confirm
     if (Platform.OS === 'web') {
-      const confirmed = window.confirm('هل أنت متأكد من تسجيل الخروج؟');
-      if (confirmed) {
-        performLogout();
-      }
+      performLogout();
     } else {
       Alert.alert(
         'تسجيل الخروج',
