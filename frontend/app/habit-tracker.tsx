@@ -11,11 +11,13 @@ import {
   Modal,
   ActivityIndicator,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, FONTS } from '../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -61,7 +63,7 @@ export default function HabitTrackerScreen() {
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   useEffect(() => {
     loadData();
@@ -71,58 +73,39 @@ export default function HabitTrackerScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
-        Alert.alert('خطأ', 'يرجى تسجيل الدخول أولاً');
-        router.replace('/login');
+        router.replace('/(auth)/login');
         return;
       }
 
-      // Load habits
       const habitsRes = await fetch(`${API_URL}/api/habits`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
       if (habitsRes.ok) {
-        const habitsData = await habitsRes.json();
-        setHabits(habitsData);
+        setHabits(await habitsRes.json());
       }
 
-      // Load stats
       const statsRes = await fetch(`${API_URL}/api/habits/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
       if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData);
+        setStats(await statsRes.json());
       }
     } catch (error) {
-      console.error('Error loading habits:', error);
-      Alert.alert('خطأ', 'فشل في تحميل العادات');
+      console.error('Error:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadData();
-  };
-
-  const getTodayString = () => {
-    return new Date().toISOString().split('T')[0];
-  };
-
-  const isCompletedToday = (habit: Habit) => {
-    return habit.completedDates.includes(getTodayString());
-  };
+  const getTodayString = () => new Date().toISOString().split('T')[0];
+  const isCompletedToday = (habit: Habit) => habit.completedDates.includes(getTodayString());
 
   const toggleHabit = async (habitId: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const today = getTodayString();
       
-      // Optimistic update
       setHabits(prev => prev.map(h => {
         if (h.id === habitId) {
           if (h.completedDates.includes(today)) {
@@ -134,30 +117,12 @@ export default function HabitTrackerScreen() {
         return h;
       }));
 
-      const response = await fetch(`${API_URL}/api/habits/${habitId}/toggle`, {
+      await fetch(`${API_URL}/api/habits/${habitId}/toggle`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ date: today })
       });
-
-      if (response.ok) {
-        // Reload stats after toggle
-        const statsRes = await fetch(`${API_URL}/api/habits/stats`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
-        }
-      } else {
-        // Revert on error
-        loadData();
-      }
     } catch (error) {
-      console.error('Error toggling habit:', error);
       loadData();
     }
   };
@@ -171,13 +136,9 @@ export default function HabitTrackerScreen() {
     setSaving(true);
     try {
       const token = await AsyncStorage.getItem('token');
-      
       const response = await fetch(`${API_URL}/api/habits`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           name: newHabitName,
           icon: selectedIcon.icon,
@@ -187,61 +148,29 @@ export default function HabitTrackerScreen() {
       });
 
       if (response.ok) {
-        const newHabit = await response.json();
-        setHabits(prev => [...prev, newHabit]);
         setNewHabitName('');
         setSelectedIcon(HABIT_ICONS[0]);
         setShowAddModal(false);
-        
-        // Reload stats
         loadData();
-      } else {
-        const error = await response.json();
-        Alert.alert('خطأ', error.detail || 'فشل في إضافة العادة');
       }
     } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ في الاتصال');
+      Alert.alert('خطأ', 'حدث خطأ');
     } finally {
       setSaving(false);
     }
   };
 
-  const deleteHabit = (habitId: string, habitName: string) => {
-    Alert.alert('حذف العادة', `هل أنت متأكد من حذف "${habitName}"؟`, [
-      { text: 'إلغاء', style: 'cancel' },
-      {
-        text: 'حذف',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const token = await AsyncStorage.getItem('token');
-            
-            // Optimistic update
-            setHabits(prev => prev.filter(h => h.id !== habitId));
-            
-            const response = await fetch(`${API_URL}/api/habits/${habitId}`, {
-              method: 'DELETE',
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!response.ok) {
-              loadData(); // Revert on error
-            } else {
-              // Reload stats
-              const statsRes = await fetch(`${API_URL}/api/habits/stats`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
-              if (statsRes.ok) {
-                const statsData = await statsRes.json();
-                setStats(statsData);
-              }
-            }
-          } catch (error) {
-            loadData();
-          }
-        }
-      }
-    ]);
+  const deleteHabit = async (habitId: string) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      setHabits(prev => prev.filter(h => h.id !== habitId));
+      await fetch(`${API_URL}/api/habits/${habitId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch (error) {
+      loadData();
+    }
   };
 
   const getStreak = (habit: Habit) => {
@@ -251,11 +180,8 @@ export default function HabitTrackerScreen() {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      if (habit.completedDates.includes(dateStr)) {
-        streak++;
-      } else if (i > 0) {
-        break;
-      }
+      if (habit.completedDates.includes(dateStr)) streak++;
+      else if (i > 0) break;
     }
     return streak;
   };
@@ -283,31 +209,30 @@ export default function HabitTrackerScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF9800" />
-        <Text style={styles.loadingText}>جاري تحميل عاداتك...</Text>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.gold} />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color="#fff" />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>متتبع العادات</Text>
-        <TouchableOpacity style={styles.statsBtn} onPress={onRefresh}>
-          <Ionicons name="refresh" size={22} color="#fff" />
+        <TouchableOpacity style={styles.refreshBtn} onPress={() => { setRefreshing(true); loadData(); }}>
+          <Ionicons name="refresh" size={22} color={COLORS.gold} />
         </TouchableOpacity>
       </View>
 
       <ScrollView 
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF9800']} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} tintColor={COLORS.gold} />}
       >
-        {/* Today's Progress */}
+        {/* تقدم اليوم */}
         <View style={styles.progressCard}>
           <View style={styles.progressHeader}>
             <View>
@@ -323,16 +248,14 @@ export default function HabitTrackerScreen() {
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
           </View>
-          <Text style={styles.progressText}>
-            {completedToday} من {totalHabits} عادات مكتملة
-          </Text>
+          <Text style={styles.progressText}>{completedToday} من {totalHabits} عادات مكتملة</Text>
         </View>
 
-        {/* Stats Cards */}
+        {/* الإحصائيات */}
         {stats && (
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <Ionicons name="flame" size={24} color="#FF9800" />
+              <Ionicons name="flame" size={24} color={COLORS.gold} />
               <Text style={styles.statValue}>{stats.best_streak}</Text>
               <Text style={styles.statLabel}>أفضل سلسلة</Text>
             </View>
@@ -344,7 +267,7 @@ export default function HabitTrackerScreen() {
           </View>
         )}
 
-        {/* Week View */}
+        {/* عرض الأسبوع */}
         <View style={styles.weekView}>
           {getWeekDays().map((day, index) => (
             <View key={index} style={[styles.dayColumn, day.isToday && styles.dayColumnToday]}>
@@ -365,14 +288,11 @@ export default function HabitTrackerScreen() {
           ))}
         </View>
 
-        {/* Habits List */}
+        {/* قائمة العادات */}
         <View style={styles.habitsSection}>
           <View style={styles.sectionHeader}>
-            <TouchableOpacity
-              style={styles.addBtn}
-              onPress={() => setShowAddModal(true)}
-            >
-              <Ionicons name="add" size={20} color="#FF9800" />
+            <TouchableOpacity style={styles.addBtn} onPress={() => setShowAddModal(true)}>
+              <Ionicons name="add" size={18} color={COLORS.primary} />
               <Text style={styles.addBtnText}>إضافة</Text>
             </TouchableOpacity>
             <Text style={styles.sectionTitle}>عاداتي اليومية</Text>
@@ -380,9 +300,8 @@ export default function HabitTrackerScreen() {
 
           {habits.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="leaf-outline" size={64} color="#ddd" />
+              <Ionicons name="leaf-outline" size={64} color={COLORS.border} />
               <Text style={styles.emptyText}>لم تقم بإضافة أي عادات بعد</Text>
-              <Text style={styles.emptySubtext}>ابدأ بإضافة عادة جديدة لتتبع تقدمك</Text>
             </View>
           ) : (
             habits.map((habit) => (
@@ -390,15 +309,15 @@ export default function HabitTrackerScreen() {
                 key={habit.id}
                 style={styles.habitCard}
                 onPress={() => toggleHabit(habit.id)}
-                onLongPress={() => deleteHabit(habit.id, habit.name)}
+                onLongPress={() => deleteHabit(habit.id)}
               >
                 <View style={[styles.habitIcon, { backgroundColor: habit.color }]}>
-                  <Ionicons name={habit.icon as any} size={24} color="#fff" />
+                  <Ionicons name={habit.icon as any} size={22} color="#fff" />
                 </View>
                 <View style={styles.habitInfo}>
                   <Text style={styles.habitName}>{habit.name}</Text>
                   <View style={styles.habitStreak}>
-                    <Ionicons name="flame" size={14} color="#FF9800" />
+                    <Ionicons name="flame" size={14} color={COLORS.gold} />
                     <Text style={styles.streakText}>{getStreak(habit)} يوم متتالي</Text>
                   </View>
                 </View>
@@ -406,29 +325,25 @@ export default function HabitTrackerScreen() {
                   styles.checkBox,
                   isCompletedToday(habit) && { backgroundColor: habit.color, borderColor: habit.color }
                 ]}>
-                  {isCompletedToday(habit) && (
-                    <Ionicons name="checkmark" size={20} color="#fff" />
-                  )}
+                  {isCompletedToday(habit) && <Ionicons name="checkmark" size={18} color="#fff" />}
                 </View>
               </TouchableOpacity>
             ))
           )}
 
           {habits.length > 0 && (
-            <Text style={styles.tipText}>
-              💡 اضغط مطولاً على العادة لحذفها
-            </Text>
+            <Text style={styles.tipText}>💡 اضغط مطولاً على العادة لحذفها</Text>
           )}
         </View>
       </ScrollView>
 
-      {/* Add Habit Modal */}
+      {/* Modal إضافة عادة */}
       <Modal visible={showAddModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={24} color={COLORS.textMuted} />
               </TouchableOpacity>
               <Text style={styles.modalTitle}>إضافة عادة جديدة</Text>
             </View>
@@ -438,7 +353,7 @@ export default function HabitTrackerScreen() {
               value={newHabitName}
               onChangeText={setNewHabitName}
               placeholder="اسم العادة..."
-              placeholderTextColor="#999"
+              placeholderTextColor={COLORS.textMuted}
               textAlign="right"
             />
 
@@ -447,30 +362,21 @@ export default function HabitTrackerScreen() {
               {HABIT_ICONS.map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={[
-                    styles.iconOption,
-                    selectedIcon.icon === item.icon && { borderColor: item.color, borderWidth: 3 }
-                  ]}
+                  style={[styles.iconOption, selectedIcon.icon === item.icon && { borderColor: item.color, borderWidth: 2 }]}
                   onPress={() => setSelectedIcon(item)}
                 >
                   <View style={[styles.iconPreview, { backgroundColor: item.color }]}>
-                    <Ionicons name={item.icon as any} size={24} color="#fff" />
+                    <Ionicons name={item.icon as any} size={22} color="#fff" />
                   </View>
                   <Text style={styles.iconName}>{item.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <TouchableOpacity 
-              style={[styles.saveBtn, saving && styles.saveBtnDisabled]} 
-              onPress={addHabit}
-              disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
+            <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={addHabit} disabled={saving}>
+              {saving ? <ActivityIndicator color={COLORS.primary} /> : (
                 <>
-                  <Ionicons name="add-circle" size={22} color="#fff" />
+                  <Ionicons name="add-circle" size={22} color={COLORS.primary} />
                   <Text style={styles.saveBtnText}>إضافة العادة</Text>
                 </>
               )}
@@ -483,367 +389,129 @@ export default function HabitTrackerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
-  loadingText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 12 },
+  container: { flex: 1, backgroundColor: COLORS.primary },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
   
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF9800',
+    backgroundColor: COLORS.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 16,
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center', alignItems: 'center', marginLeft: 16,
   },
   headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-    textAlign: 'right',
+    flex: 1, fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold, textAlign: 'right',
   },
-  statsBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  refreshBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center', alignItems: 'center',
   },
 
-  content: {
-    padding: 16,
-    paddingBottom: 40,
-  },
+  content: { padding: 16, paddingBottom: 40 },
 
   progressCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16, padding: 20, marginBottom: 16,
+    borderWidth: 1, borderColor: COLORS.border,
   },
   progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16,
   },
-  progressTitle: {
-    fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    textAlign: 'right',
-  },
-  progressDate: {
-    fontSize: 13,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    textAlign: 'right',
-    marginTop: 4,
-  },
+  progressTitle: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right' },
+  progressDate: { fontSize: 13, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'right', marginTop: 4 },
   progressCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFF3E0',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 60, height: 60, borderRadius: 30,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: COLORS.gold,
   },
-  progressPercent: {
-    fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
-  },
-  progressBar: {
-    height: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#FF9800',
-    borderRadius: 5,
-  },
-  progressText: {
-    fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 12,
-  },
+  progressPercent: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.gold },
+  progressBar: { height: 8, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: COLORS.gold, borderRadius: 4 },
+  progressText: { fontSize: 14, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'center', marginTop: 12 },
 
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
+  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
   statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    flex: 1, backgroundColor: COLORS.secondary, borderRadius: 14, padding: 14, alignItems: 'center',
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  statValue: {
-    fontSize: 24,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    marginTop: 8,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    marginTop: 4,
-  },
+  statValue: { fontSize: 22, fontFamily: FONTS.bold, color: COLORS.gold, marginTop: 6 },
+  statLabel: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 4 },
 
   weekView: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 16,
+    flexDirection: 'row', justifyContent: 'space-between',
+    backgroundColor: COLORS.secondary, borderRadius: 14, padding: 12, marginBottom: 16,
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  dayColumn: {
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 12,
-  },
-  dayColumnToday: {
-    backgroundColor: '#FFF3E0',
-  },
-  dayLabel: {
-    fontSize: 10,
-    fontFamily: 'Cairo_700Bold',
-    color: '#999',
-    marginBottom: 4,
-  },
-  dayLabelToday: {
-    color: '#FF9800',
-  },
-  dayNum: {
-    fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  dayNumToday: {
-    color: '#FF9800',
-  },
-  dayDots: {
-    gap: 4,
-  },
-  dayDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#e0e0e0',
-  },
+  dayColumn: { alignItems: 'center', padding: 6, borderRadius: 10 },
+  dayColumnToday: { backgroundColor: 'rgba(212, 175, 55, 0.15)' },
+  dayLabel: { fontSize: 10, fontFamily: FONTS.semiBold, color: COLORS.textMuted, marginBottom: 4 },
+  dayLabelToday: { color: COLORS.gold },
+  dayNum: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: 6 },
+  dayNumToday: { color: COLORS.gold },
+  dayDots: { gap: 3 },
+  dayDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.border },
 
   habitsSection: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: COLORS.secondary, borderRadius: 16, padding: 16,
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  sectionTitle: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.text },
   addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FFF3E0',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: COLORS.gold, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
   },
-  addBtnText: {
-    fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
-  },
+  addBtnText: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.primary },
 
-  emptyState: {
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#999',
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#bbb',
-    marginTop: 8,
-    textAlign: 'center',
-  },
+  emptyState: { alignItems: 'center', padding: 40 },
+  emptyText: { fontSize: 16, fontFamily: FONTS.semiBold, color: COLORS.textMuted, marginTop: 16 },
 
   habitCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 14,
-    marginBottom: 10,
+    flexDirection: 'row', alignItems: 'center', padding: 14,
+    backgroundColor: COLORS.primary, borderRadius: 12, marginBottom: 10,
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  habitIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 14,
-  },
-  habitInfo: {
-    flex: 1,
-  },
-  habitName: {
-    fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    textAlign: 'right',
-  },
-  habitStreak: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 4,
-    marginTop: 4,
-  },
-  streakText: {
-    fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#999',
-  },
+  habitIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginLeft: 14 },
+  habitInfo: { flex: 1 },
+  habitName: { fontSize: 15, fontFamily: FONTS.semiBold, color: COLORS.text, textAlign: 'right' },
+  habitStreak: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4 },
+  streakText: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textMuted },
   checkBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 28, height: 28, borderRadius: 8, borderWidth: 2, borderColor: COLORS.border,
+    justifyContent: 'center', alignItems: 'center',
   },
 
-  tipText: {
-    fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 16,
-  },
+  tipText: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'center', marginTop: 16 },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
+    backgroundColor: COLORS.secondary,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold },
   habitInput: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
-    color: '#333',
-    marginBottom: 20,
+    backgroundColor: COLORS.primary, borderRadius: 12, padding: 14,
+    fontSize: 16, fontFamily: FONTS.regular, color: COLORS.text, marginBottom: 20,
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  iconsLabel: {
-    fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    textAlign: 'right',
-    marginBottom: 12,
-  },
-  iconsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 20,
-  },
-  iconOption: {
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    width: '18%',
-  },
-  iconPreview: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconName: {
-    fontSize: 11,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    marginTop: 4,
-  },
+  iconsLabel: { fontSize: 15, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right', marginBottom: 12 },
+  iconsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
+  iconOption: { alignItems: 'center', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: 'transparent', width: '18%' },
+  iconPreview: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  iconName: { fontSize: 10, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 4 },
   saveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FF9800',
-    padding: 16,
-    borderRadius: 14,
-    gap: 8,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.gold, padding: 16, borderRadius: 12, gap: 8,
   },
-  saveBtnDisabled: {
-    opacity: 0.7,
-  },
-  saveBtnText: {
-    fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+  saveBtnDisabled: { opacity: 0.7 },
+  saveBtnText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.primary },
 });

@@ -7,29 +7,17 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
-  Dimensions,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { LinearGradient } from 'expo-linear-gradient';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
-const { width } = Dimensions.get('window');
 
-// الألوان الفخمة
-const COLORS = {
-  primary: '#0A1628',      // أزرق داكن
-  secondary: '#1A2744',    // أزرق أفتح
-  gold: '#D4AF37',         // ذهبي
-  goldLight: '#F4E4BC',    // ذهبي فاتح
-  white: '#FFFFFF',
-  text: '#E8E8E8',
-  border: '#2A3A5C',
-};
-
-// ==================== الركائز الأربع ====================
+// الركائز الأربع - توجه للحاسبات
 const pillars = [
   { 
     id: 'physical', 
@@ -37,7 +25,7 @@ const pillars = [
     titleEn: 'Physical Fitness',
     icon: 'barbell', 
     description: 'معاً نبني جسماً قوياً وصحياً',
-    route: '/pillars/physical'
+    route: '/(tabs)/calculators'
   },
   { 
     id: 'nutrition', 
@@ -45,15 +33,15 @@ const pillars = [
     titleEn: 'Nutritional Health',
     icon: 'nutrition', 
     description: 'تغذية متوازنة لحياة أفضل',
-    route: '/pillars/nutrition'
+    route: '/(tabs)/calculators'
   },
   { 
     id: 'mental', 
     title: 'الصحة النفسية', 
     titleEn: 'Mental Wellness',
-    icon: 'brain', 
+    icon: 'happy', 
     description: 'عقل صافٍ وروح متزنة',
-    route: '/pillars/mental'
+    route: '/(tabs)/calculators'
   },
   { 
     id: 'spiritual', 
@@ -61,19 +49,22 @@ const pillars = [
     titleEn: 'Spiritual Well-being',
     icon: 'sparkles', 
     description: 'السلام الداخلي والتواصل الروحي',
-    route: '/pillars/spiritual'
+    route: '/(tabs)/calculators'
   },
 ];
 
-// ==================== واجهة المتدرب ====================
+// واجهة المتدرب
 function ClientHome({ user, router }: { user: any; router: any }) {
   return (
     <>
       {/* الهيدر */}
       <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="sparkles" size={32} color={COLORS.gold} />
+        </View>
         <Text style={styles.logo}>اسأل يازو</Text>
-        <Text style={styles.greeting}>أهلاً {user?.full_name?.split(' ')[0] || 'بك'}!</Text>
-        <Text style={styles.subtitle}>منهج 4 ركائز للتطوير المتغيرة والتامحة الجندائية</Text>
+        <Text style={styles.greeting}>أهلاً {user?.full_name?.split(' ')[0] || 'بك'}! 👋</Text>
+        <Text style={styles.subtitle}>منهج 4 ركائز للتطوير الشامل</Text>
       </View>
 
       {/* الركائز الأربع */}
@@ -86,40 +77,66 @@ function ClientHome({ user, router }: { user: any; router: any }) {
             activeOpacity={0.8}
           >
             <View style={styles.pillarIconContainer}>
-              <Ionicons name={pillar.icon as any} size={32} color={COLORS.gold} />
+              <Ionicons name={pillar.icon as any} size={28} color={COLORS.gold} />
             </View>
             <View style={styles.pillarContent}>
-              <Text style={styles.pillarNumber}>{index + 1}</Text>
+              <Text style={styles.pillarNumber}>الركيزة {index + 1}</Text>
+              <Text style={styles.pillarTitle}>{pillar.title}</Text>
               <Text style={styles.pillarTitleEn}>{pillar.titleEn}</Text>
               <Text style={styles.pillarDescription}>{pillar.description}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color={COLORS.gold} />
+            <Ionicons name="chevron-back" size={22} color={COLORS.gold} />
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* أدوات إضافية */}
-      <View style={styles.extraTools}>
-        <TouchableOpacity 
-          style={styles.extraToolCard}
-          onPress={() => router.push('/habit-tracker' as any)}
-        >
-          <Ionicons name="checkmark-done" size={24} color={COLORS.gold} />
-          <Text style={styles.extraToolText}>متتبع العادات</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.extraToolCard}
-          onPress={() => router.push('/resources' as any)}
-        >
-          <Ionicons name="library" size={24} color={COLORS.gold} />
-          <Text style={styles.extraToolText}>مكتبة الموارد</Text>
-        </TouchableOpacity>
+      {/* أدوات سريعة */}
+      <View style={styles.quickTools}>
+        <Text style={styles.sectionTitle}>أدوات سريعة</Text>
+        <View style={styles.toolsRow}>
+          <TouchableOpacity 
+            style={styles.toolCard}
+            onPress={() => router.push('/habit-tracker' as any)}
+          >
+            <View style={styles.toolIcon}>
+              <Ionicons name="checkmark-done" size={24} color={COLORS.gold} />
+            </View>
+            <Text style={styles.toolText}>متتبع العادات</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.toolCard}
+            onPress={() => router.push('/intake-questionnaire' as any)}
+          >
+            <View style={styles.toolIcon}>
+              <Ionicons name="clipboard" size={24} color={COLORS.gold} />
+            </View>
+            <Text style={styles.toolText}>استبيان القبول</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.toolCard}
+            onPress={() => router.push('/resources' as any)}
+          >
+            <View style={styles.toolIcon}>
+              <Ionicons name="library" size={24} color={COLORS.gold} />
+            </View>
+            <Text style={styles.toolText}>المكتبة</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* زر حجز جلسة */}
+      <TouchableOpacity 
+        style={styles.bookingBtn}
+        onPress={() => router.push('/(tabs)/bookings' as any)}
+      >
+        <Text style={styles.bookingBtnText}>احجز جلستك مع يازو</Text>
+        <Ionicons name="calendar" size={22} color={COLORS.primary} />
+      </TouchableOpacity>
     </>
   );
 }
 
-// ==================== واجهة يازو (الأدمن) ====================
+// واجهة يازو (الأدمن)
 function YazoHome({ user, router }: { user: any; router: any }) {
   const [stats, setStats] = useState({ 
     total_clients: 0, 
@@ -153,6 +170,9 @@ function YazoHome({ user, router }: { user: any; router: any }) {
   return (
     <>
       <View style={styles.yazoHeader}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="sparkles" size={32} color={COLORS.gold} />
+        </View>
         <Text style={styles.logo}>اسأل يازو</Text>
         <Text style={styles.greeting}>مرحباً يازو! 👋</Text>
         <Text style={styles.subtitle}>لوحة التحكم</Text>
@@ -212,13 +232,13 @@ function YazoHome({ user, router }: { user: any; router: any }) {
           <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/admin/payments' as any)}>
+        <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/(tabs)/bookings')}>
           <View style={styles.adminMenuIcon}>
-            <Ionicons name="wallet" size={24} color={COLORS.gold} />
+            <Ionicons name="receipt" size={24} color={COLORS.gold} />
           </View>
           <View style={styles.adminMenuContent}>
-            <Text style={styles.adminMenuTitle}>المدفوعات</Text>
-            <Text style={styles.adminMenuSubtitle}>الإيرادات والمعاملات</Text>
+            <Text style={styles.adminMenuTitle}>الحجوزات الواردة</Text>
+            <Text style={styles.adminMenuSubtitle}>طلبات الحجز الجديدة</Text>
           </View>
           <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
         </TouchableOpacity>
@@ -238,7 +258,7 @@ function YazoHome({ user, router }: { user: any; router: any }) {
   );
 }
 
-// ==================== الصفحة الرئيسية ====================
+// الصفحة الرئيسية
 export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -268,6 +288,7 @@ export default function HomeScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
         <ActivityIndicator size="large" color={COLORS.gold} />
       </View>
     );
@@ -275,6 +296,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {user?.role === 'admin' ? (
           <YazoHome user={user} router={router} />
@@ -305,146 +327,199 @@ const styles = StyleSheet.create({
   // Header
   header: { 
     alignItems: 'center', 
-    marginBottom: 30,
-    paddingTop: 20,
+    marginBottom: 28,
+    paddingTop: 10,
   },
   yazoHeader: { 
     alignItems: 'center', 
-    marginBottom: 30,
-    paddingTop: 20,
+    marginBottom: 28,
+    paddingTop: 10,
+  },
+  logoContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: COLORS.gold,
   },
   logo: { 
-    fontSize: 36, 
-    fontFamily: 'Alexandria_700Bold', 
+    fontSize: 32, 
+    fontFamily: FONTS.bold, 
     color: COLORS.gold,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   greeting: { 
-    fontSize: 24, 
-    fontFamily: 'Alexandria_600SemiBold', 
-    color: COLORS.white,
+    fontSize: 22, 
+    fontFamily: FONTS.semiBold, 
+    color: COLORS.text,
     marginTop: 8,
   },
   subtitle: { 
     fontSize: 14, 
-    fontFamily: 'Alexandria_400Regular', 
-    color: COLORS.text,
+    fontFamily: FONTS.regular, 
+    color: COLORS.textMuted,
     marginTop: 4,
     textAlign: 'center',
   },
 
   // Pillars
   pillarsContainer: {
-    gap: 16,
+    gap: 12,
   },
   pillarCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.secondary,
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   pillarIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginLeft: 14,
   },
   pillarContent: {
     flex: 1,
   },
   pillarNumber: {
-    fontSize: 12,
-    fontFamily: 'Alexandria_700Bold',
+    fontSize: 11,
+    fontFamily: FONTS.semiBold,
     color: COLORS.gold,
-    marginBottom: 4,
+    marginBottom: 2,
+    textAlign: 'right',
+  },
+  pillarTitle: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    textAlign: 'right',
   },
   pillarTitleEn: {
-    fontSize: 16,
-    fontFamily: 'Alexandria_600SemiBold',
-    color: COLORS.white,
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginBottom: 4,
+    textAlign: 'right',
   },
   pillarDescription: {
     fontSize: 12,
-    fontFamily: 'Alexandria_400Regular',
-    color: COLORS.text,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    textAlign: 'right',
   },
 
-  // Extra Tools
-  extraTools: {
-    flexDirection: 'row',
-    gap: 12,
+  // Quick Tools
+  quickTools: {
     marginTop: 24,
   },
-  extraToolCard: {
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
+    textAlign: 'right',
+    marginBottom: 12,
+  },
+  toolsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  toolCard: {
     flex: 1,
+    alignItems: 'center',
+    backgroundColor: COLORS.secondary,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  toolIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  toolText: {
+    fontSize: 12,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+
+  // Booking Button
+  bookingBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
+    backgroundColor: COLORS.gold,
+    borderRadius: 14,
     padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 8,
+    marginTop: 24,
+    gap: 10,
   },
-  extraToolText: {
-    fontSize: 14,
-    fontFamily: 'Alexandria_600SemiBold',
-    color: COLORS.gold,
+  bookingBtnText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
 
   // Stats
   statsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 20,
   },
   statCard: {
     flex: 1,
     backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 14,
+    padding: 14,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   statNumber: {
-    fontSize: 24,
-    fontFamily: 'Alexandria_700Bold',
+    fontSize: 22,
+    fontFamily: FONTS.bold,
     color: COLORS.gold,
-    marginTop: 8,
+    marginTop: 6,
   },
   statLabel: {
-    fontSize: 12,
-    fontFamily: 'Alexandria_400Regular',
-    color: COLORS.text,
+    fontSize: 11,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
 
   // Admin Menu
   adminMenu: {
-    gap: 12,
+    gap: 10,
   },
   adminMenuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   adminMenuIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -455,14 +530,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   adminMenuTitle: {
-    fontSize: 16,
-    fontFamily: 'Alexandria_600SemiBold',
-    color: COLORS.white,
+    fontSize: 15,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
   },
   adminMenuSubtitle: {
     fontSize: 12,
-    fontFamily: 'Alexandria_400Regular',
-    color: COLORS.text,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 2,
   },
 });
