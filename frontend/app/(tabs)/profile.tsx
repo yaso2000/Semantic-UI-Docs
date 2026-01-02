@@ -77,15 +77,9 @@ export default function ProfileScreen() {
           <Text style={styles.name}>{user?.full_name || 'المستخدم'}</Text>
           <Text style={styles.email}>{user?.email || 'email@example.com'}</Text>
           {user?.role === 'admin' && (
-            <View style={styles.adminBadge}>
-              <Ionicons name="shield-checkmark" size={14} color="#fff" />
-              <Text style={styles.adminBadgeText}>مدير</Text>
-            </View>
-          )}
-          {user?.role === 'coach' && (
             <View style={[styles.adminBadge, { backgroundColor: '#FF9800' }]}>
-              <Ionicons name="fitness" size={14} color="#fff" />
-              <Text style={styles.adminBadgeText}>مدرب</Text>
+              <Ionicons name="star" size={14} color="#fff" />
+              <Text style={styles.adminBadgeText}>يازو - المدرب</Text>
             </View>
           )}
           {user?.role === 'client' && (
