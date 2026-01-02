@@ -63,57 +63,27 @@ export default function PackagesManagement() {
     loadPackages();
   };
 
-  const handleDeletePackage = (packageId: string, packageName: string) => {
-    console.log('Delete clicked for:', packageId, packageName);
-    
-    // استخدم confirm مباشرة للويب والموبايل
-    if (typeof window !== 'undefined' && window.confirm) {
-      const confirmed = window.confirm(`هل أنت متأكد من حذف "${packageName}"؟`);
-      console.log('Confirmed:', confirmed);
-      if (confirmed) {
-        performDelete(packageId);
-      }
-    } else {
-      // fallback للموبايل
-      Alert.alert(
-        'حذف الباقة',
-        `هل أنت متأكد من حذف "${packageName}"؟`,
-        [
-          { text: 'إلغاء', style: 'cancel' },
-          { text: 'حذف', style: 'destructive', onPress: () => performDelete(packageId) },
-        ]
-      );
-    }
-  };
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const performDelete = async (packageId: string) => {
-    console.log('Performing delete for:', packageId);
+  const handleDeletePackage = async (packageId: string, packageName: string) => {
+    // حذف مباشر بدون confirm (سنضيف تأكيد لاحقاً)
+    setDeletingId(packageId);
     try {
       const token = await AsyncStorage.getItem('token');
-      console.log('Token exists:', !!token);
-      
-      const url = `${API_URL}/api/packages/${packageId}`;
-      console.log('Delete URL:', url);
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${API_URL}/api/packages/${packageId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      console.log('Response status:', response.status);
-      
       if (response.ok) {
-        // تحديث القائمة محلياً
         setPackages(prev => prev.filter(p => p.id !== packageId));
-        window.alert('تم حذف الباقة بنجاح');
       } else {
-        const errorText = await response.text();
-        console.error('Delete failed:', errorText);
-        window.alert('فشل في حذف الباقة: ' + errorText);
+        console.error('Delete failed');
       }
     } catch (error) {
       console.error('Delete error:', error);
-      window.alert('خطأ في الحذف: ' + String(error));
+    } finally {
+      setDeletingId(null);
     }
   };
 
