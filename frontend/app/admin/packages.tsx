@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -99,7 +99,7 @@ export default function PackagesManagement() {
     <View style={styles.packageCard}>
       <View style={styles.packageHeader}>
         <View style={styles.packageIcon}>
-          <Ionicons name="fitness" size={28} color={COLORS.primary} />
+          <Ionicons name="fitness" size={26} color={COLORS.white} />
         </View>
         <View style={styles.packageInfo}>
           <Text style={styles.packageName}>{item.name}</Text>
@@ -109,15 +109,15 @@ export default function PackagesManagement() {
       
       <View style={styles.packageDetails}>
         <View style={styles.detailItem}>
-          <Ionicons name="time-outline" size={20} color={COLORS.gold} />
+          <Ionicons name="time-outline" size={18} color={COLORS.teal} />
           <Text style={styles.detailText}>{item.hours} ساعة</Text>
         </View>
         <View style={styles.detailItem}>
-          <Ionicons name="cash-outline" size={20} color={COLORS.gold} />
+          <Ionicons name="cash-outline" size={18} color={COLORS.goldDark} />
           <Text style={styles.detailText}>${item.price}</Text>
         </View>
         <View style={styles.detailItem}>
-          <Ionicons name="calculator-outline" size={20} color={COLORS.gold} />
+          <Ionicons name="calculator-outline" size={18} color={COLORS.sageDark} />
           <Text style={styles.detailText}>${(item.price / item.hours).toFixed(2)}/ساعة</Text>
         </View>
       </View>
@@ -127,8 +127,8 @@ export default function PackagesManagement() {
           style={[styles.actionBtn, styles.editBtn]}
           onPress={() => handleEditPackage(item)}
         >
-          <Ionicons name="create" size={20} color={COLORS.gold} />
-          <Text style={[styles.actionBtnText, { color: COLORS.gold }]}>تعديل</Text>
+          <Ionicons name="create" size={18} color={COLORS.teal} />
+          <Text style={[styles.actionBtnText, { color: COLORS.teal }]}>تعديل</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.actionBtn, styles.deleteBtn]}
@@ -139,7 +139,7 @@ export default function PackagesManagement() {
             <ActivityIndicator size="small" color={COLORS.error} />
           ) : (
             <>
-              <Ionicons name="trash" size={20} color={COLORS.error} />
+              <Ionicons name="trash" size={18} color={COLORS.error} />
               <Text style={[styles.actionBtnText, { color: COLORS.error }]}>حذف</Text>
             </>
           )}
@@ -151,21 +151,21 @@ export default function PackagesManagement() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-        <ActivityIndicator size="large" color={COLORS.gold} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <ActivityIndicator size="large" color={COLORS.teal} />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
+          <Ionicons name="arrow-forward" size={22} color={COLORS.teal} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>إدارة الباقات</Text>
       </View>
@@ -175,18 +175,20 @@ export default function PackagesManagement() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.gold} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.teal} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="pricetags-outline" size={64} color={COLORS.border} />
+            <View style={styles.emptyIcon}>
+              <Ionicons name="pricetags-outline" size={50} color={COLORS.teal} />
+            </View>
             <Text style={styles.emptyText}>لا توجد باقات حالياً</Text>
             <Text style={styles.emptySubtext}>أنشئ أول باقة تدريبية</Text>
           </View>
         }
       />
       <TouchableOpacity style={styles.fab} onPress={handleCreatePackage}>
-        <Ionicons name="add" size={32} color={COLORS.primary} />
+        <Ionicons name="add" size={28} color={COLORS.white} />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -195,123 +197,119 @@ export default function PackagesManagement() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: COLORS.secondary,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    ...SHADOWS.sm,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: SPACING.md,
   },
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
+    color: COLORS.text,
     textAlign: 'right',
   },
   listContent: {
-    padding: 16,
+    padding: SPACING.md,
     paddingBottom: 100,
   },
   packageCard: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.md,
   },
   packageHeader: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
   },
   packageIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.gold,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: COLORS.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: SPACING.md,
   },
   packageInfo: {
     flex: 1,
   },
   packageName: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: FONTS.bold,
     color: COLORS.text,
     textAlign: 'right',
   },
   packageDescription: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    marginTop: 4,
+    color: COLORS.textSecondary,
+    marginTop: 2,
     textAlign: 'right',
   },
   packageDetails: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 12,
+    paddingVertical: SPACING.sm,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: COLORS.border,
-    marginBottom: 12,
+    marginBottom: SPACING.sm,
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   detailText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
   packageActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: SPACING.sm,
   },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    gap: 6,
   },
   editBtn: {
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    borderWidth: 1,
-    borderColor: COLORS.gold,
+    backgroundColor: `${COLORS.teal}10`,
   },
   deleteBtn: {
-    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-    borderWidth: 1,
-    borderColor: COLORS.error,
+    backgroundColor: COLORS.errorLight,
   },
   actionBtnText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: FONTS.semiBold,
   },
   emptyContainer: {
@@ -320,32 +318,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 100,
   },
+  emptyIcon: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: `${COLORS.teal}10`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: FONTS.bold,
-    color: COLORS.textMuted,
-    marginTop: 16,
+    color: COLORS.text,
   },
   emptySubtext: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginTop: 4,
   },
   fab: {
     position: 'absolute',
     left: 20,
     bottom: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.gold,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    ...SHADOWS.lg,
   },
 });

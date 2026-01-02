@@ -7,16 +7,13 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  Modal,
-  TextInput,
-  Alert,
-  Platform,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -104,7 +101,8 @@ export default function BookingsScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.gold} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <ActivityIndicator size="large" color={COLORS.teal} />
       </View>
     );
   }
@@ -113,26 +111,41 @@ export default function BookingsScreen() {
   if (userRole === 'admin') {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>الحجوزات الواردة</Text>
-          <Text style={styles.headerSubtitle}>{allBookings.length} حجز</Text>
+          <Ionicons name="calendar" size={24} color={COLORS.teal} />
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>الحجوزات الواردة</Text>
+            <Text style={styles.headerSubtitle}>{allBookings.length} حجز</Text>
+          </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView 
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
           {allBookings.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="calendar-outline" size={60} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>لا توجد حجوزات حالياً</Text>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="calendar-outline" size={50} color={COLORS.teal} />
+              </View>
+              <Text style={styles.emptyTitle}>لا توجد حجوزات حالياً</Text>
+              <Text style={styles.emptyText}>ستظهر الحجوزات الجديدة هنا</Text>
             </View>
           ) : (
             allBookings.map((booking) => (
               <View key={booking.id} style={styles.bookingCard}>
                 <View style={styles.bookingHeader}>
-                  <View style={[styles.statusBadge, 
+                  <View style={[
+                    styles.statusBadge, 
                     booking.booking_status === 'confirmed' ? styles.statusConfirmed :
                     booking.booking_status === 'pending' ? styles.statusPending : styles.statusCompleted
                   ]}>
-                    <Text style={styles.statusText}>
+                    <Text style={[
+                      styles.statusText,
+                      booking.booking_status === 'confirmed' ? { color: COLORS.success } :
+                      booking.booking_status === 'pending' ? { color: COLORS.warning } : { color: COLORS.info }
+                    ]}>
                       {booking.booking_status === 'confirmed' ? 'مؤكد' :
                        booking.booking_status === 'pending' ? 'في الانتظار' : 'مكتمل'}
                     </Text>
@@ -144,17 +157,17 @@ export default function BookingsScreen() {
                 
                 <View style={styles.bookingInfo}>
                   <View style={styles.bookingRow}>
-                    <Ionicons name="person" size={18} color={COLORS.gold} />
+                    <Ionicons name="person" size={16} color={COLORS.teal} />
                     <Text style={styles.bookingLabel}>المتدرب:</Text>
                     <Text style={styles.bookingValue}>{booking.client_name || 'غير محدد'}</Text>
                   </View>
                   <View style={styles.bookingRow}>
-                    <Ionicons name="pricetag" size={18} color={COLORS.gold} />
+                    <Ionicons name="pricetag" size={16} color={COLORS.goldDark} />
                     <Text style={styles.bookingLabel}>الباقة:</Text>
                     <Text style={styles.bookingValue}>{booking.package_name}</Text>
                   </View>
                   <View style={styles.bookingRow}>
-                    <Ionicons name="time" size={18} color={COLORS.gold} />
+                    <Ionicons name="time" size={16} color={COLORS.sageDark} />
                     <Text style={styles.bookingLabel}>الساعات:</Text>
                     <Text style={styles.bookingValue}>
                       {booking.hours_used || 0} / {booking.hours_purchased} ساعة
@@ -172,11 +185,19 @@ export default function BookingsScreen() {
   // ============ واجهة المتدرب ============
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>احجز مع يازو</Text>
-        <Text style={styles.headerSubtitle}>باقات التدريب الشخصي</Text>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <View style={styles.clientHeader}>
+        <View style={styles.clientHeaderTop}>
+          <View style={styles.headerIcon}>
+            <Ionicons name="leaf" size={28} color={COLORS.teal} />
+          </View>
+          <View>
+            <Text style={styles.headerTitle}>احجز مع يازو</Text>
+            <Text style={styles.headerSubtitle}>باقات التدريب الشخصي</Text>
+          </View>
+        </View>
         <View style={styles.hoursBox}>
-          <Ionicons name="time" size={20} color={COLORS.gold} />
+          <Ionicons name="time" size={18} color={COLORS.teal} />
           <Text style={styles.hoursText}>{getTotalHours()} ساعة متبقية</Text>
         </View>
       </View>
@@ -186,31 +207,36 @@ export default function BookingsScreen() {
           style={[styles.tab, activeTab === 'packages' && styles.tabActive]}
           onPress={() => setActiveTab('packages')}
         >
-          <Ionicons name="pricetag" size={20} color={activeTab === 'packages' ? COLORS.primary : COLORS.textMuted} />
+          <Ionicons name="pricetag" size={18} color={activeTab === 'packages' ? COLORS.white : COLORS.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'packages' && styles.tabTextActive]}>الباقات</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'bookings' && styles.tabActive]}
           onPress={() => setActiveTab('bookings')}
         >
-          <Ionicons name="calendar" size={20} color={activeTab === 'bookings' ? COLORS.primary : COLORS.textMuted} />
+          <Ionicons name="calendar" size={18} color={activeTab === 'bookings' ? COLORS.white : COLORS.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'bookings' && styles.tabTextActive]}>حجوزاتي</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {activeTab === 'packages' ? (
           packages.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="pricetag-outline" size={60} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>لا توجد باقات متاحة</Text>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="pricetag-outline" size={50} color={COLORS.teal} />
+              </View>
+              <Text style={styles.emptyTitle}>لا توجد باقات متاحة</Text>
             </View>
           ) : (
             packages.map((pkg) => (
               <View key={pkg.id} style={styles.packageCard}>
                 <View style={styles.packageHeader}>
                   <View style={styles.packageIconBox}>
-                    <Ionicons name="diamond" size={24} color={COLORS.gold} />
+                    <Ionicons name="diamond" size={22} color={COLORS.white} />
                   </View>
                   <View style={styles.packageInfo}>
                     <Text style={styles.packageName}>{pkg.name}</Text>
@@ -225,8 +251,10 @@ export default function BookingsScreen() {
                   <TouchableOpacity 
                     style={styles.bookButton}
                     onPress={() => handleBookPackage(pkg)}
+                    activeOpacity={0.8}
                   >
                     <Text style={styles.bookButtonText}>احجز الآن</Text>
+                    <Ionicons name="arrow-back" size={16} color={COLORS.white} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -235,24 +263,38 @@ export default function BookingsScreen() {
         ) : (
           myBookings.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="calendar-outline" size={60} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>لا توجد حجوزات</Text>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="calendar-outline" size={50} color={COLORS.teal} />
+              </View>
+              <Text style={styles.emptyTitle}>لا توجد حجوزات</Text>
+              <Text style={styles.emptyText}>احجز باقة لبدء رحلتك</Text>
             </View>
           ) : (
             myBookings.map((booking) => (
-              <View key={booking.id} style={styles.bookingCard}>
+              <View key={booking.id} style={styles.myBookingCard}>
                 <View style={styles.bookingHeader}>
-                  <View style={[styles.statusBadge, 
+                  <View style={[
+                    styles.statusBadge, 
                     booking.booking_status === 'confirmed' ? styles.statusConfirmed :
                     booking.booking_status === 'pending' ? styles.statusPending : styles.statusCompleted
                   ]}>
-                    <Text style={styles.statusText}>
+                    <Text style={[
+                      styles.statusText,
+                      booking.booking_status === 'confirmed' ? { color: COLORS.success } :
+                      booking.booking_status === 'pending' ? { color: COLORS.warning } : { color: COLORS.info }
+                    ]}>
                       {booking.booking_status === 'confirmed' ? 'مؤكد' :
                        booking.booking_status === 'pending' ? 'في الانتظار' : 'مكتمل'}
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.bookingPackageName}>{booking.package_name}</Text>
+                <View style={styles.hoursProgress}>
+                  <View style={[
+                    styles.hoursProgressBar,
+                    { width: `${((booking.hours_purchased - booking.hours_used) / booking.hours_purchased) * 100}%` }
+                  ]} />
+                </View>
                 <Text style={styles.bookingHours}>
                   {booking.hours_purchased - booking.hours_used} / {booking.hours_purchased} ساعة متبقية
                 </Text>
@@ -268,202 +310,244 @@ export default function BookingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   content: {
-    padding: 16,
+    padding: SPACING.md,
     paddingBottom: 100,
   },
 
   // Header
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 24,
-    backgroundColor: COLORS.secondary,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    justifyContent: 'flex-end',
+    padding: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    gap: SPACING.sm,
+    ...SHADOWS.sm,
+  },
+  headerText: {
+    alignItems: 'flex-end',
+  },
+  clientHeader: {
+    alignItems: 'center',
+    padding: SPACING.lg,
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    borderRadius: RADIUS.xl,
+    ...SHADOWS.md,
+  },
+  clientHeaderTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  headerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: `${COLORS.teal}10`,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-    marginBottom: 4,
+    color: COLORS.text,
+    textAlign: 'right',
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
+    color: COLORS.textSecondary,
+    textAlign: 'right',
   },
   hoursBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    borderRadius: 20,
-    gap: 8,
+    marginTop: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    backgroundColor: `${COLORS.teal}10`,
+    borderRadius: RADIUS.full,
+    gap: SPACING.xs,
   },
   hoursText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.gold,
+    color: COLORS.teal,
   },
 
   // Tabs
   tabs: {
     flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 16,
-    backgroundColor: COLORS.secondary,
-    borderRadius: 12,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
     padding: 4,
+    ...SHADOWS.sm,
   },
   tab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 8,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    gap: 6,
   },
   tabActive: {
-    backgroundColor: COLORS.gold,
+    backgroundColor: COLORS.teal,
   },
   tabText: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
   tabTextActive: {
-    color: COLORS.primary,
+    color: COLORS.white,
   },
 
   // Empty State
   emptyState: {
     alignItems: 'center',
-    padding: 40,
+    padding: SPACING['2xl'],
+  },
+  emptyIcon: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: `${COLORS.teal}10`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    marginTop: 16,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
 
   // Package Card
   packageCard: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.md,
   },
   packageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.sm,
   },
   packageIconBox: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    marginLeft: SPACING.sm,
   },
   packageInfo: {
     flex: 1,
     alignItems: 'flex-end',
   },
   packageName: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
+    color: COLORS.text,
   },
   packageHours: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.gold,
+    color: COLORS.teal,
     marginTop: 2,
   },
   packageDescription: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'right',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
   },
   packageFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
+    paddingTop: SPACING.md,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
   packagePrice: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
+    color: COLORS.goldDark,
   },
   bookButton: {
-    backgroundColor: COLORS.gold,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.teal,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
+    gap: 6,
   },
   bookButtonText: {
     fontSize: 14,
     fontFamily: FONTS.bold,
-    color: COLORS.primary,
+    color: COLORS.white,
   },
 
-  // Booking Card
+  // Booking Card (Admin)
   bookingCard: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.sm,
   },
   bookingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.sm,
   },
   statusBadge: {
-    paddingHorizontal: 12,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: RADIUS.full,
   },
   statusPending: {
-    backgroundColor: 'rgba(255, 152, 0, 0.2)',
+    backgroundColor: COLORS.warningLight,
   },
   statusConfirmed: {
-    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    backgroundColor: COLORS.successLight,
   },
   statusCompleted: {
-    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+    backgroundColor: COLORS.infoLight,
   },
   statusText: {
     fontSize: 12,
     fontFamily: FONTS.semiBold,
-    color: COLORS.gold,
   },
   bookingDate: {
     fontSize: 12,
@@ -471,35 +555,56 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   bookingInfo: {
-    gap: 8,
+    gap: SPACING.xs,
   },
   bookingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 8,
+    gap: 6,
   },
   bookingLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
   bookingValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.white,
+    color: COLORS.text,
+  },
+
+  // My Booking Card
+  myBookingCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.sm,
   },
   bookingPackageName: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
+    color: COLORS.text,
     textAlign: 'right',
   },
+  hoursProgress: {
+    height: 6,
+    backgroundColor: COLORS.beige,
+    borderRadius: 3,
+    marginTop: SPACING.sm,
+    overflow: 'hidden',
+  },
+  hoursProgressBar: {
+    height: '100%',
+    backgroundColor: COLORS.teal,
+    borderRadius: 3,
+  },
   bookingHours: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.gold,
+    color: COLORS.textSecondary,
     textAlign: 'right',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
 });
