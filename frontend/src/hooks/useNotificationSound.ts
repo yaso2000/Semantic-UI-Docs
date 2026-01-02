@@ -35,12 +35,14 @@ export function useNotificationSound() {
 
   const playNotificationSound = useCallback(async () => {
     try {
-      // Vibrate first (works on mobile)
+      // Vibrate (works on mobile)
       if (Platform.OS !== 'web') {
+        // نمط اهتزاز للإشعار: توقف-اهتزاز-توقف-اهتزاز
         Vibration.vibrate([0, 200, 100, 200]);
+        console.log('🔔 Notification vibration triggered');
       }
 
-      // Try to play sound (only on native platforms)
+      // Play system notification sound using Audio API
       if (Platform.OS !== 'web') {
         try {
           // Unload previous sound if exists
@@ -48,14 +50,14 @@ export function useNotificationSound() {
             await soundRef.current.unloadAsync();
           }
 
-          // Create and play new notification sound
+          // Use expo-av's built-in notification approach
           const { sound } = await Audio.Sound.createAsync(
-            // Use a system-like notification sound
-            require('./notification.mp3'),
-            { shouldPlay: true, volume: 0.8 }
+            { uri: 'https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3' },
+            { shouldPlay: true, volume: 0.7 }
           );
           
           soundRef.current = sound;
+          console.log('🔊 Notification sound played');
           
           // Unload after playing
           sound.setOnPlaybackStatusUpdate((status) => {
@@ -64,18 +66,19 @@ export function useNotificationSound() {
             }
           });
         } catch (soundError) {
-          // Sound file might not exist, just log and continue
-          console.log('Sound playback skipped:', soundError);
+          // Sound might fail, but vibration already worked
+          console.log('Sound playback skipped (vibration used instead):', soundError);
         }
       }
     } catch (error) {
-      console.log('Notification sound error:', error);
+      console.log('Notification error:', error);
     }
   }, []);
 
   const checkAndPlaySound = useCallback((newUnreadCount: number) => {
     // Play sound only if unread count increased
-    if (newUnreadCount > lastUnreadCount.current && lastUnreadCount.current >= 0) {
+    if (newUnreadCount > lastUnreadCount.current) {
+      console.log(`📬 New messages detected: ${lastUnreadCount.current} -> ${newUnreadCount}`);
       playNotificationSound();
     }
     lastUnreadCount.current = newUnreadCount;
