@@ -926,6 +926,32 @@ async def get_admin_stats(admin_user: dict = Depends(get_admin_user)):
         "active_subscriptions": active_subscriptions
     }
 
+@api_router.get("/admin/bookings")
+async def get_admin_bookings(admin_user: dict = Depends(get_admin_user)):
+    """Get all bookings for admin"""
+    bookings = await db.bookings.find().sort("created_at", -1).to_list(1000)
+    
+    result = []
+    for booking in bookings:
+        result.append({
+            "id": booking["_id"],
+            "client_id": booking.get("client_id"),
+            "client_name": booking.get("client_name", "غير محدد"),
+            "coach_id": booking.get("coach_id"),
+            "coach_name": booking.get("coach_name", "يازو"),
+            "package_id": booking.get("package_id"),
+            "package_name": booking.get("package_name", ""),
+            "hours_purchased": booking.get("hours_purchased", 0),
+            "hours_used": booking.get("hours_used", 0),
+            "amount": booking.get("amount", 0),
+            "payment_status": booking.get("payment_status", "pending"),
+            "booking_status": booking.get("booking_status", "pending"),
+            "notes": booking.get("notes", ""),
+            "created_at": booking.get("created_at")
+        })
+    
+    return result
+
 # ==================== ADMIN SUBSCRIPTION MANAGEMENT ====================
 
 # ==================== ADMIN PAYMENT MANAGEMENT ====================
