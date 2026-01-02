@@ -470,16 +470,133 @@ async def get_conversations(current_user: dict = Depends(get_current_user)):
                 "read": False
             })
             
+            # Get profile image
+            profile_image = user.get("profile_image")
+            if not profile_image:
+                coach_profile = await db.coach_profiles.find_one({"user_id": user_id})
+                if coach_profile:
+                    profile_image = coach_profile.get("profile_image")
+            
             conversations.append({
                 "user_id": user_id,
                 "full_name": user["full_name"],
                 "email": user["email"],
+                "role": user.get("role", "client"),
+                "profile_image": profile_image,
                 "last_message": last_message.get("message", "") if last_message else "",
                 "last_message_time": last_message.get("timestamp") if last_message else None,
                 "unread_count": unread_count
             })
     
     return conversations
+
+@api_router.get("/chat/available-contacts")
+async def get_available_chat_contacts(current_user: dict = Depends(get_current_user)):
+    """
+    Get list of users the current user can chat with based on confirmed bookings.
+    For trainees: shows coaches they have confirmed bookings with
+    For coaches: shows trainees who have confirmed bookings
+    """
+    contacts = []
+    
+    if current_user["role"] == "client":
+        # Get coaches from confirmed bookings
+        bookings = await db.bookings.find({
+            "client_id": current_user["_id"],
+            "booking_status": {"$in": ["confirmed", "completed"]}
+        }).to_list(100)
+        
+        coach_ids = list(set([b["coach_id"] for b in bookings]))
+        
+        for coach_id in coach_ids:
+            coach = await db.users.find_one({"_id": coach_id})
+            if coach:
+                # Get profile image
+                profile_image = coach.get("profile_image")
+                coach_profile = await db.coach_profiles.find_one({"user_id": coach_id})
+                if coach_profile and coach_profile.get("profile_image"):
+                    profile_image = coach_profile.get("profile_image")
+                
+                # Get last message
+                last_message = await db.messages.find_one({
+                    "$or": [
+                        {"sender_id": current_user["_id"], "recipient_id": coach_id},
+                        {"sender_id": coach_id, "recipient_id": current_user["_id"]}
+                    ]
+                }, sort=[("timestamp", -1)])
+                
+                # Count unread
+                unread_count = await db.messages.count_documents({
+                    "sender_id": coach_id,
+                    "recipient_id": current_user["_id"],
+                    "read": False
+                })
+                
+                # Get active booking info
+                active_booking = next((b for b in bookings if b["coach_id"] == coach_id and b.get("booking_status") == "confirmed"), None)
+                
+                contacts.append({
+                    "user_id": coach_id,
+                    "full_name": coach["full_name"],
+                    "role": "coach",
+                    "profile_image": profile_image,
+                    "specialties": coach_profile.get("specialties", []) if coach_profile else [],
+                    "last_message": last_message.get("message", "") if last_message else "",
+                    "last_message_time": last_message.get("timestamp") if last_message else None,
+                    "unread_count": unread_count,
+                    "booking_status": active_booking.get("booking_status") if active_booking else "completed",
+                    "package_name": active_booking.get("package_name") if active_booking else ""
+                })
+    
+    elif current_user["role"] == "coach":
+        # Get trainees from confirmed bookings
+        bookings = await db.bookings.find({
+            "coach_id": current_user["_id"],
+            "booking_status": {"$in": ["confirmed", "completed"]}
+        }).to_list(100)
+        
+        trainee_ids = list(set([b["client_id"] for b in bookings]))
+        
+        for trainee_id in trainee_ids:
+            trainee = await db.users.find_one({"_id": trainee_id})
+            if trainee:
+                # Get last message
+                last_message = await db.messages.find_one({
+                    "$or": [
+                        {"sender_id": current_user["_id"], "recipient_id": trainee_id},
+                        {"sender_id": trainee_id, "recipient_id": current_user["_id"]}
+                    ]
+                }, sort=[("timestamp", -1)])
+                
+                # Count unread
+                unread_count = await db.messages.count_documents({
+                    "sender_id": trainee_id,
+                    "recipient_id": current_user["_id"],
+                    "read": False
+                })
+                
+                # Get booking info
+                active_booking = next((b for b in bookings if b["client_id"] == trainee_id and b.get("booking_status") == "confirmed"), None)
+                hours_remaining = 0
+                if active_booking:
+                    hours_remaining = active_booking.get("hours_purchased", 0) - active_booking.get("hours_used", 0)
+                
+                contacts.append({
+                    "user_id": trainee_id,
+                    "full_name": trainee["full_name"],
+                    "role": "client",
+                    "profile_image": trainee.get("profile_image"),
+                    "last_message": last_message.get("message", "") if last_message else "",
+                    "last_message_time": last_message.get("timestamp") if last_message else None,
+                    "unread_count": unread_count,
+                    "hours_remaining": hours_remaining,
+                    "package_name": active_booking.get("package_name") if active_booking else ""
+                })
+    
+    # Sort by last message time (most recent first)
+    contacts.sort(key=lambda x: x.get("last_message_time") or "", reverse=True)
+    
+    return contacts
 
 # ==================== INTAKE QUESTIONNAIRE ====================
 
