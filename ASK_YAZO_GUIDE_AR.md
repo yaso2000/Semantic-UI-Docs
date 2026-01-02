@@ -5,7 +5,7 @@
 **Ask Yazo** هو تطبيق موبايل شامل للتدريب الشخصي على الحياة الشاملة (Holistic Life Coaching)، يركز على أربع ركائز أساسية مترابطة: اللياقة البدنية، الصحة الغذائية، الصحة النفسية، والصحة الروحية.
 
 **الدومين:** askyazo.com
-**رابط التطبيق:** https://holistic-coach-app.preview.emergentagent.com
+**رابط التطبيق:** https://yazo-coach.preview.emergentagent.com
 
 ---
 
