@@ -315,6 +315,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e0e0e0',
   },
   headerTitle: { fontSize: 24, fontFamily: 'Cairo_700Bold', color: '#333', textAlign: 'right' },
+  headerSubtitle: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right', marginTop: 4 },
   hoursBox: {
     flexDirection: 'row',
     alignItems: 'center',
