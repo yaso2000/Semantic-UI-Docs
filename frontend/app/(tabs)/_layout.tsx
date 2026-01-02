@@ -2,19 +2,22 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, ActivityIndicator, Text, StyleSheet, Vibration } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { useNotificationSound } from '../../src/hooks/useNotificationSound';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
-// الألوان الفخمة
+// ألوان التصميم الهادئ
 const COLORS = {
-  primary: '#0A1628',
-  secondary: '#1A2744',
-  gold: '#D4AF37',
+  background: '#FAF8F5',
   white: '#FFFFFF',
-  text: '#E8E8E8',
-  textMuted: '#8A9BB8',
+  teal: '#2A7B7B',
+  tealDark: '#1E5F5F',
+  text: '#3D4852',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  border: '#E5E7EB',
+  error: '#E57373',
 };
 
 function TabBarIconWithBadge({ 
@@ -100,7 +103,7 @@ export default function TabsLayout() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.gold} />
+        <ActivityIndicator size="large" color={COLORS.teal} />
       </View>
     );
   }
@@ -111,16 +114,21 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: COLORS.gold,
+        tabBarActiveTintColor: COLORS.teal,
         tabBarInactiveTintColor: COLORS.textMuted,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: COLORS.secondary,
-          borderTopColor: COLORS.primary,
+          backgroundColor: COLORS.white,
+          borderTopColor: COLORS.border,
           borderTopWidth: 1,
           paddingBottom: 8,
           paddingTop: 8,
           height: 65,
+          shadowColor: '#3D4852',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -201,7 +209,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   iconContainer: {
     position: 'relative',
@@ -210,7 +218,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -10,
-    backgroundColor: '#F44336',
+    backgroundColor: COLORS.error,
     borderRadius: 10,
     minWidth: 18,
     height: 18,
