@@ -156,6 +156,30 @@ backend:
         agent: "main"
         comment: "Returns total users, bookings, and revenue"
 
+  - task: "Sessions API for Coaches"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Tested GET /api/sessions/my-sessions, GET /api/sessions/stats, and POST /api/sessions/create endpoints. All working correctly. Stats returns proper structure with total_sessions, total_hours, monthly_sessions, active_clients. My-sessions returns empty array when no sessions exist. Authentication working properly for coach role."
+
+  - task: "Messages API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Tested GET /api/messages/unread-count endpoint. Returns proper JSON structure with unread_count field. Works for both coach and trainee roles. Coach had 0 unread messages, trainee had 1 unread message, indicating the system is tracking messages correctly."
+
 frontend:
   - task: "Admin Dashboard"
     implemented: true
