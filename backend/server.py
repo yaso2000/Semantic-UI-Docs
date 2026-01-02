@@ -141,6 +141,24 @@ class HabitTracker(BaseModel):
     habits_completed: List[str]
     notes: Optional[str] = None
 
+class SessionCreate(BaseModel):
+    booking_id: str
+    duration_hours: float
+    session_type: str  # training, consultation, etc.
+    notes: Optional[str] = None
+    session_date: datetime = Field(default_factory=datetime.utcnow)
+
+class SessionResponse(BaseModel):
+    id: str
+    booking_id: str
+    coach_id: str
+    client_id: str
+    duration_hours: float
+    session_type: str
+    notes: Optional[str] = None
+    session_date: datetime
+    created_at: datetime
+
 # ==================== HELPER FUNCTIONS ====================
 
 def verify_password(plain_password, hashed_password):
