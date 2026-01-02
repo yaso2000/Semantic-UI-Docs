@@ -119,8 +119,19 @@ class APITester:
         self.log("\n4. Testing Unread Messages Count Endpoint")
         messages_success = self.test_endpoint("GET", "/messages/unread-count", self.coach_token)
         
+        # Step 5: Test trainee login (additional verification)
+        self.log("\n5. Testing Trainee Login (Additional Verification)")
+        self.trainee_token = self.test_login(TRAINEE_EMAIL, TRAINEE_PASSWORD, "trainee")
+        trainee_login_success = self.trainee_token is not None
+        
+        # Step 6: Test trainee unread messages
+        trainee_messages_success = False
+        if self.trainee_token:
+            self.log("\n6. Testing Trainee Unread Messages")
+            trainee_messages_success = self.test_endpoint("GET", "/messages/unread-count", self.trainee_token)
+        
         # Optional: Test session creation (only if we have confirmed bookings)
-        self.log("\n5. Testing Session Creation (Optional)")
+        self.log("\n7. Testing Session Creation (Optional)")
         self.log("Note: Skipping session creation as per request - no confirmed bookings needed")
         
         # Summary
@@ -132,7 +143,9 @@ class APITester:
             "Coach Login": self.coach_token is not None,
             "Sessions Stats": stats_success,
             "My Sessions": sessions_success, 
-            "Unread Messages": messages_success
+            "Coach Unread Messages": messages_success,
+            "Trainee Login": trainee_login_success,
+            "Trainee Unread Messages": trainee_messages_success
         }
         
         all_passed = True
