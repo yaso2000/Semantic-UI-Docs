@@ -112,7 +112,7 @@ class BookingResponse(BaseModel):
 
 class Message(BaseModel):
     id: Optional[str] = None
-    sender_id: str
+    sender_id: Optional[str] = None  # Will be set from token
     recipient_id: str
     message: str
     attachment: Optional[str] = None  # base64 encoded file
