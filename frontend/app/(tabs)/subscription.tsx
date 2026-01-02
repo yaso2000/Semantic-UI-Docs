@@ -12,8 +12,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 
 interface Subscription {
   id: string;
@@ -26,9 +28,9 @@ interface Subscription {
 
 const plans = [
   {
-    id: 'monthly',
+    id: 'monthly_basic',
     name: 'الاشتراك الشهري',
-    price: 49,
+    price: 29.99,
     period: 'شهر',
     features: [
       'ظهور في قائمة المدربين',
@@ -38,26 +40,28 @@ const plans = [
     ],
   },
   {
-    id: 'yearly',
-    name: 'الاشتراك السنوي',
-    price: 399,
-    period: 'سنة',
-    originalPrice: 588,
-    savings: 189,
+    id: 'monthly_premium',
+    name: 'الاشتراك المميز',
+    price: 49.99,
+    period: 'شهر',
     features: [
-      'جميع مميزات الاشتراك الشهري',
-      'توفير 32%',
+      'جميع مميزات الاشتراك الأساسي',
       'أولوية في الظهور',
       'شارة مدرب مميز',
+      'تحليلات متقدمة',
+      'دعم فني مخصص',
     ],
     popular: true,
   },
 ];
 
-export default function SubscriptionScreen() {
+function SubscriptionContent() {
   const [currentSubscription, setCurrentSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -82,37 +86,142 @@ export default function SubscriptionScreen() {
     }
   };
 
+  const initializePaymentSheet = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      
+      const response = await fetch(`${API_URL}/api/subscriptions/create-setup-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to create setup intent');
+      }
+
+      const { setupIntent, ephemeralKey, customer } = await response.json();
+
+      const { error } = await initPaymentSheet({
+        merchantDisplayName: 'اسأل يازو',
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        setupIntentClientSecret: setupIntent,
+        returnURL: 'askyazo://subscription-complete',
+      });
+
+      if (error) {
+        console.error('Error initializing payment sheet:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error setting up payment:', error);
+      return false;
+    }
+  };
+
   const handleSubscribe = async (planId: string) => {
+    setSelectedPlan(planId);
+    const plan = plans.find(p => p.id === planId);
+    
     Alert.alert(
       'تأكيد الاشتراك',
-      'سيتم توجيهك لإتمام الدفع. هل تريد المتابعة؟',
+      `سيتم الاشتراك في خطة "${plan?.name}" بقيمة $${plan?.price}/${plan?.period}. هل تريد المتابعة؟`,
       [
-        { text: 'إلغاء', style: 'cancel' },
+        { text: 'إلغاء', style: 'cancel', onPress: () => setSelectedPlan(null) },
         {
-          text: 'متابعة',
+          text: 'متابعة للدفع',
+          onPress: () => processPayment(planId)
+        }
+      ]
+    );
+  };
+
+  const processPayment = async (planId: string) => {
+    setSubscribing(true);
+    try {
+      // Initialize payment sheet
+      const initialized = await initializePaymentSheet();
+      
+      if (!initialized) {
+        Alert.alert('خطأ', 'فشل في تهيئة نظام الدفع. يرجى المحاولة مرة أخرى.');
+        setSubscribing(false);
+        setSelectedPlan(null);
+        return;
+      }
+
+      // Present the payment sheet
+      const { error } = await presentPaymentSheet();
+
+      if (error) {
+        if (error.code === 'Canceled') {
+          setSubscribing(false);
+          setSelectedPlan(null);
+          return;
+        }
+        Alert.alert('خطأ في الدفع', error.message);
+        setSubscribing(false);
+        setSelectedPlan(null);
+        return;
+      }
+
+      // Payment method added - activate subscription
+      const token = await AsyncStorage.getItem('token');
+      const activateResponse = await fetch(`${API_URL}/api/subscriptions/activate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ plan: planId })
+      });
+
+      if (activateResponse.ok) {
+        Alert.alert(
+          'تم الاشتراك بنجاح! 🎉',
+          'مبروك! تم تفعيل اشتراكك وأصبحت الآن ظاهراً في قائمة المدربين.',
+          [{ text: 'رائع', onPress: () => loadSubscription() }]
+        );
+      } else {
+        const error = await activateResponse.json();
+        Alert.alert('خطأ', error.detail || 'فشل في تفعيل الاشتراك');
+      }
+    } catch (error: any) {
+      Alert.alert('خطأ', error.message || 'حدث خطأ في عملية الدفع');
+    } finally {
+      setSubscribing(false);
+      setSelectedPlan(null);
+    }
+  };
+
+  const handleCancelSubscription = () => {
+    Alert.alert(
+      'إلغاء الاشتراك',
+      'هل أنت متأكد من إلغاء اشتراكك؟ ستفقد الوصول لجميع المميزات في نهاية فترة الفوترة الحالية.',
+      [
+        { text: 'لا، احتفظ باشتراكي', style: 'cancel' },
+        {
+          text: 'نعم، إلغاء',
+          style: 'destructive',
           onPress: async () => {
-            setSubscribing(true);
             try {
               const token = await AsyncStorage.getItem('token');
-              const response = await fetch(`${API_URL}/api/coach/subscribe`, {
+              const response = await fetch(`${API_URL}/api/subscriptions/cancel`, {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ plan: planId })
+                headers: { 'Authorization': `Bearer ${token}` }
               });
               
               if (response.ok) {
-                Alert.alert('نجاح', 'تم تفعيل اشتراكك بنجاح!');
+                Alert.alert('تم', 'تم إلغاء اشتراكك. ستظل تتمتع بالمميزات حتى نهاية الفترة الحالية.');
                 loadSubscription();
-              } else {
-                Alert.alert('خطأ', 'فشل في إتمام الاشتراك');
               }
             } catch (error) {
-              Alert.alert('خطأ', 'حدث خطأ في الاتصال');
-            } finally {
-              setSubscribing(false);
+              Alert.alert('خطأ', 'فشل في إلغاء الاشتراك');
             }
           }
         }
@@ -149,14 +258,28 @@ export default function SubscriptionScreen() {
             </View>
             <View style={styles.currentPlanDetails}>
               <Text style={styles.currentPlanName}>
-                {currentSubscription.plan === 'yearly' ? 'سنوي' : 'شهري'}
+                {currentSubscription.plan === 'monthly_premium' ? 'الاشتراك المميز' : 'الاشتراك الشهري'}
               </Text>
               <Text style={styles.currentPlanExpiry}>
                 ينتهي في: {new Date(currentSubscription.end_date).toLocaleDateString('ar-SA')}
               </Text>
             </View>
+            <TouchableOpacity 
+              style={styles.cancelBtn}
+              onPress={handleCancelSubscription}
+            >
+              <Text style={styles.cancelBtnText}>إلغاء الاشتراك</Text>
+            </TouchableOpacity>
           </View>
         )}
+
+        {/* معلومات الأمان */}
+        <View style={styles.securityInfo}>
+          <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
+          <Text style={styles.securityText}>
+            دفع آمن ومشفر عبر Stripe - لا نقوم بتخزين بيانات بطاقتك
+          </Text>
+        </View>
 
         <View style={styles.plansContainer}>
           <Text style={styles.sectionTitle}>خطط الاشتراك</Text>
@@ -171,7 +294,7 @@ export default function SubscriptionScreen() {
             >
               {plan.popular && (
                 <View style={styles.popularBadge}>
-                  <Text style={styles.popularText}>الأكثر توفيراً</Text>
+                  <Text style={styles.popularText}>الأكثر شعبية</Text>
                 </View>
               )}
 
@@ -181,13 +304,6 @@ export default function SubscriptionScreen() {
                 <Text style={styles.price}>${plan.price}</Text>
                 <Text style={styles.period}>/{plan.period}</Text>
               </View>
-
-              {plan.originalPrice && (
-                <View style={styles.savingsContainer}>
-                  <Text style={styles.originalPrice}>${plan.originalPrice}</Text>
-                  <Text style={styles.savingsText}>وفر ${plan.savings}</Text>
-                </View>
-              )}
 
               <View style={styles.featuresContainer}>
                 {plan.features.map((feature, index) => (
@@ -202,23 +318,62 @@ export default function SubscriptionScreen() {
                 style={[
                   styles.subscribeBtn,
                   plan.popular && styles.subscribeBtnPopular,
-                  subscribing && styles.subscribeBtnDisabled
+                  (subscribing && selectedPlan === plan.id) && styles.subscribeBtnDisabled,
+                  isActive && styles.subscribeBtnDisabled
                 ]}
                 onPress={() => handleSubscribe(plan.id)}
-                disabled={subscribing}
+                disabled={subscribing || isActive}
               >
-                <Text style={[
-                  styles.subscribeBtnText,
-                  plan.popular && styles.subscribeBtnTextPopular
-                ]}>
-                  {subscribing ? 'جاري المعالجة...' : 'اشترك الآن'}
-                </Text>
+                {subscribing && selectedPlan === plan.id ? (
+                  <ActivityIndicator color={plan.popular ? '#fff' : '#FF9800'} />
+                ) : (
+                  <View style={styles.subscribeBtnContent}>
+                    <Ionicons 
+                      name="card" 
+                      size={20} 
+                      color={plan.popular ? '#fff' : '#FF9800'} 
+                    />
+                    <Text style={[
+                      styles.subscribeBtnText,
+                      plan.popular && styles.subscribeBtnTextPopular
+                    ]}>
+                      {isActive ? 'مشترك حالياً' : 'اشترك الآن'}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             </View>
           ))}
         </View>
+
+        {/* طرق الدفع المقبولة */}
+        <View style={styles.paymentMethods}>
+          <Text style={styles.paymentMethodsTitle}>طرق الدفع المقبولة</Text>
+          <View style={styles.paymentMethodsIcons}>
+            <View style={styles.paymentIcon}>
+              <Ionicons name="card" size={24} color="#1976D2" />
+              <Text style={styles.paymentIconText}>Visa/MC</Text>
+            </View>
+            <View style={styles.paymentIcon}>
+              <Ionicons name="logo-apple" size={24} color="#333" />
+              <Text style={styles.paymentIconText}>Apple Pay</Text>
+            </View>
+            <View style={styles.paymentIcon}>
+              <Ionicons name="logo-google" size={24} color="#EA4335" />
+              <Text style={styles.paymentIconText}>Google Pay</Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+export default function SubscriptionScreen() {
+  return (
+    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+      <SubscriptionContent />
+    </StripeProvider>
   );
 }
 
@@ -264,6 +419,7 @@ const styles = StyleSheet.create({
   currentPlanDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 12,
   },
   currentPlanName: {
     fontSize: 14,
@@ -274,6 +430,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
+  },
+  cancelBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  cancelBtnText: {
+    fontSize: 13,
+    fontFamily: 'Cairo_400Regular',
+    color: '#F44336',
+    textDecorationLine: 'underline',
+  },
+  securityInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 10,
+    gap: 10,
+  },
+  securityText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: 'Cairo_400Regular',
+    color: '#2E7D32',
+    textAlign: 'right',
   },
   plansContainer: { padding: 16 },
   sectionTitle: {
@@ -319,7 +503,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'baseline',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   price: {
     fontSize: 36,
@@ -330,23 +514,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-  },
-  savingsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  originalPrice: {
-    fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#999',
-    textDecorationLine: 'line-through',
-  },
-  savingsText: {
-    fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
   },
   featuresContainer: { marginBottom: 16 },
   featureItem: {
@@ -376,6 +543,11 @@ const styles = StyleSheet.create({
   subscribeBtnDisabled: {
     opacity: 0.6,
   },
+  subscribeBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   subscribeBtnText: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
@@ -383,5 +555,29 @@ const styles = StyleSheet.create({
   },
   subscribeBtnTextPopular: {
     color: '#fff',
+  },
+  paymentMethods: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  paymentMethodsTitle: {
+    fontSize: 14,
+    fontFamily: 'Cairo_400Regular',
+    color: '#666',
+    marginBottom: 12,
+  },
+  paymentMethodsIcons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  paymentIcon: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  paymentIconText: {
+    fontSize: 11,
+    fontFamily: 'Cairo_400Regular',
+    color: '#999',
   },
 });
