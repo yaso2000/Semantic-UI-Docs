@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator, Text, StyleSheet, Platform, Vibration } from 'react-native';
+import { useNotificationSound } from '../../src/hooks/useNotificationSound';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
