@@ -63,7 +63,7 @@ export default function PackagesManagement() {
       const data = await response.json();
       setPackages(data);
     } catch (error: any) {
-      Alert.alert('خطأ', 'فشل في تحميل الباقات');
+      showAlert('خطأ', 'فشل في تحميل الباقات');
       console.error('Error loading packages:', error);
     } finally {
       setLoading(false);
