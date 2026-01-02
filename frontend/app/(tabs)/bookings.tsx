@@ -128,7 +128,8 @@ export default function BookingsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>الحجوزات والباقات</Text>
+        <Text style={styles.headerTitle}>احجز مع يازو</Text>
+        <Text style={styles.headerSubtitle}>باقات التدريب الشخصي</Text>
         <View style={styles.hoursBox}>
           <Ionicons name="time" size={20} color="#4CAF50" />
           <Text style={styles.hoursText}>{getTotalHours()} ساعة متبقية</Text>
