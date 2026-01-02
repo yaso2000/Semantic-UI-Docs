@@ -16,13 +16,15 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const router = useRouter();
 
   const [fontsLoaded] = useFonts({
@@ -62,7 +64,7 @@ export default function LoginScreen() {
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       </View>
     );
   }
@@ -72,64 +74,95 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Logo Section */}
         <View style={styles.logoSection}>
           <View style={styles.logoContainer}>
-            <Ionicons name="sparkles" size={50} color={COLORS.gold} />
+            <Ionicons name="leaf" size={48} color={COLORS.teal} />
           </View>
           <Text style={styles.title}>اسأل يازو</Text>
           <Text style={styles.titleEn}>Ask Yazo</Text>
-          <Text style={styles.subtitle}>مرحباً بعودتك</Text>
+          <Text style={styles.subtitle}>رحلتك نحو حياة متوازنة</Text>
+        </View>
+
+        {/* Welcome Card */}
+        <View style={styles.welcomeCard}>
+          <Text style={styles.welcomeTitle}>مرحباً بعودتك</Text>
+          <Text style={styles.welcomeText}>
+            سجّل دخولك لمتابعة رحلتك في التطوير الشامل
+          </Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="البريد الإلكتروني"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholderTextColor={COLORS.textMuted}
-            />
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>البريد الإلكتروني</Text>
+            <View style={[
+              styles.inputContainer,
+              emailFocused && styles.inputContainerFocused
+            ]}>
+              <TextInput
+                style={styles.input}
+                placeholder="example@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor={COLORS.textMuted}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+              />
+              <Ionicons 
+                name="mail-outline" 
+                size={20} 
+                color={emailFocused ? COLORS.teal : COLORS.textMuted} 
+              />
+            </View>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="كلمة المرور"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              placeholderTextColor={COLORS.textMuted}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons 
-                name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                size={22} 
-                color={COLORS.textMuted} 
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>كلمة المرور</Text>
+            <View style={[
+              styles.inputContainer,
+              passwordFocused && styles.inputContainerFocused
+            ]}>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholderTextColor={COLORS.textMuted}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
               />
-            </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons 
+                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={20} 
+                  color={passwordFocused ? COLORS.teal : COLORS.textMuted} 
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
               <Text style={styles.buttonText}>جاري تسجيل الدخول...</Text>
             ) : (
-              <>
+              <View style={styles.buttonContent}>
+                <Ionicons name="arrow-back" size={20} color={COLORS.white} />
                 <Text style={styles.buttonText}>تسجيل الدخول</Text>
-                <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
-              </>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -138,34 +171,34 @@ export default function LoginScreen() {
             onPress={() => router.push('/(auth)/register')}
           >
             <Text style={styles.linkText}>ليس لديك حساب؟</Text>
-            <Text style={styles.linkTextHighlight}> سجل الآن</Text>
+            <Text style={styles.linkTextHighlight}> إنشاء حساب جديد</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Decorative */}
-        <View style={styles.decorativeSection}>
+        {/* Pillars Section */}
+        <View style={styles.pillarsSection}>
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>رحلتك نحو التغيير</Text>
+            <Text style={styles.dividerText}>الأعمدة الأربعة للحياة المتوازنة</Text>
             <View style={styles.dividerLine} />
           </View>
           
           <View style={styles.pillarsRow}>
-            <View style={styles.pillarItem}>
-              <Ionicons name="barbell" size={20} color={COLORS.gold} />
-              <Text style={styles.pillarText}>اللياقة</Text>
+            <View style={[styles.pillarItem, { backgroundColor: `${COLORS.physical}15` }]}>
+              <Ionicons name="fitness" size={24} color={COLORS.physical} />
+              <Text style={[styles.pillarText, { color: COLORS.physical }]}>البدني</Text>
             </View>
-            <View style={styles.pillarItem}>
-              <Ionicons name="nutrition" size={20} color={COLORS.gold} />
-              <Text style={styles.pillarText}>التغذية</Text>
+            <View style={[styles.pillarItem, { backgroundColor: `${COLORS.nutritional}15` }]}>
+              <Ionicons name="nutrition" size={24} color={COLORS.nutritional} />
+              <Text style={[styles.pillarText, { color: COLORS.nutritional }]}>التغذوي</Text>
             </View>
-            <View style={styles.pillarItem}>
-              <Ionicons name="heart" size={20} color={COLORS.gold} />
-              <Text style={styles.pillarText}>النفسية</Text>
+            <View style={[styles.pillarItem, { backgroundColor: `${COLORS.mental}15` }]}>
+              <Ionicons name="happy" size={24} color={COLORS.mental} />
+              <Text style={[styles.pillarText, { color: COLORS.mental }]}>النفسي</Text>
             </View>
-            <View style={styles.pillarItem}>
-              <Ionicons name="sparkles" size={20} color={COLORS.gold} />
-              <Text style={styles.pillarText}>الروحية</Text>
+            <View style={[styles.pillarItem, { backgroundColor: `${COLORS.spiritual}15` }]}>
+              <Ionicons name="sparkles" size={24} color={COLORS.spiritual} />
+              <Text style={[styles.pillarText, { color: COLORS.spiritual }]}>الروحي</Text>
             </View>
           </View>
         </View>
@@ -177,143 +210,186 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
+    padding: SPACING.lg,
+    paddingTop: SPACING['2xl'],
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: SPACING.xl,
   },
   logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: SPACING.md,
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: `${COLORS.teal}30`,
   },
   title: {
-    fontSize: 36,
+    fontSize: 32,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-    marginBottom: 4,
+    color: COLORS.teal,
+    marginBottom: 2,
   },
   titleEn: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   subtitle: {
-    fontSize: 18,
-    fontFamily: FONTS.semiBold,
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+  },
+
+  // Welcome Card
+  welcomeCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.md,
+  },
+  welcomeTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
     color: COLORS.text,
+    textAlign: 'right',
+    marginBottom: SPACING.xs,
+  },
+  welcomeText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'right',
   },
 
   // Form
   form: {
     width: '100%',
   },
+  inputGroup: {
+    marginBottom: SPACING.md,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+    textAlign: 'right',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    borderWidth: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    borderWidth: 1.5,
     borderColor: COLORS.border,
+    ...SHADOWS.sm,
   },
-  inputIcon: {
-    marginRight: 12,
+  inputContainerFocused: {
+    borderColor: COLORS.teal,
+    borderWidth: 2,
   },
   input: {
     flex: 1,
-    height: 56,
+    height: 52,
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.text,
     textAlign: 'right',
   },
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: COLORS.teal,
+    borderRadius: RADIUS.md,
+    height: 52,
     justifyContent: 'center',
-    backgroundColor: COLORS.gold,
-    borderRadius: 16,
-    height: 56,
-    marginTop: 8,
-    gap: 8,
+    alignItems: 'center',
+    marginTop: SPACING.md,
+    ...SHADOWS.md,
   },
   buttonDisabled: {
-    backgroundColor: COLORS.goldDark,
+    backgroundColor: COLORS.tealLight,
     opacity: 0.7,
   },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
   buttonText: {
-    color: COLORS.primary,
+    color: COLORS.white,
     fontSize: 18,
     fontFamily: FONTS.bold,
   },
   linkButton: {
-    marginTop: 24,
+    marginTop: SPACING.lg,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   linkText: {
-    color: COLORS.textMuted,
-    fontSize: 16,
+    color: COLORS.textSecondary,
+    fontSize: 15,
     fontFamily: FONTS.regular,
   },
   linkTextHighlight: {
-    color: COLORS.gold,
-    fontSize: 16,
+    color: COLORS.teal,
+    fontSize: 15,
     fontFamily: FONTS.bold,
   },
 
-  // Decorative
-  decorativeSection: {
-    marginTop: 40,
+  // Pillars Section
+  pillarsSection: {
+    marginTop: SPACING.xl,
+    paddingTop: SPACING.lg,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.border,
+    backgroundColor: COLORS.divider,
   },
   dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-    fontFamily: FONTS.regular,
+    marginHorizontal: SPACING.md,
+    fontSize: 12,
+    fontFamily: FONTS.semiBold,
     color: COLORS.textMuted,
   },
   pillarsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
   },
   pillarItem: {
     alignItems: 'center',
-    gap: 6,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.md,
+    width: '23%',
+    gap: SPACING.xs,
   },
   pillarText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textMuted,
+    textAlign: 'center',
   },
 });
