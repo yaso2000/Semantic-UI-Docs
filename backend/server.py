@@ -2063,9 +2063,9 @@ async def stripe_webhook(request):
             import json
             event = json.loads(payload)
             
-    except ValueError as e:
+    except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
     
     # Handle events
