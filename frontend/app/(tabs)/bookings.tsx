@@ -41,10 +41,12 @@ interface Booking {
 export default function BookingsScreen() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'packages' | 'bookings'>('packages');
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [userRole, setUserRole] = useState<string>('client');
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -55,19 +57,33 @@ export default function BookingsScreen() {
   const loadData = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      const user = userData ? JSON.parse(userData) : null;
+      const role = user?.role || 'client';
+      setUserRole(role);
       
-      // Load packages
-      const packagesRes = await fetch(`${API_URL}/api/packages`);
-      const packagesData = await packagesRes.json();
-      setPackages(packagesData);
-      
-      // Load my bookings
-      if (token) {
-        const bookingsRes = await fetch(`${API_URL}/api/bookings/my-bookings`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const bookingsData = await bookingsRes.json();
-        setMyBookings(bookingsData);
+      if (role === 'client') {
+        // للمتدرب: تحميل الباقات المتاحة وحجوزاته
+        const packagesRes = await fetch(`${API_URL}/api/packages`);
+        const packagesData = await packagesRes.json();
+        setPackages(packagesData);
+        
+        if (token) {
+          const bookingsRes = await fetch(`${API_URL}/api/bookings/my-bookings`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const bookingsData = await bookingsRes.json();
+          setMyBookings(bookingsData);
+        }
+      } else {
+        // للأدمن (يازو): تحميل جميع الحجوزات الواردة
+        if (token) {
+          const bookingsRes = await fetch(`${API_URL}/api/admin/bookings`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const bookingsData = await bookingsRes.json();
+          setAllBookings(Array.isArray(bookingsData) ? bookingsData : []);
+        }
       }
     } catch (error) {
       console.error('Error loading data:', error);
