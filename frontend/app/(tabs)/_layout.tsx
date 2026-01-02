@@ -2,10 +2,20 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, ActivityIndicator, Text, StyleSheet, Platform, Vibration } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet, Vibration } from 'react-native';
 import { useNotificationSound } from '../../src/hooks/useNotificationSound';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+// الألوان الفخمة
+const COLORS = {
+  primary: '#0A1628',
+  secondary: '#1A2744',
+  gold: '#D4AF37',
+  white: '#FFFFFF',
+  text: '#E8E8E8',
+  textMuted: '#8A9BB8',
+};
 
 function TabBarIconWithBadge({ 
   name, 
@@ -43,7 +53,6 @@ export default function TabsLayout() {
     loadUserRole();
     fetchUnreadCount();
     
-    // Poll for unread messages every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -75,7 +84,6 @@ export default function TabsLayout() {
         const data = await response.json();
         const newCount = data.unread_count;
         
-        // Play sound only after first load (not on app startup)
         if (!isFirstLoad.current) {
           checkAndPlaySound(newCount);
         } else {
@@ -91,26 +99,28 @@ export default function TabsLayout() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.gold} />
       </View>
     );
   }
 
-  // النموذج الجديد: admin = يازو (المدرب والأدمن)، client = المتدرب
   const isClient = userRole === 'client';
-  const isYazo = userRole === 'admin'; // يازو هو الأدمن والمدرب معاً
+  const isYazo = userRole === 'admin';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: isYazo ? '#FF9800' : '#4CAF50',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: COLORS.gold,
+        tabBarInactiveTintColor: COLORS.textMuted,
         headerShown: false,
         tabBarStyle: {
+          backgroundColor: COLORS.secondary,
+          borderTopColor: COLORS.primary,
+          borderTopWidth: 1,
           paddingBottom: 8,
           paddingTop: 8,
-          height: 60,
+          height: 65,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -118,18 +128,16 @@ export default function TabsLayout() {
         },
       }}
     >
-      {/* الصفحة الرئيسية - للجميع */}
       <Tabs.Screen
         name="home"
         options={{
-          title: isYazo ? 'لوحة التحكم' : 'الأدوات',
+          title: isYazo ? 'لوحة التحكم' : 'الرئيسية',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name={isYazo ? 'grid' : 'apps'} size={size} color={color} />
+            <Ionicons name={isYazo ? 'grid' : 'home'} size={size} color={color} />
           ),
         }}
       />
 
-      {/* الباقات - للمتدربين: عرض باقات يازو */}
       <Tabs.Screen
         name="bookings"
         options={{
@@ -140,7 +148,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* متدربيني - ليازو فقط */}
       <Tabs.Screen
         name="my-trainees"
         options={{
@@ -152,7 +159,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* الشات - للجميع مع شارة الإشعارات */}
       <Tabs.Screen
         name="chat"
         options={{
@@ -173,7 +179,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* البروفايل - للجميع */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -184,7 +189,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* إخفاء الصفحات القديمة/غير المستخدمة */}
       <Tabs.Screen name="calculators" options={{ href: null }} />
       <Tabs.Screen name="coaches" options={{ href: null }} />
       <Tabs.Screen name="subscription" options={{ href: null }} />
@@ -193,6 +197,12 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+  },
   iconContainer: {
     position: 'relative',
   },
@@ -207,8 +217,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
-    borderWidth: 2,
-    borderColor: '#fff',
   },
   badgeText: {
     color: '#fff',
