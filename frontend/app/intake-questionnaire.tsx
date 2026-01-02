@@ -9,11 +9,13 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, FONTS } from '../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -42,7 +44,7 @@ const QUESTIONS: Question[] = [
   },
   {
     id: 2,
-    question: 'ما هي المجالات التي تريد التركيز عليها؟ (يمكنك اختيار أكثر من واحد)',
+    question: 'ما هي المجالات التي تريد التركيز عليها؟',
     type: 'checkbox',
     options: [
       'الصحة الجسدية',
@@ -113,7 +115,7 @@ export default function IntakeQuestionnaireScreen() {
   const [completed, setCompleted] = useState(false);
   const router = useRouter();
 
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   useEffect(() => {
     checkIfCompleted();
@@ -122,7 +124,6 @@ export default function IntakeQuestionnaireScreen() {
   const checkIfCompleted = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      // Try to fetch saved questionnaire from server
       const response = await fetch(`${API_URL}/api/intake-questionnaire`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -134,7 +135,6 @@ export default function IntakeQuestionnaireScreen() {
         }
       }
     } catch (error) {
-      // Fallback to local storage
       const localCompleted = await AsyncStorage.getItem('intake_completed');
       if (localCompleted) {
         setCompleted(true);
@@ -242,7 +242,7 @@ export default function IntakeQuestionnaireScreen() {
                   (answers[q.id] || []).includes(option) && styles.checkBoxSelected
                 ]}>
                   {(answers[q.id] || []).includes(option) && (
-                    <Ionicons name="checkmark" size={16} color="#fff" />
+                    <Ionicons name="checkmark" size={16} color={COLORS.primary} />
                   )}
                 </View>
                 <Text style={[
@@ -288,7 +288,7 @@ export default function IntakeQuestionnaireScreen() {
             value={answers[q.id] || ''}
             onChangeText={(text) => handleAnswer(q.id, text)}
             placeholder="اكتب إجابتك هنا..."
-            placeholderTextColor="#999"
+            placeholderTextColor={COLORS.textMuted}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -297,7 +297,6 @@ export default function IntakeQuestionnaireScreen() {
     }
   };
 
-  // تحليل نتائج الاستبيان وإعطاء توصيات
   const getAnalysis = () => {
     const data = savedAnswers || answers;
     if (!data) return null;
@@ -305,12 +304,9 @@ export default function IntakeQuestionnaireScreen() {
     const focusAreas = data[2] || [];
     const energyLevel = data[3] || 5;
     const commitmentLevel = data[5] || 5;
-    const timeAvailable = data[6] || '';
 
     let recommendations = [];
-    let focusMessage = '';
 
-    // تحليل مجالات التركيز
     if (focusAreas.includes('الصحة الجسدية')) {
       recommendations.push('🏃 برنامج لياقة بدنية مخصص');
     }
@@ -327,7 +323,7 @@ export default function IntakeQuestionnaireScreen() {
       recommendations.push('🌟 تعزيز الجانب الروحي');
     }
 
-    // تحليل مستوى الطاقة
+    let focusMessage = '';
     if (energyLevel <= 4) {
       focusMessage = 'لاحظنا أن مستوى طاقتك منخفض. سنعمل على تحسين ذلك أولاً!';
     } else if (energyLevel >= 8) {
@@ -336,51 +332,41 @@ export default function IntakeQuestionnaireScreen() {
       focusMessage = 'مستوى طاقتك جيد ويمكن تحسينه أكثر.';
     }
 
-    return {
-      focusAreas,
-      energyLevel,
-      commitmentLevel,
-      timeAvailable,
-      recommendations,
-      focusMessage
-    };
+    return { focusAreas, energyLevel, commitmentLevel, recommendations, focusMessage };
   };
 
-  // صفحة عرض النتائج
   const renderResults = () => {
     const analysis = getAnalysis();
     const data = savedAnswers || {};
 
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-forward" size={24} color="#fff" />
+            <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>نتائج الاستبيان</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.resultsContent}>
-          {/* شارة الإكمال */}
           <View style={styles.completionBadge}>
-            <Ionicons name="checkmark-circle" size={60} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={60} color={COLORS.gold} />
             <Text style={styles.completionTitle}>تم إكمال الاستبيان! 🎉</Text>
           </View>
 
-          {/* ملخص الأهداف */}
           <View style={styles.resultCard}>
             <View style={styles.resultCardHeader}>
               <Text style={styles.resultCardTitle}>هدفك الرئيسي</Text>
-              <Ionicons name="flag" size={24} color="#FF9800" />
+              <Ionicons name="flag" size={24} color={COLORS.gold} />
             </View>
             <Text style={styles.resultCardValue}>{data[1] || 'لم يحدد'}</Text>
           </View>
 
-          {/* مجالات التركيز */}
           <View style={styles.resultCard}>
             <View style={styles.resultCardHeader}>
               <Text style={styles.resultCardTitle}>مجالات التركيز</Text>
-              <Ionicons name="layers" size={24} color="#2196F3" />
+              <Ionicons name="layers" size={24} color={COLORS.gold} />
             </View>
             <View style={styles.tagsContainer}>
               {(data[2] || []).map((area: string, index: number) => (
@@ -391,30 +377,27 @@ export default function IntakeQuestionnaireScreen() {
             </View>
           </View>
 
-          {/* المقاييس */}
           <View style={styles.metricsRow}>
             <View style={styles.metricCard}>
               <Text style={styles.metricValue}>{data[3] || 5}/10</Text>
               <Text style={styles.metricLabel}>مستوى الطاقة</Text>
-              <Ionicons name="flash" size={20} color={data[3] >= 7 ? '#4CAF50' : data[3] >= 4 ? '#FF9800' : '#F44336'} />
+              <Ionicons name="flash" size={20} color={data[3] >= 7 ? COLORS.success : data[3] >= 4 ? COLORS.warning : COLORS.error} />
             </View>
             <View style={styles.metricCard}>
               <Text style={styles.metricValue}>{data[5] || 5}/10</Text>
               <Text style={styles.metricLabel}>مستوى الالتزام</Text>
-              <Ionicons name="heart" size={20} color={data[5] >= 7 ? '#4CAF50' : data[5] >= 4 ? '#FF9800' : '#F44336'} />
+              <Ionicons name="heart" size={20} color={data[5] >= 7 ? COLORS.success : data[5] >= 4 ? COLORS.warning : COLORS.error} />
             </View>
           </View>
 
-          {/* الوقت المتاح */}
           <View style={styles.resultCard}>
             <View style={styles.resultCardHeader}>
               <Text style={styles.resultCardTitle}>الوقت المتاح أسبوعياً</Text>
-              <Ionicons name="time" size={24} color="#9C27B0" />
+              <Ionicons name="time" size={24} color={COLORS.gold} />
             </View>
             <Text style={styles.resultCardValue}>{data[6] || 'لم يحدد'}</Text>
           </View>
 
-          {/* التوصيات */}
           {analysis && analysis.recommendations.length > 0 && (
             <View style={styles.recommendationsCard}>
               <Text style={styles.recommendationsTitle}>التوصيات المقترحة</Text>
@@ -427,13 +410,12 @@ export default function IntakeQuestionnaireScreen() {
             </View>
           )}
 
-          {/* أزرار الإجراءات */}
           <View style={styles.actionsContainer}>
             <TouchableOpacity 
               style={styles.bookBtn}
               onPress={() => router.push('/(tabs)/bookings')}
             >
-              <Ionicons name="calendar" size={20} color="#fff" />
+              <Ionicons name="calendar" size={20} color={COLORS.primary} />
               <Text style={styles.bookBtnText}>احجز جلستك الأولى</Text>
             </TouchableOpacity>
 
@@ -447,7 +429,7 @@ export default function IntakeQuestionnaireScreen() {
                 AsyncStorage.removeItem('intake_completed');
               }}
             >
-              <Ionicons name="refresh" size={20} color="#FF9800" />
+              <Ionicons name="refresh" size={20} color={COLORS.gold} />
               <Text style={styles.retakeBtnText}>إعادة الاستبيان</Text>
             </TouchableOpacity>
           </View>
@@ -459,7 +441,7 @@ export default function IntakeQuestionnaireScreen() {
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF9800" />
+        <ActivityIndicator size="large" color={COLORS.gold} />
       </View>
     );
   }
@@ -473,9 +455,10 @@ export default function IntakeQuestionnaireScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color="#fff" />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>استبيان القبول</Text>
       </View>
@@ -501,7 +484,7 @@ export default function IntakeQuestionnaireScreen() {
             style={styles.prevBtn}
             onPress={() => setCurrentQuestion(currentQuestion - 1)}
           >
-            <Ionicons name="arrow-forward" size={20} color="#FF9800" />
+            <Ionicons name="arrow-forward" size={20} color={COLORS.gold} />
             <Text style={styles.prevBtnText}>السابق</Text>
           </TouchableOpacity>
         )}
@@ -511,13 +494,13 @@ export default function IntakeQuestionnaireScreen() {
           disabled={!canProceed() || loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={COLORS.primary} />
           ) : (
             <>
               <Text style={styles.nextBtnText}>
                 {currentQuestion === QUESTIONS.length - 1 ? 'إرسال' : 'التالي'}
               </Text>
-              <Ionicons name="arrow-back" size={20} color="#fff" />
+              <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
             </>
           )}
         </TouchableOpacity>
@@ -527,20 +510,22 @@ export default function IntakeQuestionnaireScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: COLORS.primary },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
   
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF9800',
+    backgroundColor: COLORS.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 16,
@@ -548,8 +533,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
     textAlign: 'right',
   },
 
@@ -557,25 +542,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     gap: 12,
   },
   progressBar: {
     flex: 1,
     height: 8,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: COLORS.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF9800',
+    backgroundColor: COLORS.gold,
     borderRadius: 4,
   },
   progressText: {
     fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#666',
+    fontFamily: FONTS.bold,
+    color: COLORS.textMuted,
   },
 
   content: {
@@ -584,23 +569,23 @@ const styles = StyleSheet.create({
   },
   questionNumber: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#FF9800',
+    fontFamily: FONTS.regular,
+    color: COLORS.gold,
     textAlign: 'right',
     marginBottom: 8,
   },
   questionText: {
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
     textAlign: 'right',
     lineHeight: 32,
     marginBottom: 8,
   },
   optionalText: {
     fontSize: 13,
-    fontFamily: 'Cairo_400Regular',
-    color: '#999',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'right',
     marginBottom: 20,
   },
@@ -611,60 +596,60 @@ const styles = StyleSheet.create({
   optionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   optionBtnSelected: {
-    borderColor: '#FF9800',
-    backgroundColor: '#FFF3E0',
+    borderColor: COLORS.gold,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
   },
   radioCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: COLORS.textMuted,
     marginLeft: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   radioCircleSelected: {
-    borderColor: '#FF9800',
+    borderColor: COLORS.gold,
   },
   radioInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF9800',
+    backgroundColor: COLORS.gold,
   },
   checkBox: {
     width: 24,
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: COLORS.textMuted,
     marginLeft: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkBoxSelected: {
-    borderColor: '#FF9800',
-    backgroundColor: '#FF9800',
+    borderColor: COLORS.gold,
+    backgroundColor: COLORS.gold,
   },
   optionText: {
     flex: 1,
     fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
-    color: '#333',
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
     textAlign: 'right',
   },
   optionTextSelected: {
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.gold,
   },
 
   scaleContainer: {
@@ -677,8 +662,8 @@ const styles = StyleSheet.create({
   },
   scaleLabel: {
     fontSize: 13,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
   },
   scaleButtons: {
     flexDirection: 'row',
@@ -688,45 +673,45 @@ const styles = StyleSheet.create({
     width: 32,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   scaleBtnSelected: {
-    borderColor: '#FF9800',
-    backgroundColor: '#FF9800',
+    borderColor: COLORS.gold,
+    backgroundColor: COLORS.gold,
   },
   scaleBtnText: {
     fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#666',
+    fontFamily: FONTS.bold,
+    color: COLORS.textMuted,
   },
   scaleBtnTextSelected: {
-    color: '#fff',
+    color: COLORS.primary,
   },
 
   textInput: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
-    color: '#333',
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
     textAlign: 'right',
     minHeight: 120,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderWidth: 1,
+    borderColor: COLORS.border,
     marginTop: 20,
   },
 
   footer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: COLORS.border,
     gap: 12,
   },
   prevBtn: {
@@ -737,71 +722,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FF9800',
+    borderColor: COLORS.gold,
     gap: 8,
   },
   prevBtnText: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
   },
   nextBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FF9800',
+    backgroundColor: COLORS.gold,
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
   },
   nextBtnDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: COLORS.border,
   },
   nextBtnText: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
 
-  completedState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  completedTitle: {
-    fontSize: 24,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    marginTop: 20,
-  },
-  completedText: {
-    fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 26,
-  },
-  retakeBtn: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#FF9800',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  retakeBtnText: {
-    fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
-  },
-
-  // صفحة النتائج
+  // Results Styles
   resultsContent: {
     padding: 16,
     paddingBottom: 100,
@@ -809,21 +757,25 @@ const styles = StyleSheet.create({
   completionBadge: {
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   completionTitle: {
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
     marginTop: 12,
   },
   resultCard: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   resultCardHeader: {
     flexDirection: 'row',
@@ -833,13 +785,13 @@ const styles = StyleSheet.create({
   },
   resultCardTitle: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
   },
   resultCardValue: {
     fontSize: 15,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'right',
     lineHeight: 24,
   },
@@ -849,15 +801,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.gold,
   },
   tagText: {
     fontSize: 13,
-    fontFamily: 'Cairo_400Regular',
-    color: '#2196F3',
+    fontFamily: FONTS.regular,
+    color: COLORS.gold,
   },
   metricsRow: {
     flexDirection: 'row',
@@ -866,40 +820,44 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   metricValue: {
     fontSize: 24,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
   },
   metricLabel: {
     fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 4,
     marginBottom: 8,
   },
   recommendationsCard: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.gold,
   },
   recommendationsTitle: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
     marginBottom: 8,
     textAlign: 'right',
   },
   focusMessage: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
     marginBottom: 12,
     textAlign: 'right',
     lineHeight: 22,
@@ -907,12 +865,12 @@ const styles = StyleSheet.create({
   recommendationItem: {
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,152,0,0.2)',
+    borderBottomColor: 'rgba(212, 175, 55, 0.2)',
   },
   recommendationText: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#333',
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
     textAlign: 'right',
   },
   actionsContainer: {
@@ -923,14 +881,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: COLORS.gold,
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
   },
   bookBtnText: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
+  },
+  retakeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.gold,
+    gap: 8,
+  },
+  retakeBtnText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
   },
 });

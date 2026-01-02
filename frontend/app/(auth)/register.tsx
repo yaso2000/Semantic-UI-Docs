@@ -9,22 +9,28 @@ import {
   Platform,
   ScrollView,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'client' | 'coach'>('client');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+  const [fontsLoaded] = useFonts({
+    Alexandria_400Regular,
+    Alexandria_600SemiBold,
+    Alexandria_700Bold,
+  });
 
   const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -45,7 +51,7 @@ export default function RegisterScreen() {
         email,
         password,
         full_name: fullName,
-        role: role
+        role: 'trainee'
       });
 
       const { access_token, user } = response.data;
@@ -53,7 +59,6 @@ export default function RegisterScreen() {
       await AsyncStorage.setItem('token', access_token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
       
-      Alert.alert('نجاح', 'تم إنشاء الحساب بنجاح!');
       router.replace('/(tabs)/home');
     } catch (error: any) {
       Alert.alert('فشل التسجيل', error.response?.data?.detail || 'حدث خطأ');
@@ -63,7 +68,11 @@ export default function RegisterScreen() {
   };
 
   if (!fontsLoaded) {
-    return null;
+    return (
+      <View style={styles.loadingContainer}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      </View>
+    );
   }
 
   return (
@@ -71,86 +80,37 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Ionicons name="chatbubble-ellipses" size={60} color="#2196F3" />
-          <Text style={styles.title}>اسأل يازو</Text>
-          <Text style={styles.subtitle}>إنشاء حساب جديد</Text>
+        {/* Header with back button */}
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
+        </TouchableOpacity>
+
+        {/* Logo Section */}
+        <View style={styles.logoSection}>
+          <View style={styles.logoContainer}>
+            <Ionicons name="person-add" size={45} color={COLORS.gold} />
+          </View>
+          <Text style={styles.title}>إنشاء حساب</Text>
+          <Text style={styles.subtitle}>انضم لعائلة اسأل يازو</Text>
         </View>
 
+        {/* Form */}
         <View style={styles.form}>
-          {/* Role Selection */}
-          <Text style={styles.roleLabel}>نوع الحساب</Text>
-          <View style={styles.roleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === 'client' && styles.roleButtonActive,
-                { borderTopRightRadius: 12, borderBottomRightRadius: 12 }
-              ]}
-              onPress={() => setRole('client')}
-            >
-              <Ionicons 
-                name="person" 
-                size={24} 
-                color={role === 'client' ? '#fff' : '#666'} 
-              />
-              <Text style={[
-                styles.roleText,
-                role === 'client' && styles.roleTextActive
-              ]}>متدرب</Text>
-              <Text style={[
-                styles.roleSubtext,
-                role === 'client' && styles.roleSubtextActive
-              ]}>أريد التدريب</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === 'coach' && styles.roleButtonActiveCoach,
-                { borderTopLeftRadius: 12, borderBottomLeftRadius: 12 }
-              ]}
-              onPress={() => setRole('coach')}
-            >
-              <Ionicons 
-                name="fitness" 
-                size={24} 
-                color={role === 'coach' ? '#fff' : '#666'} 
-              />
-              <Text style={[
-                styles.roleText,
-                role === 'coach' && styles.roleTextActive
-              ]}>مدرب</Text>
-              <Text style={[
-                styles.roleSubtext,
-                role === 'coach' && styles.roleSubtextActive
-              ]}>أريد التدريب للآخرين</Text>
-            </TouchableOpacity>
-          </View>
-
-          {role === 'coach' && (
-            <View style={styles.coachNote}>
-              <Ionicons name="information-circle" size={20} color="#FF9800" />
-              <Text style={styles.coachNoteText}>
-                حساب المدرب يتطلب اشتراك شهري للوصول الكامل للمنصة
-              </Text>
-            </View>
-          )}
-
           <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons name="person-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="الاسم الكامل"
               value={fullName}
               onChangeText={setFullName}
-              placeholderTextColor="#999"
+              placeholderTextColor={COLORS.textMuted}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons name="mail-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="البريد الإلكتروني"
@@ -158,42 +118,84 @@ export default function RegisterScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              placeholderTextColor="#999"
+              placeholderTextColor={COLORS.textMuted}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons name="lock-closed-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="كلمة المرور (6 أحرف على الأقل)"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#999"
+              secureTextEntry={!showPassword}
+              placeholderTextColor={COLORS.textMuted}
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons 
+                name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                size={22} 
+                color={COLORS.textMuted} 
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Info Box */}
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle" size={20} color={COLORS.gold} />
+            <Text style={styles.infoText}>
+              بإنشاء حسابك، ستتمكن من حجز جلسات تدريبية مع يازو والوصول لجميع الأدوات
+            </Text>
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.button, 
-              loading && styles.buttonDisabled,
-              role === 'coach' && styles.buttonCoach
-            ]}
+            style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleRegister}
             disabled={loading}
           >
-            <Text style={styles.buttonText}>
-              {loading ? 'جاري الإنشاء...' : role === 'coach' ? 'إنشاء حساب مدرب' : 'إنشاء حساب متدرب'}
-            </Text>
+            {loading ? (
+              <Text style={styles.buttonText}>جاري إنشاء الحساب...</Text>
+            ) : (
+              <>
+                <Text style={styles.buttonText}>إنشاء الحساب</Text>
+                <Ionicons name="checkmark-circle" size={22} color={COLORS.primary} />
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.linkText}>لديك حساب بالفعل؟ سجل الدخول</Text>
+            <Text style={styles.linkText}>لديك حساب بالفعل؟</Text>
+            <Text style={styles.linkTextHighlight}> سجل الدخول</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Features */}
+        <View style={styles.featuresSection}>
+          <Text style={styles.featuresTitle}>ماذا ستحصل عليه؟</Text>
+          <View style={styles.featuresList}>
+            <View style={styles.featureItem}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="chatbubbles" size={18} color={COLORS.gold} />
+              </View>
+              <Text style={styles.featureText}>محادثة مباشرة مع يازو</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="calendar" size={18} color={COLORS.gold} />
+              </View>
+              <Text style={styles.featureText}>حجز جلسات تدريبية</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={styles.featureIcon}>
+                <Ionicons name="calculator" size={18} color={COLORS.gold} />
+              </View>
+              <Text style={styles.featureText}>أدوات وحاسبات متقدمة</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -203,140 +205,179 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.primary,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
     padding: 24,
+    paddingTop: 60,
   },
-  header: {
+
+  backBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    zIndex: 10,
+  },
+
+  // Logo Section
+  logoSection: {
     alignItems: 'center',
     marginBottom: 32,
+    marginTop: 20,
+  },
+  logoContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: COLORS.gold,
   },
   title: {
-    fontSize: 32,
-    fontFamily: 'Cairo_700Bold',
-    color: '#2196F3',
-    marginTop: 16,
+    fontSize: 28,
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 18,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    marginTop: 4,
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
   },
+
+  // Form
   form: {
     width: '100%',
-  },
-  roleLabel: {
-    fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    marginBottom: 12,
-    textAlign: 'right',
-  },
-  roleContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  roleButton: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-  },
-  roleButtonActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
-  },
-  roleButtonActiveCoach: {
-    backgroundColor: '#FF9800',
-    borderColor: '#FF9800',
-  },
-  roleText: {
-    fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
-    marginTop: 8,
-  },
-  roleTextActive: {
-    color: '#fff',
-  },
-  roleSubtext: {
-    fontSize: 11,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    marginTop: 2,
-  },
-  roleSubtextActive: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-  coachNote: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF3E0',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    gap: 8,
-  },
-  coachNoteText: {
-    flex: 1,
-    fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#E65100',
-    textAlign: 'right',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
+    marginBottom: 14,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: COLORS.border,
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
-    height: 56,
+    height: 54,
     fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
-    color: '#333',
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
     textAlign: 'right',
   },
-  button: {
-    backgroundColor: '#4CAF50',
+
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
     borderRadius: 12,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
+    padding: 14,
+    marginBottom: 20,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
   },
-  buttonCoach: {
-    backgroundColor: '#FF9800',
+  infoText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.goldLight,
+    textAlign: 'right',
+    lineHeight: 22,
+  },
+
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gold,
+    borderRadius: 16,
+    height: 56,
+    gap: 8,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    backgroundColor: COLORS.goldDark,
+    opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.primary,
     fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
+    fontFamily: FONTS.bold,
   },
   linkButton: {
-    marginTop: 24,
-    alignItems: 'center',
+    marginTop: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   linkText: {
-    color: '#2196F3',
+    color: COLORS.textMuted,
+    fontSize: 15,
+    fontFamily: FONTS.regular,
+  },
+  linkTextHighlight: {
+    color: COLORS.gold,
+    fontSize: 15,
+    fontFamily: FONTS.bold,
+  },
+
+  // Features
+  featuresSection: {
+    marginTop: 32,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  featuresTitle: {
     fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  featuresList: {
+    gap: 12,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  featureIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  featureText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    textAlign: 'right',
   },
 });

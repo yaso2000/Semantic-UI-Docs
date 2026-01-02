@@ -9,23 +9,33 @@ import {
   Platform,
   ScrollView,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+
+  const [fontsLoaded] = useFonts({
+    Alexandria_400Regular,
+    Alexandria_600SemiBold,
+    Alexandria_700Bold,
+  });
 
   const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('خطأ / Error', 'الرجاء ملء جميع الحقول / Please fill in all fields');
+      Alert.alert('خطأ', 'الرجاء ملء جميع الحقول');
       return;
     }
 
@@ -41,52 +51,71 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('token', access_token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
       
-      Alert.alert('نجح / Success', 'تم تسجيل الدخول بنجاح! / Logged in successfully!');
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert('فشل تسجيل الدخول / Login Failed', error.response?.data?.detail || 'حدث خطأ / An error occurred');
+      Alert.alert('فشل تسجيل الدخول', error.response?.data?.detail || 'حدث خطأ في الاتصال');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Ionicons name="chatbubble-ellipses" size={60} color="#2196F3" />
-          <Text style={styles.title}>Ask Yazo</Text>
+        {/* Logo Section */}
+        <View style={styles.logoSection}>
+          <View style={styles.logoContainer}>
+            <Ionicons name="sparkles" size={50} color={COLORS.gold} />
+          </View>
+          <Text style={styles.title}>اسأل يازو</Text>
+          <Text style={styles.titleEn}>Ask Yazo</Text>
           <Text style={styles.subtitle}>مرحباً بعودتك</Text>
-          <Text style={styles.subtitleEn}>Welcome Back</Text>
         </View>
 
+        {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons name="mail-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="البريد الإلكتروني / Email"
+              placeholder="البريد الإلكتروني"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              placeholderTextColor="#999"
+              placeholderTextColor={COLORS.textMuted}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons name="lock-closed-outline" size={22} color={COLORS.gold} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="كلمة المرور / Password"
+              placeholder="كلمة المرور"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#999"
+              secureTextEntry={!showPassword}
+              placeholderTextColor={COLORS.textMuted}
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons 
+                name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                size={22} 
+                color={COLORS.textMuted} 
+              />
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
@@ -94,18 +123,51 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={loading}
           >
-            <Text style={styles.buttonText}>
-              {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول / Login'}
-            </Text>
+            {loading ? (
+              <Text style={styles.buttonText}>جاري تسجيل الدخول...</Text>
+            ) : (
+              <>
+                <Text style={styles.buttonText}>تسجيل الدخول</Text>
+                <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => router.push('/(auth)/register')}
           >
-            <Text style={styles.linkText}>ليس لديك حساب؟ سجل الآن</Text>
-            <Text style={styles.linkTextEn}>Don't have an account? Register</Text>
+            <Text style={styles.linkText}>ليس لديك حساب؟</Text>
+            <Text style={styles.linkTextHighlight}> سجل الآن</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Decorative */}
+        <View style={styles.decorativeSection}>
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>رحلتك نحو التغيير</Text>
+            <View style={styles.dividerLine} />
+          </View>
+          
+          <View style={styles.pillarsRow}>
+            <View style={styles.pillarItem}>
+              <Ionicons name="barbell" size={20} color={COLORS.gold} />
+              <Text style={styles.pillarText}>اللياقة</Text>
+            </View>
+            <View style={styles.pillarItem}>
+              <Ionicons name="nutrition" size={20} color={COLORS.gold} />
+              <Text style={styles.pillarText}>التغذية</Text>
+            </View>
+            <View style={styles.pillarItem}>
+              <Ionicons name="heart" size={20} color={COLORS.gold} />
+              <Text style={styles.pillarText}>النفسية</Text>
+            </View>
+            <View style={styles.pillarItem}>
+              <Ionicons name="sparkles" size={20} color={COLORS.gold} />
+              <Text style={styles.pillarText}>الروحية</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -115,46 +177,65 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.primary,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
   },
-  header: {
+
+  // Logo Section
+  logoSection: {
     alignItems: 'center',
     marginBottom: 40,
   },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: COLORS.gold,
+  },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginTop: 16,
+    fontSize: 36,
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
+    marginBottom: 4,
+  },
+  titleEn: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
-    color: '#666',
-    marginTop: 8,
-    fontWeight: '600',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
   },
-  subtitleEn: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 2,
-  },
+
+  // Form
   form: {
     width: '100%',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
     marginBottom: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: COLORS.border,
   },
   inputIcon: {
     marginRight: 12,
@@ -163,36 +244,76 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 56,
     fontSize: 16,
-    color: '#333',
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
+    textAlign: 'right',
   },
   button: {
-    backgroundColor: '#2196F3',
-    borderRadius: 12,
-    height: 56,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gold,
+    borderRadius: 16,
+    height: 56,
     marginTop: 8,
+    gap: 8,
   },
   buttonDisabled: {
-    backgroundColor: '#90CAF9',
+    backgroundColor: COLORS.goldDark,
+    opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.primary,
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: FONTS.bold,
   },
   linkButton: {
     marginTop: 24,
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   linkText: {
-    color: '#2196F3',
+    color: COLORS.textMuted,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: FONTS.regular,
   },
-  linkTextEn: {
-    color: '#2196F3',
+  linkTextHighlight: {
+    color: COLORS.gold,
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+  },
+
+  // Decorative
+  decorativeSection: {
+    marginTop: 40,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.border,
+  },
+  dividerText: {
+    marginHorizontal: 16,
     fontSize: 14,
-    marginTop: 2,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+  },
+  pillarsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  pillarItem: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  pillarText: {
+    fontSize: 12,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textMuted,
   },
 });
