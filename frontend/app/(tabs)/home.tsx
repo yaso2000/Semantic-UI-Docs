@@ -378,6 +378,17 @@ function AdminHome({ user, router }: { user: any; router: any }) {
           <Ionicons name="chevron-back" size={20} color="#999" />
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/payments' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
+            <Ionicons name="wallet" size={22} color="#4CAF50" />
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>إدارة المدفوعات</Text>
+            <Text style={styles.menuSubtitle}>الإيرادات والمعاملات</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color="#999" />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/chat')}>
           <View style={[styles.menuIcon, { backgroundColor: '#FFEBEE' }]}>
             <Ionicons name="chatbubbles" size={22} color="#F44336" />
