@@ -289,45 +289,41 @@ async def delete_package(package_id: str, admin_user: dict = Depends(get_admin_u
 
 # ==================== BOOKING & PAYMENT ENDPOINTS ====================
 
-@api_router.post("/bookings/create", response_model=BookingResponse)
-async def create_booking(booking: BookingCreate, current_user: dict = Depends(get_current_user)):
-    # Get package details
-    package = await db.hourly_packages.find_one({"_id": booking.package_id})
+@api_router.post("/bookings/create")
+async def create_booking(booking: dict, current_user: dict = Depends(get_current_user)):
+    # Get package details - check both collections
+    package = await db.hourly_packages.find_one({"_id": booking.get("package_id")})
+    if not package:
+        # Try coach_packages collection
+        package = await db.coach_packages.find_one({"_id": booking.get("package_id")})
+    
     if not package:
         raise HTTPException(status_code=404, detail="Package not found")
     
-    # Create Stripe payment intent
-    try:
-        payment_intent = stripe.PaymentIntent.create(
-            amount=int(package["price"] * 100),  # Amount in cents
-            currency="usd",
-            metadata={
-                "client_id": current_user["_id"],
-                "package_id": booking.package_id
-            }
-        )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Payment failed: {str(e)}")
+    coach_id = booking.get("coach_id") or package.get("coach_id")
     
     # Create booking
     booking_id = str(uuid.uuid4())
     booking_dict = {
         "_id": booking_id,
         "client_id": current_user["_id"],
-        "package_id": booking.package_id,
-        "package_name": package["name"],
-        "hours_purchased": package["hours"],
+        "client_name": current_user.get("full_name", "متدرب"),
+        "coach_id": coach_id,
+        "package_id": booking.get("package_id"),
+        "package_name": package.get("name"),
+        "hours_purchased": package.get("hours"),
         "hours_used": 0,
-        "amount_paid": package["price"],
-        "payment_method": booking.payment_method,
+        "amount": package.get("price"),
         "payment_status": "pending",
-        "stripe_payment_intent_id": payment_intent.id,
+        "booking_status": "pending",
+        "notes": booking.get("notes", ""),
+        "scheduled_date": booking.get("scheduled_date"),
         "created_at": datetime.utcnow()
     }
     
     await db.bookings.insert_one(booking_dict)
     
-    return BookingResponse(**booking_dict, id=booking_id)
+    return {"message": "Booking created", "booking_id": booking_id}
 
 @api_router.post("/bookings/{booking_id}/confirm")
 async def confirm_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
@@ -338,15 +334,78 @@ async def confirm_booking(booking_id: str, current_user: dict = Depends(get_curr
     # Update booking status
     await db.bookings.update_one(
         {"_id": booking_id},
-        {"$set": {"payment_status": "completed"}}
+        {"$set": {"payment_status": "completed", "booking_status": "confirmed"}}
     )
     
-    return {"message": "Booking confirmed", "client_secret": booking.get("stripe_payment_intent_id")}
+    return {"message": "Booking confirmed"}
 
-@api_router.get("/bookings/my-bookings", response_model=List[BookingResponse])
+@api_router.get("/bookings/my-bookings")
 async def get_my_bookings(current_user: dict = Depends(get_current_user)):
     bookings = await db.bookings.find({"client_id": current_user["_id"]}).sort("created_at", -1).to_list(100)
-    return [BookingResponse(**booking, id=booking["_id"]) for booking in bookings]
+    
+    # Enrich with coach info
+    result = []
+    for booking in bookings:
+        coach = await db.users.find_one({"_id": booking.get("coach_id")})
+        result.append({
+            "id": booking["_id"],
+            "coach_id": booking.get("coach_id"),
+            "coach_name": coach.get("full_name") if coach else "مدرب",
+            "package_name": booking.get("package_name"),
+            "hours_purchased": booking.get("hours_purchased"),
+            "hours_used": booking.get("hours_used", 0),
+            "amount": booking.get("amount"),
+            "payment_status": booking.get("payment_status"),
+            "booking_status": booking.get("booking_status"),
+            "notes": booking.get("notes"),
+            "created_at": booking.get("created_at")
+        })
+    
+    return result
+
+@api_router.get("/coach/my-clients")
+async def get_coach_clients(coach_user: dict = Depends(get_coach_user)):
+    # Get all bookings for this coach
+    bookings = await db.bookings.find({"coach_id": coach_user["_id"]}).sort("created_at", -1).to_list(100)
+    
+    # Enrich with client info
+    result = []
+    for booking in bookings:
+        client = await db.users.find_one({"_id": booking.get("client_id")})
+        result.append({
+            "id": booking["_id"],
+            "client_id": booking.get("client_id"),
+            "client_name": client.get("full_name") if client else booking.get("client_name", "متدرب"),
+            "package_name": booking.get("package_name"),
+            "hours_purchased": booking.get("hours_purchased"),
+            "hours_used": booking.get("hours_used", 0),
+            "amount": booking.get("amount"),
+            "payment_status": booking.get("payment_status"),
+            "booking_status": booking.get("booking_status"),
+            "notes": booking.get("notes"),
+            "created_at": booking.get("created_at")
+        })
+    
+    return result
+
+@api_router.put("/bookings/{booking_id}/status")
+async def update_booking_status(booking_id: str, data: dict, coach_user: dict = Depends(get_coach_user)):
+    booking = await db.bookings.find_one({"_id": booking_id, "coach_id": coach_user["_id"]})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    update = {}
+    if "booking_status" in data:
+        update["booking_status"] = data["booking_status"]
+    if "payment_status" in data:
+        update["payment_status"] = data["payment_status"]
+    if "hours_used" in data:
+        update["hours_used"] = data["hours_used"]
+    
+    if update:
+        await db.bookings.update_one({"_id": booking_id}, {"$set": update})
+    
+    return {"message": "Booking updated"}
 
 @api_router.get("/bookings/all", response_model=List[BookingResponse])
 async def get_all_bookings(admin_user: dict = Depends(get_admin_user)):
