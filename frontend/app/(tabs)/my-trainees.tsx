@@ -205,10 +205,7 @@ export default function MyTraineesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>متدربيني</Text>
+        <Text style={styles.headerTitle}>المتدربين</Text>
         {pendingCount > 0 && (
           <View style={styles.pendingBadge}>
             <Text style={styles.pendingText}>{pendingCount} جديد</Text>
