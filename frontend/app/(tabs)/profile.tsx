@@ -97,54 +97,14 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuSection}>
-          {/* ======= قوائم الأدمن ======= */}
+          {/* ======= قوائم يازو (الأدمن والمدرب) ======= */}
           {user?.role === 'admin' && (
             <>
-              <TouchableOpacity 
-                style={[styles.menuItem, styles.adminMenuItem]}
-                onPress={() => router.push('/admin' as any)}
-              >
-                <View style={[styles.menuIconContainer, { backgroundColor: '#E3F2FD' }]}>
-                  <Ionicons name="shield-checkmark" size={24} color="#2196F3" />
-                </View>
-                <Text style={styles.menuText}>لوحة التحكم</Text>
-                <Ionicons name="chevron-back" size={24} color="#2196F3" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/users' as any)}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/my-trainees' as any)}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
                   <Ionicons name="people" size={24} color="#4CAF50" />
                 </View>
-                <Text style={styles.menuText}>إدارة المستخدمين</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/payments' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#FFF3E0' }]}>
-                  <Ionicons name="wallet" size={24} color="#FF9800" />
-                </View>
-                <Text style={styles.menuText}>إدارة المدفوعات</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-            </>
-          )}
-
-          {/* ======= قوائم المدرب ======= */}
-          {user?.role === 'coach' && (
-            <>
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/coach/profile' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#FFF3E0' }]}>
-                  <Ionicons name="person-circle" size={24} color="#FF9800" />
-                </View>
-                <Text style={styles.menuText}>بروفايلي</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/coach/packages' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
-                  <Ionicons name="pricetags" size={24} color="#4CAF50" />
-                </View>
-                <Text style={styles.menuText}>باقاتي</Text>
+                <Text style={styles.menuText}>المتدربين</Text>
                 <Ionicons name="chevron-back" size={24} color="#999" />
               </TouchableOpacity>
 
@@ -156,11 +116,27 @@ export default function ProfileScreen() {
                 <Ionicons name="chevron-back" size={24} color="#999" />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/subscription' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#F3E5F5' }]}>
-                  <Ionicons name="card" size={24} color="#9C27B0" />
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/packages' as any)}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#FFF3E0' }]}>
+                  <Ionicons name="pricetags" size={24} color="#FF9800" />
                 </View>
-                <Text style={styles.menuText}>اشتراكي</Text>
+                <Text style={styles.menuText}>باقات التدريب</Text>
+                <Ionicons name="chevron-back" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/payments' as any)}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
+                  <Ionicons name="wallet" size={24} color="#4CAF50" />
+                </View>
+                <Text style={styles.menuText}>المدفوعات</Text>
+                <Ionicons name="chevron-back" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/users' as any)}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#F3E5F5' }]}>
+                  <Ionicons name="person-add" size={24} color="#9C27B0" />
+                </View>
+                <Text style={styles.menuText}>إدارة المستخدمين</Text>
                 <Ionicons name="chevron-back" size={24} color="#999" />
               </TouchableOpacity>
             </>
