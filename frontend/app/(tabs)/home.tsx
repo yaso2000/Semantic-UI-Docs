@@ -304,9 +304,14 @@ function CoachHome({ user, router }: { user: any; router: any }) {
   );
 }
 
-// ==================== واجهة الأدمن ====================
-function AdminHome({ user, router }: { user: any; router: any }) {
-  const [stats, setStats] = useState({ total_users: 0, coaches: 0, total_bookings: 0, total_revenue: 0 });
+// ==================== واجهة يازو (المدرب والأدمن) ====================
+function YazoHome({ user, router }: { user: any; router: any }) {
+  const [stats, setStats] = useState({ 
+    total_clients: 0, 
+    active_bookings: 0, 
+    total_revenue: 0,
+    total_sessions: 0 
+  });
 
   useEffect(() => {
     loadStats();
@@ -315,10 +320,19 @@ function AdminHome({ user, router }: { user: any; router: any }) {
   const loadStats = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
+      // نستخدم API الأدمن للإحصائيات
       const response = await fetch(`${API_URL}/api/admin/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (response.ok) setStats(await response.json());
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          total_clients: data.total_users || 0,
+          active_bookings: data.total_bookings || 0,
+          total_revenue: data.total_revenue || 0,
+          total_sessions: data.total_sessions || 0,
+        });
+      }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -326,65 +340,80 @@ function AdminHome({ user, router }: { user: any; router: any }) {
 
   return (
     <>
-      <View style={styles.adminHeader}>
-        <View style={styles.badge}>
-          <Ionicons name="shield-checkmark" size={14} color="#fff" />
-          <Text style={styles.badgeText}>مدير المنصة</Text>
-        </View>
-        <Text style={styles.headerGreeting}>مرحباً {user?.full_name}!</Text>
-        <Text style={styles.headerSubtitle}>لوحة تحكم المدير</Text>
+      <View style={styles.yazoHeader}>
+        <Text style={styles.yazoLogo}>اسأل يازو</Text>
+        <Text style={styles.yazoGreeting}>مرحباً يازو! 👋</Text>
+        <Text style={styles.yazoSubtitle}>لوحة التحكم الخاصة بك</Text>
       </View>
 
+      {/* الإحصائيات */}
       <View style={styles.statsGrid}>
         <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
           <Ionicons name="people" size={28} color="#4CAF50" />
-          <Text style={styles.statNumber}>{stats.total_users}</Text>
+          <Text style={styles.statNumber}>{stats.total_clients}</Text>
           <Text style={styles.statLabel}>المتدربين</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
-          <Ionicons name="fitness" size={28} color="#FF9800" />
-          <Text style={styles.statNumber}>{stats.coaches}</Text>
-          <Text style={styles.statLabel}>المدربين</Text>
-        </View>
         <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
-          <Ionicons name="cash" size={28} color="#2196F3" />
+          <Ionicons name="calendar" size={28} color="#2196F3" />
+          <Text style={styles.statNumber}>{stats.active_bookings}</Text>
+          <Text style={styles.statLabel}>الحجوزات</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+          <Ionicons name="cash" size={28} color="#FF9800" />
           <Text style={styles.statNumber}>${stats.total_revenue}</Text>
           <Text style={styles.statLabel}>الإيرادات</Text>
         </View>
       </View>
 
+      {/* إدارة التدريب */}
       <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>إدارة المنصة</Text>
+        <Text style={styles.sectionTitle}>إدارة التدريب</Text>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin' as any)}>
-          <View style={[styles.menuIcon, { backgroundColor: '#E3F2FD' }]}>
-            <Ionicons name="grid" size={22} color="#2196F3" />
-          </View>
-          <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>لوحة التحكم الكاملة</Text>
-            <Text style={styles.menuSubtitle}>جميع أدوات الإدارة</Text>
-          </View>
-          <Ionicons name="chevron-back" size={20} color="#999" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/users' as any)}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/my-trainees')}>
           <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
             <Ionicons name="people" size={22} color="#4CAF50" />
           </View>
           <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>إدارة المستخدمين</Text>
-            <Text style={styles.menuSubtitle}>المتدربين والمدربين</Text>
+            <Text style={styles.menuTitle}>المتدربين</Text>
+            <Text style={styles.menuSubtitle}>عرض وإدارة المتدربين</Text>
           </View>
           <Ionicons name="chevron-back" size={20} color="#999" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/packages' as any)}>
-          <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
-            <Ionicons name="pricetag" size={22} color="#FF9800" />
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/coach/sessions' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#E3F2FD' }]}>
+            <Ionicons name="time" size={22} color="#2196F3" />
           </View>
           <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>إدارة الباقات</Text>
-            <Text style={styles.menuSubtitle}>الباقات والأسعار</Text>
+            <Text style={styles.menuTitle}>سجل الجلسات</Text>
+            <Text style={styles.menuSubtitle}>تتبع جلسات التدريب</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color="#999" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/chat')}>
+          <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
+            <Ionicons name="chatbubbles" size={22} color="#FF9800" />
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>المحادثات</Text>
+            <Text style={styles.menuSubtitle}>التواصل مع المتدربين</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color="#999" />
+        </TouchableOpacity>
+      </View>
+
+      {/* إدارة المنصة */}
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>إدارة المنصة</Text>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/packages' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
+            <Ionicons name="pricetags" size={22} color="#FF9800" />
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>باقات التدريب</Text>
+            <Text style={styles.menuSubtitle}>إدارة الباقات والأسعار</Text>
           </View>
           <Ionicons name="chevron-back" size={20} color="#999" />
         </TouchableOpacity>
@@ -394,19 +423,30 @@ function AdminHome({ user, router }: { user: any; router: any }) {
             <Ionicons name="wallet" size={22} color="#4CAF50" />
           </View>
           <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>إدارة المدفوعات</Text>
+            <Text style={styles.menuTitle}>المدفوعات</Text>
             <Text style={styles.menuSubtitle}>الإيرادات والمعاملات</Text>
           </View>
           <Ionicons name="chevron-back" size={20} color="#999" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/chat')}>
-          <View style={[styles.menuIcon, { backgroundColor: '#FFEBEE' }]}>
-            <Ionicons name="chatbubbles" size={22} color="#F44336" />
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/users' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#F3E5F5' }]}>
+            <Ionicons name="person-add" size={22} color="#9C27B0" />
           </View>
           <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>المحادثات</Text>
-            <Text style={styles.menuSubtitle}>التواصل مع المستخدمين</Text>
+            <Text style={styles.menuTitle}>إدارة المستخدمين</Text>
+            <Text style={styles.menuSubtitle}>المتدربين المسجلين</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color="#999" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/settings' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#ECEFF1' }]}>
+            <Ionicons name="settings" size={22} color="#607D8B" />
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>إعدادات المنصة</Text>
+            <Text style={styles.menuSubtitle}>تخصيص التطبيق</Text>
           </View>
           <Ionicons name="chevron-back" size={20} color="#999" />
         </TouchableOpacity>
