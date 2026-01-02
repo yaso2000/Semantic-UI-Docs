@@ -108,6 +108,7 @@ const QUESTIONS: Question[] = [
 export default function IntakeQuestionnaireScreen() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: any }>({});
+  const [savedAnswers, setSavedAnswers] = useState<{ [key: number]: any } | null>(null);
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
   const router = useRouter();
@@ -119,9 +120,25 @@ export default function IntakeQuestionnaireScreen() {
   }, []);
 
   const checkIfCompleted = async () => {
-    const savedAnswers = await AsyncStorage.getItem('intake_completed');
-    if (savedAnswers) {
-      setCompleted(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      // Try to fetch saved questionnaire from server
+      const response = await fetch(`${API_URL}/api/intake-questionnaire`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.answers) {
+          setSavedAnswers(data.answers);
+          setCompleted(true);
+        }
+      }
+    } catch (error) {
+      // Fallback to local storage
+      const localCompleted = await AsyncStorage.getItem('intake_completed');
+      if (localCompleted) {
+        setCompleted(true);
+      }
     }
   };
 
