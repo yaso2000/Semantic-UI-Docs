@@ -430,6 +430,180 @@ async def get_all_bookings(admin_user: dict = Depends(get_admin_user)):
     bookings = await db.bookings.find().sort("created_at", -1).to_list(1000)
     return [BookingResponse(**booking, id=booking["_id"]) for booking in bookings]
 
+# ==================== SESSION TRACKING ENDPOINTS ====================
+
+@api_router.post("/sessions/create")
+async def create_session(session_data: SessionCreate, coach_user: dict = Depends(get_coach_user)):
+    """Create a new training session"""
+    # Verify booking exists and belongs to coach
+    booking = await db.bookings.find_one({"_id": session_data.booking_id, "coach_id": coach_user["_id"]})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Create session record
+    session_id = str(uuid.uuid4())
+    session_dict = {
+        "_id": session_id,
+        "booking_id": session_data.booking_id,
+        "coach_id": coach_user["_id"],
+        "client_id": booking["client_id"],
+        "duration_hours": session_data.duration_hours,
+        "session_type": session_data.session_type,
+        "notes": session_data.notes,
+        "session_date": session_data.session_date,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.sessions.insert_one(session_dict)
+    
+    # Update booking hours used
+    current_hours_used = booking.get("hours_used", 0)
+    new_hours_used = current_hours_used + session_data.duration_hours
+    
+    await db.bookings.update_one(
+        {"_id": session_data.booking_id},
+        {"$set": {"hours_used": new_hours_used}}
+    )
+    
+    return {"message": "Session created", "session_id": session_id}
+
+@api_router.get("/sessions/my-sessions")
+async def get_coach_sessions(coach_user: dict = Depends(get_coach_user)):
+    """Get all sessions for the coach"""
+    sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).sort("session_date", -1).to_list(1000)
+    
+    result = []
+    for session in sessions:
+        # Get client info
+        client = await db.users.find_one({"_id": session["client_id"]})
+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
+        
+        result.append({
+            "id": session["_id"],
+            "booking_id": session["booking_id"],
+            "client_name": client.get("full_name") if client else "متدرب",
+            "package_name": booking.get("package_name") if booking else "",
+            "duration_hours": session["duration_hours"],
+            "session_type": session["session_type"],
+            "notes": session.get("notes"),
+            "session_date": session["session_date"],
+            "created_at": session["created_at"]
+        })
+    
+    return result
+
+@api_router.get("/sessions/client-sessions")
+async def get_client_sessions(current_user: dict = Depends(get_current_user)):
+    """Get all sessions for the client"""
+    sessions = await db.sessions.find({"client_id": current_user["_id"]}).sort("session_date", -1).to_list(1000)
+    
+    result = []
+    for session in sessions:
+        # Get coach info
+        coach = await db.users.find_one({"_id": session["coach_id"]})
+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
+        
+        result.append({
+            "id": session["_id"],
+            "booking_id": session["booking_id"],
+            "coach_name": coach.get("full_name") if coach else "مدرب",
+            "package_name": booking.get("package_name") if booking else "",
+            "duration_hours": session["duration_hours"],
+            "session_type": session["session_type"],
+            "notes": session.get("notes"),
+            "session_date": session["session_date"],
+            "created_at": session["created_at"]
+        })
+    
+    return result
+
+@api_router.put("/sessions/{session_id}")
+async def update_session(session_id: str, data: dict, coach_user: dict = Depends(get_coach_user)):
+    """Update a session"""
+    session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    update_data = {}
+    if "duration_hours" in data:
+        # If duration changed, update booking hours
+        old_duration = session["duration_hours"]
+        new_duration = data["duration_hours"]
+        duration_diff = new_duration - old_duration
+        
+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
+        if booking:
+            new_hours_used = booking.get("hours_used", 0) + duration_diff
+            await db.bookings.update_one(
+                {"_id": session["booking_id"]},
+                {"$set": {"hours_used": new_hours_used}}
+            )
+        
+        update_data["duration_hours"] = new_duration
+    
+    if "session_type" in data:
+        update_data["session_type"] = data["session_type"]
+    if "notes" in data:
+        update_data["notes"] = data["notes"]
+    if "session_date" in data:
+        update_data["session_date"] = data["session_date"]
+    
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        await db.sessions.update_one({"_id": session_id}, {"$set": update_data})
+    
+    return {"message": "Session updated"}
+
+@api_router.delete("/sessions/{session_id}")
+async def delete_session(session_id: str, coach_user: dict = Depends(get_coach_user)):
+    """Delete a session"""
+    session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Update booking hours (subtract the session duration)
+    booking = await db.bookings.find_one({"_id": session["booking_id"]})
+    if booking:
+        new_hours_used = max(0, booking.get("hours_used", 0) - session["duration_hours"])
+        await db.bookings.update_one(
+            {"_id": session["booking_id"]},
+            {"$set": {"hours_used": new_hours_used}}
+        )
+    
+    await db.sessions.delete_one({"_id": session_id})
+    return {"message": "Session deleted"}
+
+@api_router.get("/sessions/stats")
+async def get_session_stats(coach_user: dict = Depends(get_coach_user)):
+    """Get session statistics for coach"""
+    # Total sessions
+    total_sessions = await db.sessions.count_documents({"coach_id": coach_user["_id"]})
+    
+    # Total hours conducted
+    sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).to_list(1000)
+    total_hours = sum(s.get("duration_hours", 0) for s in sessions)
+    
+    # This month's sessions
+    from datetime import datetime
+    first_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    monthly_sessions = await db.sessions.count_documents({
+        "coach_id": coach_user["_id"],
+        "session_date": {"$gte": first_of_month}
+    })
+    
+    # Active clients (clients with sessions this month)
+    active_clients = await db.sessions.distinct("client_id", {
+        "coach_id": coach_user["_id"],
+        "session_date": {"$gte": first_of_month}
+    })
+    
+    return {
+        "total_sessions": total_sessions,
+        "total_hours": total_hours,
+        "monthly_sessions": monthly_sessions,
+        "active_clients": len(active_clients)
+    }
+
 # ==================== MESSAGING ENDPOINTS ====================
 
 @api_router.get("/messages/unread-count")
