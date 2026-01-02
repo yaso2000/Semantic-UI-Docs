@@ -220,16 +220,20 @@ export default function BookingsScreen() {
               myBookings.map((booking) => (
                 <View key={booking.id} style={styles.bookingCard}>
                   <View style={styles.bookingHeader}>
-                    <Text style={styles.bookingName}>{booking.package_name}</Text>
+                    <View>
+                      <Text style={styles.bookingName}>{booking.package_name}</Text>
+                      <Text style={styles.coachNameText}>مع {booking.coach_name}</Text>
+                    </View>
                     <View style={[
                       styles.statusBadge,
-                      { backgroundColor: booking.payment_status === 'completed' ? '#E8F5E9' : '#FFF3E0' }
+                      { backgroundColor: booking.booking_status === 'confirmed' ? '#E8F5E9' : '#FFF3E0' }
                     ]}>
                       <Text style={[
                         styles.statusText,
-                        { color: booking.payment_status === 'completed' ? '#4CAF50' : '#FF9800' }
+                        { color: booking.booking_status === 'confirmed' ? '#4CAF50' : '#FF9800' }
                       ]}>
-                        {booking.payment_status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}
+                        {booking.booking_status === 'confirmed' ? 'مؤكد' : 
+                         booking.booking_status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}
                       </Text>
                     </View>
                   </View>
@@ -253,7 +257,7 @@ export default function BookingsScreen() {
                     <Text style={styles.bookingDate}>
                       {new Date(booking.created_at).toLocaleDateString('ar-SA')}
                     </Text>
-                    <Text style={styles.bookingAmount}>${booking.amount_paid}</Text>
+                    <Text style={styles.bookingAmount}>${booking.amount}</Text>
                   </View>
                 </View>
               ))
