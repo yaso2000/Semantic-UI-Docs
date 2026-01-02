@@ -60,7 +60,7 @@ export default function PackageForm() {
 
   const handleSubmit = async () => {
     if (!name.trim() || !hours || !price) {
-      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
+      showAlert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
       return;
     }
 
@@ -98,17 +98,17 @@ export default function PackageForm() {
       }
 
       if (response.ok) {
-        Alert.alert(
+        showAlert(
           'نجاح',
           isEditing ? 'تم تحديث الباقة بنجاح' : 'تم إنشاء الباقة بنجاح',
           [{ text: 'حسناً', onPress: () => router.back() }]
         );
       } else {
         const error = await response.json();
-        Alert.alert('خطأ', error.detail || 'حدث خطأ أثناء الحفظ');
+        showAlert('خطأ', error.detail || 'حدث خطأ أثناء الحفظ');
       }
     } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ في الاتصال بالخادم');
+      showAlert('خطأ', 'حدث خطأ في الاتصال بالخادم');
     } finally {
       setLoading(false);
     }
