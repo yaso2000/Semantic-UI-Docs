@@ -110,6 +110,56 @@ function ClientHome({ user, router }: { user: any; router: any }) {
           </View>
         ))}
       </View>
+
+      {/* أدوات إضافية */}
+      <View style={styles.extraToolsSection}>
+        <Text style={styles.sectionTitle}>أدوات إضافية</Text>
+        <View style={styles.extraToolsGrid}>
+          <TouchableOpacity 
+            style={styles.extraToolCard}
+            onPress={() => router.push('/intake-questionnaire' as any)}
+          >
+            <View style={[styles.extraToolIcon, { backgroundColor: '#E3F2FD' }]}>
+              <Ionicons name="clipboard" size={28} color="#2196F3" />
+            </View>
+            <Text style={styles.extraToolTitle}>استبيان القبول</Text>
+            <Text style={styles.extraToolDesc}>حدد أهدافك</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.extraToolCard}
+            onPress={() => router.push('/habit-tracker' as any)}
+          >
+            <View style={[styles.extraToolIcon, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="checkmark-done" size={28} color="#4CAF50" />
+            </View>
+            <Text style={styles.extraToolTitle}>متتبع العادات</Text>
+            <Text style={styles.extraToolDesc}>تابع تقدمك</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.extraToolCard}
+            onPress={() => router.push('/resources' as any)}
+          >
+            <View style={[styles.extraToolIcon, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="library" size={28} color="#FF9800" />
+            </View>
+            <Text style={styles.extraToolTitle}>مكتبة الموارد</Text>
+            <Text style={styles.extraToolDesc}>مقالات وفيديوهات</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.extraToolCard}
+            onPress={() => router.push('/settings' as any)}
+          >
+            <View style={[styles.extraToolIcon, { backgroundColor: '#F3E5F5' }]}>
+              <Ionicons name="settings" size={28} color="#9C27B0" />
+            </View>
+            <Text style={styles.extraToolTitle}>الإعدادات</Text>
+            <Text style={styles.extraToolDesc}>تخصيص التطبيق</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </>
   );
 }
