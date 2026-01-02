@@ -63,23 +63,27 @@ export default function PackagesManagement() {
     loadPackages();
   };
 
-  const handleDeletePackage = async (packageId: string, packageName: string) => {
-    // تأكيد الحذف
-    const confirmed = Platform.OS === 'web' 
-      ? window.confirm(`حذف الباقة\n\nهل أنت متأكد من حذف "${packageName}"؟`)
-      : await new Promise<boolean>((resolve) => {
-          Alert.alert(
-            'حذف الباقة',
-            `هل أنت متأكد من حذف "${packageName}"؟`,
-            [
-              { text: 'إلغاء', style: 'cancel', onPress: () => resolve(false) },
-              { text: 'حذف', style: 'destructive', onPress: () => resolve(true) },
-            ]
-          );
-        });
+  const handleDeletePackage = (packageId: string, packageName: string) => {
+    if (Platform.OS === 'web') {
+      // على الويب - استخدم confirm مباشرة
+      const confirmed = window.confirm(`هل أنت متأكد من حذف "${packageName}"؟`);
+      if (confirmed) {
+        performDelete(packageId);
+      }
+    } else {
+      // على الموبايل
+      Alert.alert(
+        'حذف الباقة',
+        `هل أنت متأكد من حذف "${packageName}"؟`,
+        [
+          { text: 'إلغاء', style: 'cancel' },
+          { text: 'حذف', style: 'destructive', onPress: () => performDelete(packageId) },
+        ]
+      );
+    }
+  };
 
-    if (!confirmed) return;
-
+  const performDelete = async (packageId: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(`${API_URL}/api/packages/${packageId}`, {
@@ -92,22 +96,23 @@ export default function PackagesManagement() {
         setPackages(prev => prev.filter(p => p.id !== packageId));
         
         if (Platform.OS === 'web') {
-          window.alert('نجاح\n\nتم حذف الباقة بنجاح');
+          window.alert('تم حذف الباقة بنجاح');
         } else {
           Alert.alert('نجاح', 'تم حذف الباقة بنجاح');
         }
       } else {
-        const error = await response.json();
+        const errorText = await response.text();
+        console.error('Delete failed:', errorText);
         if (Platform.OS === 'web') {
-          window.alert(`خطأ\n\n${error.detail || 'فشل في حذف الباقة'}`);
+          window.alert('فشل في حذف الباقة');
         } else {
-          Alert.alert('خطأ', error.detail || 'فشل في حذف الباقة');
+          Alert.alert('خطأ', 'فشل في حذف الباقة');
         }
       }
     } catch (error) {
       console.error('Delete error:', error);
       if (Platform.OS === 'web') {
-        window.alert('خطأ\n\nفشل في حذف الباقة');
+        window.alert('فشل في حذف الباقة');
       } else {
         Alert.alert('خطأ', 'فشل في حذف الباقة');
       }
