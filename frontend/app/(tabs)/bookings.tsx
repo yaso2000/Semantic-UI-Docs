@@ -112,9 +112,17 @@ export default function BookingsScreen() {
   };
 
   const getTotalHours = () => {
+    // حساب الساعات من الحجوزات المؤكدة أو المدفوعة
     return myBookings
-      .filter(b => b.payment_status === 'completed')
-      .reduce((sum, b) => sum + (b.hours_purchased - b.hours_used), 0);
+      .filter(b => b.booking_status === 'confirmed' || b.payment_status === 'completed')
+      .reduce((sum, b) => sum + ((b.hours_purchased || 0) - (b.hours_used || 0)), 0);
+  };
+
+  const getPendingHours = () => {
+    // الساعات في انتظار التأكيد
+    return myBookings
+      .filter(b => b.booking_status === 'pending' && b.payment_status !== 'completed')
+      .reduce((sum, b) => sum + (b.hours_purchased || 0), 0);
   };
 
   if (!fontsLoaded || loading) {
