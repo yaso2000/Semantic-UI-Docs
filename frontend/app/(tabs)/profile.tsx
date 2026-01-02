@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -37,30 +38,32 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLogout = async () => {
-    Alert.alert(
-      'تسجيل الخروج',
-      'هل أنت متأكد من تسجيل الخروج؟',
-      [
-        {
-          text: 'إلغاء',
-          style: 'cancel',
-        },
-        {
-          text: 'خروج',
-          onPress: async () => {
-            try {
-              await AsyncStorage.removeItem('token');
-              await AsyncStorage.removeItem('user');
-              router.replace('/');
-            } catch (error) {
-              console.error('Error logging out:', error);
-            }
-          },
-          style: 'destructive',
-        },
-      ]
-    );
+  const performLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('user');
+      router.replace('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('هل أنت متأكد من تسجيل الخروج؟');
+      if (confirmed) {
+        performLogout();
+      }
+    } else {
+      Alert.alert(
+        'تسجيل الخروج',
+        'هل أنت متأكد من تسجيل الخروج؟',
+        [
+          { text: 'إلغاء', style: 'cancel' },
+          { text: 'خروج', onPress: performLogout, style: 'destructive' },
+        ]
+      );
+    }
   };
 
   if (!fontsLoaded) {
