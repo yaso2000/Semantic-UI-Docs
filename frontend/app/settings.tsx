@@ -9,20 +9,22 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, FONTS } from '../src/constants/theme';
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [reminderTime, setReminderTime] = useState('08:00');
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   useEffect(() => {
     loadUser();
@@ -40,46 +42,30 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = async () => {
-    Alert.alert('تسجيل الخروج', 'هل أنت متأكد من تسجيل الخروج؟', [
-      { text: 'إلغاء', style: 'cancel' },
-      { 
-        text: 'تسجيل الخروج', 
-        style: 'destructive', 
-        onPress: async () => {
-          await AsyncStorage.multiRemove(['token', 'user']);
-          router.replace('/(auth)/login' as any);
-        }
-      }
-    ]);
+    await AsyncStorage.multiRemove(['token', 'user']);
+    router.replace('/(auth)/login' as any);
   };
 
   const clearCache = async () => {
-    Alert.alert('مسح الذاكرة المؤقتة', 'سيتم مسح البيانات المحفوظة محلياً. هل تريد المتابعة؟', [
-      { text: 'إلغاء', style: 'cancel' },
-      { 
-        text: 'مسح', 
-        style: 'destructive', 
-        onPress: async () => {
-          await AsyncStorage.multiRemove(['habits', 'wheel_data', 'intake_completed']);
-          Alert.alert('تم', 'تم مسح الذاكرة المؤقتة');
-        }
-      }
-    ]);
+    await AsyncStorage.multiRemove(['habits', 'wheel_data', 'intake_completed']);
+    Alert.alert('تم', 'تم مسح الذاكرة المؤقتة');
   };
 
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF9800" />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.gold} />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color="#fff" />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>الإعدادات</Text>
       </View>
@@ -99,8 +85,7 @@ export default function SettingsScreen() {
               <Text style={styles.profileName}>{user?.full_name || 'مستخدم'}</Text>
               <Text style={styles.profileEmail}>{user?.email || ''}</Text>
               <Text style={styles.profileRole}>
-                {user?.role === 'admin' ? 'مدير المنصة' : 
-                 user?.role === 'coach' ? 'مدرب' : 'متدرب'}
+                {user?.role === 'admin' ? 'مدرب - يازو' : 'متدرب'}
               </Text>
             </View>
           </View>
@@ -114,23 +99,23 @@ export default function SettingsScreen() {
             <Switch
               value={notifications}
               onValueChange={setNotifications}
-              trackColor={{ false: '#e0e0e0', true: '#FFE0B2' }}
-              thumbColor={notifications ? '#FF9800' : '#f4f3f4'}
+              trackColor={{ false: COLORS.border, true: 'rgba(212, 175, 55, 0.4)' }}
+              thumbColor={notifications ? COLORS.gold : COLORS.textMuted}
             />
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>تفعيل الإشعارات</Text>
               <Text style={styles.settingDesc}>استلم إشعارات التذكير والرسائل</Text>
             </View>
-            <Ionicons name="notifications" size={24} color="#FF9800" />
+            <Ionicons name="notifications" size={24} color={COLORS.gold} />
           </View>
 
           <TouchableOpacity style={styles.settingItem}>
-            <Ionicons name="chevron-back" size={20} color="#999" />
+            <Ionicons name="chevron-back" size={20} color={COLORS.textMuted} />
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>وقت التذكير اليومي</Text>
               <Text style={styles.settingDesc}>{reminderTime} صباحاً</Text>
             </View>
-            <Ionicons name="time" size={24} color="#4CAF50" />
+            <Ionicons name="time" size={24} color={COLORS.gold} />
           </TouchableOpacity>
         </View>
 
@@ -142,14 +127,14 @@ export default function SettingsScreen() {
             <Switch
               value={darkMode}
               onValueChange={setDarkMode}
-              trackColor={{ false: '#e0e0e0', true: '#E0E0E0' }}
-              thumbColor={darkMode ? '#333' : '#f4f3f4'}
+              trackColor={{ false: COLORS.border, true: 'rgba(212, 175, 55, 0.4)' }}
+              thumbColor={darkMode ? COLORS.gold : COLORS.textMuted}
             />
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>الوضع الليلي</Text>
-              <Text style={styles.settingDesc}>تغيير مظهر التطبيق (قريباً)</Text>
+              <Text style={styles.settingDesc}>التصميم الفاخر الحالي</Text>
             </View>
-            <Ionicons name="moon" size={24} color="#673AB7" />
+            <Ionicons name="moon" size={24} color={COLORS.gold} />
           </View>
         </View>
 
@@ -158,12 +143,12 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>البيانات</Text>
           
           <TouchableOpacity style={styles.settingItem} onPress={clearCache}>
-            <Ionicons name="chevron-back" size={20} color="#999" />
+            <Ionicons name="chevron-back" size={20} color={COLORS.textMuted} />
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>مسح الذاكرة المؤقتة</Text>
               <Text style={styles.settingDesc}>حذف البيانات المحفوظة محلياً</Text>
             </View>
-            <Ionicons name="trash" size={24} color="#F44336" />
+            <Ionicons name="trash" size={24} color={COLORS.error} />
           </TouchableOpacity>
         </View>
 
@@ -175,40 +160,40 @@ export default function SettingsScreen() {
             style={styles.settingItem}
             onPress={() => router.push('/help' as any)}
           >
-            <Ionicons name="chevron-back" size={20} color="#999" />
+            <Ionicons name="chevron-back" size={20} color={COLORS.textMuted} />
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>الأسئلة الشائعة</Text>
               <Text style={styles.settingDesc}>إجابات على أكثر الأسئلة شيوعاً</Text>
             </View>
-            <Ionicons name="help-circle" size={24} color="#2196F3" />
+            <Ionicons name="help-circle" size={24} color={COLORS.gold} />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.settingItem}
             onPress={() => router.push('/help' as any)}
           >
-            <Ionicons name="chevron-back" size={20} color="#999" />
+            <Ionicons name="chevron-back" size={20} color={COLORS.textMuted} />
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>شروط الاستخدام</Text>
               <Text style={styles.settingDesc}>الشروط والأحكام</Text>
             </View>
-            <Ionicons name="document-text" size={24} color="#FF9800" />
+            <Ionicons name="document-text" size={24} color={COLORS.gold} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingItem}>
-            <Ionicons name="chevron-back" size={20} color="#999" />
+            <Ionicons name="chevron-back" size={20} color={COLORS.textMuted} />
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>تواصل معنا</Text>
               <Text style={styles.settingDesc}>support@askyazo.com</Text>
             </View>
-            <Ionicons name="mail" size={24} color="#4CAF50" />
+            <Ionicons name="mail" size={24} color={COLORS.gold} />
           </TouchableOpacity>
         </View>
 
         {/* زر تسجيل الخروج */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutBtnText}>تسجيل الخروج</Text>
-          <Ionicons name="log-out" size={22} color="#F44336" />
+          <Ionicons name="log-out" size={22} color={COLORS.error} />
         </TouchableOpacity>
 
         {/* الإصدار */}
@@ -223,20 +208,22 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: COLORS.primary },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
   
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF9800',
+    backgroundColor: COLORS.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 16,
@@ -244,8 +231,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
     textAlign: 'right',
   },
 
@@ -259,8 +246,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#999',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textMuted,
     textAlign: 'right',
     marginBottom: 12,
     paddingRight: 4,
@@ -269,15 +256,17 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   profileAvatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FF9800',
+    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 14,
@@ -285,27 +274,27 @@ const styles = StyleSheet.create({
   profileLetter: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.primary,
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
     textAlign: 'right',
   },
   profileEmail: {
     fontSize: 13,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'right',
   },
   profileRole: {
     fontSize: 12,
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.gold,
     textAlign: 'right',
     marginTop: 4,
   },
@@ -313,10 +302,12 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 14,
     padding: 16,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   settingInfo: {
     flex: 1,
@@ -324,14 +315,14 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
     textAlign: 'right',
   },
   settingDesc: {
     fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#999',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'right',
     marginTop: 2,
   },
@@ -340,16 +331,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFEBEE',
+    backgroundColor: 'rgba(244, 67, 54, 0.1)',
     borderRadius: 14,
     padding: 16,
     marginTop: 8,
     gap: 10,
+    borderWidth: 1,
+    borderColor: COLORS.error,
   },
   logoutBtnText: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#F44336',
+    fontFamily: FONTS.bold,
+    color: COLORS.error,
   },
 
   versionSection: {
@@ -357,23 +350,23 @@ const styles = StyleSheet.create({
     marginTop: 32,
     paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: COLORS.border,
   },
   appName: {
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
   },
   versionText: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#999',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
   copyrightText: {
     fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#bbb',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
 });

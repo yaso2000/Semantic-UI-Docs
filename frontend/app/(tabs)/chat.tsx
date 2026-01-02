@@ -13,12 +13,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -46,7 +48,7 @@ interface Message {
 }
 
 export default function ChatScreen() {
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
   const [user, setUser] = useState<any>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -64,7 +66,6 @@ export default function ChatScreen() {
   useEffect(() => {
     let interval: any;
     if (selectedContact) {
-      // Poll for new messages every 3 seconds when in chat
       interval = setInterval(() => {
         loadMessages(selectedContact.user_id, true);
       }, 3000);
@@ -128,7 +129,6 @@ export default function ChatScreen() {
     setSelectedContact(contact);
     loadMessages(contact.user_id);
     
-    // Mark messages as read
     if (contact.unread_count > 0) {
       try {
         const token = await AsyncStorage.getItem('token');
@@ -137,7 +137,6 @@ export default function ChatScreen() {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // Update local contact to show 0 unread
         setContacts(prev => prev.map(c => 
           c.user_id === contact.user_id ? { ...c, unread_count: 0 } : c
         ));
@@ -185,17 +184,9 @@ export default function ChatScreen() {
   }, []);
 
   const getLetterColor = (name: string): string => {
-    const colors: { [key: string]: string } = {
-      'ا': '#E91E63', 'أ': '#E91E63', 'م': '#00BCD4', 'ع': '#E91E63',
-      'ب': '#9C27B0', 'ت': '#673AB7', 'ث': '#3F51B5', 'ج': '#2196F3',
-      'ح': '#03A9F4', 'خ': '#009688', 'د': '#4CAF50', 'ذ': '#8BC34A',
-      'ر': '#CDDC39', 'ز': '#FFC107', 'س': '#FF9800', 'ش': '#FF5722',
-      'ص': '#795548', 'ض': '#607D8B', 'ط': '#9E9E9E', 'ظ': '#E91E63',
-      'ف': '#9C27B0', 'ق': '#673AB7', 'ك': '#3F51B5', 'ل': '#2196F3',
-      'ن': '#03A9F4', 'ه': '#009688', 'و': '#4CAF50', 'ي': '#8BC34A',
-    };
-    const firstLetter = name?.trim().charAt(0) || '?';
-    return colors[firstLetter] || '#FF9800';
+    const colors = [COLORS.gold, '#4CAF50', '#2196F3', '#9C27B0', '#E91E63', '#00BCD4', '#FF9800'];
+    const index = (name?.charCodeAt(0) || 0) % colors.length;
+    return colors[index];
   };
 
   const renderAvatar = (contact: Contact, size: number = 50) => {
@@ -251,15 +242,9 @@ export default function ChatScreen() {
           <Text style={styles.noMessages}>ابدأ المحادثة</Text>
         )}
         <View style={styles.contactMeta}>
-          {item.role === 'coach' && item.booking_status === 'confirmed' && (
-            <View style={styles.statusBadge}>
-              <Ionicons name="checkmark-circle" size={12} color="#4CAF50" />
-              <Text style={styles.statusText}>حجز فعال</Text>
-            </View>
-          )}
           {item.hours_remaining !== undefined && item.hours_remaining > 0 && (
             <View style={styles.hoursBadge}>
-              <Ionicons name="time" size={12} color="#FF9800" />
+              <Ionicons name="time" size={12} color={COLORS.gold} />
               <Text style={styles.hoursText}>{item.hours_remaining} ساعة متبقية</Text>
             </View>
           )}
@@ -277,7 +262,7 @@ export default function ChatScreen() {
           <Text style={[styles.messageText, isMyMessage && styles.myMessageText]}>
             {item.message}
           </Text>
-          <Text style={[styles.messageTime, isMyMessage && styles.myMessageTime]}>
+          <Text style={[styles.msgTime, isMyMessage && styles.myMsgTime]}>
             {format(new Date(item.timestamp), 'h:mm a', { locale: ar })}
           </Text>
         </View>
@@ -288,16 +273,17 @@ export default function ChatScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.gold} />
         <Text style={styles.loadingText}>جاري التحميل...</Text>
       </View>
     );
   }
 
-  // Show chat view when a contact is selected
   if (selectedContact) {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
         <View style={styles.chatHeader}>
           <TouchableOpacity 
             style={styles.backButton}
@@ -306,14 +292,14 @@ export default function ChatScreen() {
               loadContacts();
             }}
           >
-            <Ionicons name="arrow-forward" size={24} color="#333" />
+            <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
           </TouchableOpacity>
           <View style={styles.chatHeaderInfo}>
             {renderAvatar(selectedContact, 44)}
             <View style={styles.chatHeaderText}>
               <Text style={styles.chatHeaderName}>{selectedContact.full_name}</Text>
               <Text style={styles.chatHeaderStatus}>
-                {selectedContact.role === 'coach' ? 'مدرب' : 'متدرب'}
+                {selectedContact.role === 'admin' ? 'مدرب' : 'متدرب'}
               </Text>
             </View>
           </View>
@@ -326,11 +312,11 @@ export default function ChatScreen() {
         >
           {loadingMessages ? (
             <View style={styles.loadingMessages}>
-              <ActivityIndicator color="#2196F3" />
+              <ActivityIndicator color={COLORS.gold} />
             </View>
           ) : messages.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="chatbubbles-outline" size={80} color="#ccc" />
+              <Ionicons name="chatbubbles-outline" size={80} color={COLORS.border} />
               <Text style={styles.emptyText}>لا توجد رسائل بعد</Text>
               <Text style={styles.emptySubtext}>ابدأ المحادثة مع {selectedContact.full_name}</Text>
             </View>
@@ -350,9 +336,9 @@ export default function ChatScreen() {
               disabled={!newMessage.trim() || sending}
             >
               {sending ? (
-                <ActivityIndicator color="#fff" size="small" />
+                <ActivityIndicator color={COLORS.primary} size="small" />
               ) : (
-                <Ionicons name="send" size={22} color="#fff" />
+                <Ionicons name="send" size={22} color={COLORS.primary} />
               )}
             </TouchableOpacity>
             <TextInput
@@ -362,7 +348,7 @@ export default function ChatScreen() {
               onChangeText={setNewMessage}
               multiline
               maxLength={500}
-              placeholderTextColor="#999"
+              placeholderTextColor={COLORS.textMuted}
               editable={!sending}
             />
           </View>
@@ -371,32 +357,30 @@ export default function ChatScreen() {
     );
   }
 
-  // Show contacts list
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
-        <Ionicons name="chatbubbles" size={28} color="#2196F3" />
+        <Ionicons name="chatbubbles" size={28} color={COLORS.gold} />
         <Text style={styles.headerTitle}>المحادثات</Text>
       </View>
 
       {contacts.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="chatbubbles-outline" size={80} color="#ddd" />
+          <Ionicons name="chatbubbles-outline" size={80} color={COLORS.border} />
           <Text style={styles.emptyStateTitle}>لا توجد محادثات متاحة</Text>
           <Text style={styles.emptyStateText}>
-            {user?.role === 'client' 
-              ? 'قم بحجز جلسة مع مدرب للتمكن من التواصل معه'
-              : 'ستظهر هنا المحادثات مع متدربيك بعد قبول حجوزاتهم'
+            {user?.role === 'trainee' 
+              ? 'قم بحجز جلسة مع يازو للتمكن من التواصل'
+              : 'ستظهر هنا المحادثات مع متدربيك'
             }
           </Text>
-          {user?.role === 'client' && (
-            <View style={styles.tipBox}>
-              <Ionicons name="bulb" size={20} color="#FF9800" />
-              <Text style={styles.tipText}>
-                انتقل إلى صفحة "المدربين" واحجز جلسة للتواصل مع المدرب
-              </Text>
-            </View>
-          )}
+          <View style={styles.tipBox}>
+            <Ionicons name="bulb" size={20} color={COLORS.gold} />
+            <Text style={styles.tipText}>
+              انتقل إلى صفحة "الحجوزات" لحجز جلسة تدريبية
+            </Text>
+          </View>
         </View>
       ) : (
         <FlatList
@@ -405,7 +389,7 @@ export default function ChatScreen() {
           keyExtractor={(item) => item.user_id}
           contentContainerStyle={styles.contactsList}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2196F3']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.gold} />
           }
         />
       )}
@@ -414,9 +398,9 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
-  loadingText: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 16 },
+  container: { flex: 1, backgroundColor: COLORS.primary },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
+  loadingText: { fontSize: 16, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 16 },
   loadingMessages: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
   header: {
@@ -424,30 +408,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: COLORS.border,
     gap: 12,
   },
   headerTitle: {
     fontSize: 22,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
   },
 
   contactsList: { padding: 12 },
   contactCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 14,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   contactAvatar: {
     marginLeft: 14,
@@ -458,14 +439,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarLetter: {
-    color: '#fff',
-    fontFamily: 'Cairo_700Bold',
+    color: COLORS.primary,
+    fontFamily: FONTS.bold,
   },
   unreadBadge: {
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#F44336',
+    backgroundColor: COLORS.error,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -476,7 +457,7 @@ const styles = StyleSheet.create({
   unreadText: {
     color: '#fff',
     fontSize: 11,
-    fontFamily: 'Cairo_700Bold',
+    fontFamily: FONTS.bold,
   },
   contactInfo: { flex: 1 },
   contactHeader: {
@@ -487,29 +468,28 @@ const styles = StyleSheet.create({
   },
   contactName: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
     textAlign: 'right',
     flex: 1,
   },
   messageTime: {
     fontSize: 11,
-    fontFamily: 'Cairo_400Regular',
-    color: '#999',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
   },
   lastMessage: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'right',
     marginBottom: 6,
   },
   noMessages: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#bbb',
+    fontFamily: FONTS.regular,
+    color: COLORS.gold,
     textAlign: 'right',
-    fontStyle: 'italic',
     marginBottom: 6,
   },
   contactMeta: {
@@ -517,24 +497,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: 10,
   },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    gap: 4,
-  },
-  statusText: {
-    fontSize: 11,
-    fontFamily: 'Cairo_400Regular',
-    color: '#4CAF50',
-  },
   hoursBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF3E0',
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -542,8 +508,8 @@ const styles = StyleSheet.create({
   },
   hoursText: {
     fontSize: 11,
-    fontFamily: 'Cairo_400Regular',
-    color: '#FF9800',
+    fontFamily: FONTS.regular,
+    color: COLORS.gold,
   },
 
   emptyState: {
@@ -554,14 +520,14 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#999',
+    fontFamily: FONTS.bold,
+    color: COLORS.textMuted,
     marginTop: 16,
   },
   emptyStateText: {
     fontSize: 15,
-    fontFamily: 'Cairo_400Regular',
-    color: '#bbb',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 24,
@@ -569,34 +535,35 @@ const styles = StyleSheet.create({
   tipBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF3E0',
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
     padding: 16,
     borderRadius: 12,
     marginTop: 24,
     gap: 12,
+    borderWidth: 1,
+    borderColor: COLORS.gold,
   },
   tipText: {
     flex: 1,
     fontSize: 13,
-    fontFamily: 'Cairo_400Regular',
-    color: '#E65100',
+    fontFamily: FONTS.regular,
+    color: COLORS.goldLight,
     textAlign: 'right',
   },
 
-  // Chat View
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: COLORS.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,
@@ -613,13 +580,13 @@ const styles = StyleSheet.create({
   },
   chatHeaderName: {
     fontSize: 17,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
   },
   chatHeaderStatus: {
     fontSize: 13,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.gold,
   },
 
   keyboardView: { flex: 1 },
@@ -634,24 +601,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   otherMessage: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: COLORS.border,
     borderTopRightRadius: 4,
   },
   myMessage: {
-    backgroundColor: '#2196F3',
+    backgroundColor: COLORS.gold,
     borderTopLeftRadius: 4,
   },
   messageText: {
     fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
-    color: '#333',
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
     lineHeight: 24,
     textAlign: 'right',
   },
-  myMessageText: { color: '#fff' },
-  myMessageTime: { color: 'rgba(255,255,255,0.7)' },
+  myMessageText: { color: COLORS.primary },
+  msgTime: {
+    fontSize: 11,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    marginTop: 4,
+  },
+  myMsgTime: { color: 'rgba(10, 22, 40, 0.7)' },
 
   emptyContainer: {
     flex: 1,
@@ -661,14 +634,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#999',
+    fontFamily: FONTS.bold,
+    color: COLORS.textMuted,
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#bbb',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -677,9 +650,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: COLORS.border,
     alignItems: 'center',
     gap: 12,
   },
@@ -687,21 +660,24 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 44,
     maxHeight: 80,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.primary,
     borderRadius: 22,
     paddingHorizontal: 18,
     paddingVertical: 10,
     fontSize: 15,
-    fontFamily: 'Cairo_400Regular',
+    fontFamily: FONTS.regular,
     textAlign: 'right',
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#2196F3',
+    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendButtonDisabled: { backgroundColor: '#90CAF9' },
+  sendButtonDisabled: { backgroundColor: COLORS.border },
 });

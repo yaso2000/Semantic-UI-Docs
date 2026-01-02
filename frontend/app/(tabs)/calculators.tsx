@@ -6,262 +6,52 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
-// الركيزة الأولى: اللياقة البدنية
 const physicalTools = [
-  {
-    id: 'bmi',
-    title: 'مؤشر كتلة الجسم',
-    subtitle: 'BMI',
-    icon: 'body',
-    color: '#4CAF50',
-    bg: '#E8F5E9',
-    route: '/calculators/bmi',
-  },
-  {
-    id: 'bodyfat',
-    title: 'نسبة الدهون',
-    subtitle: 'Body Fat %',
-    icon: 'analytics',
-    color: '#FF5722',
-    bg: '#FBE9E7',
-    route: '/calculators/bodyfat',
-  },
-  {
-    id: 'ideal-weight',
-    title: 'الوزن المثالي',
-    subtitle: 'Ideal Weight',
-    icon: 'fitness',
-    color: '#2196F3',
-    bg: '#E3F2FD',
-    route: '/calculators/ideal-weight',
-  },
-  {
-    id: 'waist-height',
-    title: 'نسبة الخصر للطول',
-    subtitle: 'Waist-to-Height',
-    icon: 'resize',
-    color: '#9C27B0',
-    bg: '#F3E5F5',
-    route: '/calculators/waist-height',
-  },
-  {
-    id: 'tdee',
-    title: 'السعرات اليومية',
-    subtitle: 'TDEE',
-    icon: 'flame',
-    color: '#F44336',
-    bg: '#FFEBEE',
-    route: '/calculators/tdee',
-  },
-  {
-    id: 'calories-burned',
-    title: 'السعرات المحروقة',
-    subtitle: 'Calories Burned',
-    icon: 'barbell',
-    color: '#FF9800',
-    bg: '#FFF3E0',
-    route: '/calculators/calories-burned',
-  },
-  {
-    id: 'one-rep-max',
-    title: 'الحد الأقصى للتكرار',
-    subtitle: '1RM',
-    icon: 'podium',
-    color: '#673AB7',
-    bg: '#EDE7F6',
-    route: '/calculators/one-rep-max',
-  },
-  {
-    id: 'heart-rate',
-    title: 'نبض القلب المستهدف',
-    subtitle: 'Target HR',
-    icon: 'heart',
-    color: '#E91E63',
-    bg: '#FCE4EC',
-    route: '/calculators/heart-rate',
-  },
+  { id: 'bmi', title: 'مؤشر كتلة الجسم', subtitle: 'BMI', icon: 'body', route: '/calculators/bmi' },
+  { id: 'bodyfat', title: 'نسبة الدهون', subtitle: 'Body Fat %', icon: 'analytics', route: '/calculators/bodyfat' },
+  { id: 'ideal-weight', title: 'الوزن المثالي', subtitle: 'Ideal Weight', icon: 'fitness', route: '/calculators/ideal-weight' },
+  { id: 'waist-height', title: 'نسبة الخصر للطول', subtitle: 'Waist-to-Height', icon: 'resize', route: '/calculators/waist-height' },
+  { id: 'tdee', title: 'السعرات اليومية', subtitle: 'TDEE', icon: 'flame', route: '/calculators/tdee' },
+  { id: 'calories-burned', title: 'السعرات المحروقة', subtitle: 'Calories Burned', icon: 'barbell', route: '/calculators/calories-burned' },
+  { id: 'one-rep-max', title: 'الحد الأقصى للتكرار', subtitle: '1RM', icon: 'podium', route: '/calculators/one-rep-max' },
+  { id: 'heart-rate', title: 'نبض القلب المستهدف', subtitle: 'Target HR', icon: 'heart', route: '/calculators/heart-rate' },
 ];
 
-// الركيزة الثانية: الصحة التغذوية
 const nutritionTools = [
-  {
-    id: 'calorie-goal',
-    title: 'هدف السعرات',
-    subtitle: 'Calorie Goal',
-    icon: 'trending-down',
-    color: '#00BCD4',
-    bg: '#E0F7FA',
-    route: '/calculators/calorie-goal',
-  },
-  {
-    id: 'macros',
-    title: 'المغذيات الكبرى',
-    subtitle: 'Macros',
-    icon: 'nutrition',
-    color: '#795548',
-    bg: '#EFEBE9',
-    route: '/calculators/macros',
-  },
-  {
-    id: 'water',
-    title: 'كمية الماء اليومية',
-    subtitle: 'Water Intake',
-    icon: 'water',
-    color: '#03A9F4',
-    bg: '#E1F5FE',
-    route: '/calculators/water',
-  },
+  { id: 'calorie-goal', title: 'هدف السعرات', subtitle: 'Calorie Goal', icon: 'trending-down', route: '/calculators/calorie-goal' },
+  { id: 'macros', title: 'المغذيات الكبرى', subtitle: 'Macros', icon: 'nutrition', route: '/calculators/macros' },
+  { id: 'water', title: 'كمية الماء اليومية', subtitle: 'Water Intake', icon: 'water', route: '/calculators/water' },
 ];
 
-// الركيزة الثالثة: الصحة النفسية
 const mentalTools = [
-  {
-    id: 'pss10',
-    title: 'مقياس التوتر',
-    subtitle: 'PSS-10',
-    icon: 'brain',
-    color: '#9C27B0',
-    bg: '#F3E5F5',
-    route: '/calculators/pss10',
-  },
-  {
-    id: 'gad7',
-    title: 'مقياس القلق',
-    subtitle: 'GAD-7',
-    icon: 'pulse',
-    color: '#E91E63',
-    bg: '#FCE4EC',
-    route: '/calculators/gad7',
-  },
-  {
-    id: 'swls',
-    title: 'الرضا عن الحياة',
-    subtitle: 'SWLS',
-    icon: 'happy',
-    color: '#FF9800',
-    bg: '#FFF3E0',
-    route: '/calculators/swls',
-  },
-  {
-    id: 'who5',
-    title: 'مؤشر الرفاهية',
-    subtitle: 'WHO-5',
-    icon: 'sunny',
-    color: '#2196F3',
-    bg: '#E3F2FD',
-    route: '/calculators/who5',
-  },
-  {
-    id: 'mood-tracker',
-    title: 'متتبع المزاج',
-    subtitle: 'Mood Tracker',
-    icon: 'calendar',
-    color: '#00BCD4',
-    bg: '#E0F7FA',
-    route: '/calculators/mood-tracker',
-  },
+  { id: 'pss10', title: 'مقياس التوتر', subtitle: 'PSS-10', icon: 'flash', route: '/calculators/pss10' },
+  { id: 'gad7', title: 'مقياس القلق', subtitle: 'GAD-7', icon: 'pulse', route: '/calculators/gad7' },
+  { id: 'swls', title: 'الرضا عن الحياة', subtitle: 'SWLS', icon: 'happy', route: '/calculators/swls' },
+  { id: 'who5', title: 'مؤشر الرفاهية', subtitle: 'WHO-5', icon: 'sunny', route: '/calculators/who5' },
+  { id: 'mood-tracker', title: 'متتبع المزاج', subtitle: 'Mood Tracker', icon: 'calendar', route: '/calculators/mood-tracker' },
 ];
 
-// الركيزة الرابعة: الرفاهية الروحية
 const spiritualTools = [
-  {
-    id: 'meditation-timer',
-    title: 'مؤقت التأمل',
-    subtitle: 'Meditation',
-    icon: 'flower',
-    color: '#7C4DFF',
-    bg: '#EDE7F6',
-    route: '/calculators/meditation-timer',
-  },
-  {
-    id: 'breathing-exercise',
-    title: 'تمارين التنفس',
-    subtitle: 'Breathing',
-    icon: 'fitness',
-    color: '#2196F3',
-    bg: '#E3F2FD',
-    route: '/calculators/breathing-exercise',
-  },
-  {
-    id: 'gratitude-journal',
-    title: 'دفتر الامتنان',
-    subtitle: 'Gratitude',
-    icon: 'heart',
-    color: '#FF9800',
-    bg: '#FFF8E1',
-    route: '/calculators/gratitude-journal',
-  },
-  {
-    id: 'core-values',
-    title: 'القيم الأساسية',
-    subtitle: 'Core Values',
-    icon: 'diamond',
-    color: '#9C27B0',
-    bg: '#F3E5F5',
-    route: '/calculators/core-values',
-  },
-  {
-    id: 'reflection-prompts',
-    title: 'تأملات عميقة',
-    subtitle: 'Reflections',
-    icon: 'bulb',
-    color: '#00BCD4',
-    bg: '#E0F7FA',
-    route: '/calculators/reflection-prompts',
-  },
-  {
-    id: 'wheel-of-life',
-    title: 'عجلة الحياة',
-    subtitle: 'Wheel of Life',
-    icon: 'pie-chart',
-    color: '#E91E63',
-    bg: '#FCE4EC',
-    route: '/calculators/wheel-of-life',
-  },
+  { id: 'meditation-timer', title: 'مؤقت التأمل', subtitle: 'Meditation', icon: 'flower', route: '/calculators/meditation-timer' },
+  { id: 'breathing-exercise', title: 'تمارين التنفس', subtitle: 'Breathing', icon: 'fitness', route: '/calculators/breathing-exercise' },
+  { id: 'gratitude-journal', title: 'دفتر الامتنان', subtitle: 'Gratitude', icon: 'heart', route: '/calculators/gratitude-journal' },
+  { id: 'core-values', title: 'القيم الأساسية', subtitle: 'Core Values', icon: 'diamond', route: '/calculators/core-values' },
+  { id: 'reflection-prompts', title: 'تأملات عميقة', subtitle: 'Reflections', icon: 'bulb', route: '/calculators/reflection-prompts' },
+  { id: 'wheel-of-life', title: 'عجلة الحياة', subtitle: 'Wheel of Life', icon: 'pie-chart', route: '/calculators/wheel-of-life' },
 ];
 
 const pillars = [
-  {
-    id: 'physical',
-    title: 'اللياقة البدنية',
-    subtitle: 'Physical Fitness',
-    icon: 'barbell',
-    color: '#4CAF50',
-    gradient: ['#4CAF50', '#8BC34A'],
-    tools: physicalTools,
-  },
-  {
-    id: 'nutrition',
-    title: 'الصحة التغذوية',
-    subtitle: 'Nutritional Health',
-    icon: 'nutrition',
-    color: '#FF9800',
-    gradient: ['#FF9800', '#FFC107'],
-    tools: nutritionTools,
-  },
-  {
-    id: 'mental',
-    title: 'الصحة النفسية',
-    subtitle: 'Mental Wellness',
-    icon: 'brain',
-    color: '#9C27B0',
-    gradient: ['#9C27B0', '#E040FB'],
-    tools: mentalTools,
-  },
-  {
-    id: 'spiritual',
-    title: 'الرفاهية الروحية',
-    subtitle: 'Spiritual Well-being',
-    icon: 'heart',
-    color: '#2196F3',
-    gradient: ['#2196F3', '#00BCD4'],
-    tools: spiritualTools,
-  },
+  { id: 'physical', title: 'اللياقة البدنية', subtitle: 'Physical Fitness', icon: 'barbell', tools: physicalTools },
+  { id: 'nutrition', title: 'الصحة التغذوية', subtitle: 'Nutritional Health', icon: 'nutrition', tools: nutritionTools },
+  { id: 'mental', title: 'الصحة النفسية', subtitle: 'Mental Wellness', icon: 'happy', tools: mentalTools },
+  { id: 'spiritual', title: 'الرفاهية الروحية', subtitle: 'Spiritual Well-being', icon: 'sparkles', tools: spiritualTools },
 ];
 
 export default function CalculatorsScreen() {
@@ -269,8 +59,9 @@ export default function CalculatorsScreen() {
   const [expandedPillar, setExpandedPillar] = useState<string | null>(null);
   
   const [fontsLoaded] = useFonts({
-    Cairo_400Regular,
-    Cairo_700Bold,
+    Alexandria_400Regular,
+    Alexandria_600SemiBold,
+    Alexandria_700Bold,
   });
 
   if (!fontsLoaded) {
@@ -283,6 +74,7 @@ export default function CalculatorsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>الأدوات والحاسبات</Text>
         <Text style={styles.headerSubtitle}>موزعة على الركائز الأربع</Text>
@@ -292,13 +84,13 @@ export default function CalculatorsScreen() {
         {pillars.map((pillar) => (
           <View key={pillar.id} style={styles.pillarContainer}>
             <TouchableOpacity
-              style={[styles.pillarHeader, { backgroundColor: pillar.color }]}
+              style={styles.pillarHeader}
               onPress={() => togglePillar(pillar.id)}
               activeOpacity={0.8}
             >
               <View style={styles.pillarHeaderContent}>
                 <View style={styles.pillarIconContainer}>
-                  <Ionicons name={pillar.icon as any} size={32} color="#fff" />
+                  <Ionicons name={pillar.icon as any} size={28} color={COLORS.primary} />
                 </View>
                 <View style={styles.pillarTitles}>
                   <Text style={styles.pillarTitle}>{pillar.title}</Text>
@@ -310,7 +102,7 @@ export default function CalculatorsScreen() {
                 <Ionicons
                   name={expandedPillar === pillar.id ? 'chevron-up' : 'chevron-down'}
                   size={20}
-                  color="#fff"
+                  color={COLORS.gold}
                 />
               </View>
             </TouchableOpacity>
@@ -320,11 +112,11 @@ export default function CalculatorsScreen() {
                 {pillar.tools.map((tool) => (
                   <TouchableOpacity
                     key={tool.id}
-                    style={[styles.toolCard, { backgroundColor: tool.bg }]}
+                    style={styles.toolCard}
                     onPress={() => router.push(tool.route as any)}
                   >
-                    <View style={[styles.toolIconBg, { backgroundColor: tool.color + '20' }]}>
-                      <Ionicons name={tool.icon as any} size={28} color={tool.color} />
+                    <View style={styles.toolIconBg}>
+                      <Ionicons name={tool.icon as any} size={24} color={COLORS.gold} />
                     </View>
                     <Text style={styles.toolTitle}>{tool.title}</Text>
                     <Text style={styles.toolSubtitle}>{tool.subtitle}</Text>
@@ -340,8 +132,8 @@ export default function CalculatorsScreen() {
           <View style={styles.statsGrid}>
             {pillars.map((pillar) => (
               <View key={pillar.id} style={styles.statItem}>
-                <View style={[styles.statIcon, { backgroundColor: pillar.color }]}>
-                  <Ionicons name={pillar.icon as any} size={20} color="#fff" />
+                <View style={styles.statIcon}>
+                  <Ionicons name={pillar.icon as any} size={18} color={COLORS.primary} />
                 </View>
                 <Text style={styles.statNumber}>{pillar.tools.length}</Text>
                 <Text style={styles.statLabel}>{pillar.title.split(' ')[0]}</Text>
@@ -357,24 +149,24 @@ export default function CalculatorsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.primary,
   },
   header: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 24,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
     textAlign: 'right',
   },
   headerSubtitle: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'right',
     marginTop: 4,
   },
@@ -386,18 +178,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#fff',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    backgroundColor: COLORS.secondary,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   pillarHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    backgroundColor: COLORS.secondary,
   },
   pillarHeaderContent: {
     flexDirection: 'row',
@@ -405,27 +195,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pillarIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: 14,
   },
   pillarTitles: {
     flex: 1,
   },
   pillarTitle: {
-    fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
     textAlign: 'right',
   },
   pillarSubtitle: {
     fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: 'rgba(255,255,255,0.8)',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'right',
   },
   pillarBadge: {
@@ -434,10 +224,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pillarBadgeText: {
-    fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -447,44 +237,52 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     padding: 12,
     gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
   toolCard: {
     width: '31%',
     padding: 12,
     borderRadius: 12,
     alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   toolIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   toolTitle: {
     fontSize: 11,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
     textAlign: 'center',
   },
   toolSubtitle: {
     fontSize: 9,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 2,
   },
   statsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 20,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   statsTitle: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -499,18 +297,19 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   statNumber: {
     fontSize: 24,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
   },
   statLabel: {
     fontSize: 10,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
   },
 });
