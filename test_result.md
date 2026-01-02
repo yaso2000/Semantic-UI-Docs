@@ -273,9 +273,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin Dashboard"
-    - "Packages Management"
-    - "Client Bookings"
+    - "Sessions API for Coaches"
+    - "Messages API"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -283,3 +282,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Implemented complete admin panel with packages management, bookings view, users list, and client-facing bookings page. All Arabic localized."
+  - agent: "testing"
+    message: "Completed testing of requested Arabic API endpoints. All sessions endpoints (GET /api/sessions/my-sessions, GET /api/sessions/stats) and messages endpoint (GET /api/messages/unread-count) are working correctly. Authentication tested for both coach (mohamed@coach.com) and trainee (trainee@test.com) accounts. All endpoints return proper JSON responses with expected data structures. No critical issues found."
