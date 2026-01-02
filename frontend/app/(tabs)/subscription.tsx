@@ -13,23 +13,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStripePayment, StripeWrapper } from '../../src/hooks/useStripePayment';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
-
-// Conditionally import Stripe only on native platforms
-let StripeProvider: any = null;
-let useStripe: any = null;
-
-if (Platform.OS !== 'web') {
-  try {
-    const stripe = require('@stripe/stripe-react-native');
-    StripeProvider = stripe.StripeProvider;
-    useStripe = stripe.useStripe;
-  } catch (e) {
-    console.log('Stripe not available');
-  }
-}
 
 interface Subscription {
   id: string;
@@ -75,11 +62,7 @@ function SubscriptionContent() {
   const [subscribing, setSubscribing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   
-  // Use Stripe hooks only on native
-  const stripeHooks = Platform.OS !== 'web' && useStripe ? useStripe() : { initPaymentSheet: null, presentPaymentSheet: null };
-  const { initPaymentSheet, presentPaymentSheet } = stripeHooks;
-
-  const isStripeAvailable = Platform.OS !== 'web' && initPaymentSheet && presentPaymentSheet;
+  const { initPaymentSheet, presentPaymentSheet, isAvailable: isStripeAvailable } = useStripePayment();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -163,7 +146,6 @@ function SubscriptionContent() {
   };
 
   const handleManualSubscription = async (planId: string) => {
-    // For web or when Stripe is not available
     setSubscribing(true);
     try {
       const token = await AsyncStorage.getItem('token');
@@ -202,7 +184,6 @@ function SubscriptionContent() {
     
     setSubscribing(true);
     try {
-      // Initialize payment sheet
       const initialized = await initializePaymentSheet();
       
       if (!initialized) {
@@ -212,7 +193,6 @@ function SubscriptionContent() {
         return;
       }
 
-      // Present the payment sheet
       const { error } = await presentPaymentSheet();
 
       if (error) {
@@ -227,7 +207,6 @@ function SubscriptionContent() {
         return;
       }
 
-      // Payment method added - activate subscription
       const token = await AsyncStorage.getItem('token');
       const activateResponse = await fetch(`${API_URL}/api/subscriptions/activate`, {
         method: 'POST',
@@ -330,7 +309,6 @@ function SubscriptionContent() {
           </View>
         )}
 
-        {/* معلومات الأمان */}
         <View style={styles.securityInfo}>
           <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
           <Text style={styles.securityText}>
@@ -406,7 +384,6 @@ function SubscriptionContent() {
           ))}
         </View>
 
-        {/* طرق الدفع المقبولة */}
         {isStripeAvailable && (
           <View style={styles.paymentMethods}>
             <Text style={styles.paymentMethodsTitle}>طرق الدفع المقبولة</Text>
@@ -432,15 +409,10 @@ function SubscriptionContent() {
 }
 
 export default function SubscriptionScreen() {
-  // On web, don't wrap with StripeProvider
-  if (Platform.OS === 'web' || !StripeProvider) {
-    return <SubscriptionContent />;
-  }
-
   return (
-    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+    <StripeWrapper publishableKey={STRIPE_PUBLISHABLE_KEY}>
       <SubscriptionContent />
-    </StripeProvider>
+    </StripeWrapper>
   );
 }
 
