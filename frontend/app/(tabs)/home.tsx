@@ -256,6 +256,17 @@ function CoachHome({ user, router }: { user: any; router: any }) {
           <Ionicons name="chevron-back" size={20} color="#999" />
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/coach/sessions' as any)}>
+          <View style={[styles.menuIcon, { backgroundColor: '#E3F2FD' }]}>
+            <Ionicons name="time" size={22} color="#2196F3" />
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>سجل الجلسات</Text>
+            <Text style={styles.menuSubtitle}>تتبع جلسات التدريب</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color="#999" />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/my-trainees')}>
           <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
             <Ionicons name="school" size={22} color="#4CAF50" />
