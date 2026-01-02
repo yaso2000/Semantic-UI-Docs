@@ -1111,6 +1111,311 @@ async def join(sid, data):
         await sio.enter_room(sid, user_id)
         logger.info(f"User {user_id} joined room")
 
+# ==================== STRIPE PAYMENT ENDPOINTS ====================
+
+class CreatePaymentIntentRequest(BaseModel):
+    package_id: str
+    coach_id: str
+    amount: int  # Amount in cents
+
+class CreateSubscriptionRequest(BaseModel):
+    price_id: str  # Stripe Price ID
+
+@api_router.post("/payments/create-payment-intent")
+async def create_payment_intent(data: CreatePaymentIntentRequest, current_user: dict = Depends(get_current_user)):
+    """Create a PaymentIntent for trainee booking"""
+    try:
+        # Validate package exists
+        package = await db.coach_packages.find_one({"_id": data.package_id})
+        if not package:
+            package = await db.hourly_packages.find_one({"_id": data.package_id})
+        
+        if not package:
+            raise HTTPException(status_code=404, detail="Package not found")
+        
+        # Verify amount matches package price (security check)
+        expected_amount = int(package.get("price", 0) * 100)  # Convert to cents
+        if data.amount != expected_amount:
+            raise HTTPException(status_code=400, detail="Invalid amount")
+        
+        # Get or create Stripe customer for the trainee
+        stripe_customer_id = current_user.get("stripe_customer_id")
+        
+        if not stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=current_user["email"],
+                name=current_user.get("full_name", ""),
+                metadata={"user_id": current_user["_id"]}
+            )
+            stripe_customer_id = customer.id
+            
+            # Save stripe customer id to user
+            await db.users.update_one(
+                {"_id": current_user["_id"]},
+                {"$set": {"stripe_customer_id": stripe_customer_id}}
+            )
+        
+        # Create PaymentIntent
+        payment_intent = stripe.PaymentIntent.create(
+            amount=data.amount,
+            currency="usd",
+            customer=stripe_customer_id,
+            metadata={
+                "user_id": current_user["_id"],
+                "package_id": data.package_id,
+                "coach_id": data.coach_id,
+                "package_name": package.get("name", ""),
+            },
+            automatic_payment_methods={"enabled": True},
+        )
+        
+        # Create ephemeral key for Payment Sheet
+        ephemeral_key = stripe.EphemeralKey.create(
+            customer=stripe_customer_id,
+            stripe_version="2023-10-16"
+        )
+        
+        return {
+            "paymentIntent": payment_intent.client_secret,
+            "ephemeralKey": ephemeral_key.secret,
+            "customer": stripe_customer_id,
+            "publishableKey": os.environ.get("STRIPE_PUBLISHABLE_KEY", ""),
+        }
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/payments/confirm-booking")
+async def confirm_booking_payment(data: dict, current_user: dict = Depends(get_current_user)):
+    """Confirm booking after successful payment"""
+    try:
+        payment_intent_id = data.get("payment_intent_id")
+        package_id = data.get("package_id")
+        coach_id = data.get("coach_id")
+        notes = data.get("notes", "")
+        
+        # Verify payment with Stripe
+        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        
+        if payment_intent.status != "succeeded":
+            raise HTTPException(status_code=400, detail="Payment not completed")
+        
+        # Get package info
+        package = await db.coach_packages.find_one({"_id": package_id})
+        if not package:
+            package = await db.hourly_packages.find_one({"_id": package_id})
+        
+        if not package:
+            raise HTTPException(status_code=404, detail="Package not found")
+        
+        # Create confirmed booking
+        booking_id = str(uuid.uuid4())
+        booking_dict = {
+            "_id": booking_id,
+            "client_id": current_user["_id"],
+            "client_name": current_user.get("full_name", "متدرب"),
+            "coach_id": coach_id,
+            "package_id": package_id,
+            "package_name": package.get("name"),
+            "hours_purchased": package.get("hours", 0),
+            "hours_used": 0,
+            "amount": package.get("price"),
+            "payment_method": "stripe",
+            "payment_status": "completed",
+            "booking_status": "confirmed",
+            "stripe_payment_intent_id": payment_intent_id,
+            "notes": notes,
+            "created_at": datetime.utcnow()
+        }
+        
+        await db.bookings.insert_one(booking_dict)
+        
+        # Record payment
+        await db.payments.insert_one({
+            "_id": str(uuid.uuid4()),
+            "user_id": current_user["_id"],
+            "type": "booking",
+            "booking_id": booking_id,
+            "amount": package.get("price"),
+            "stripe_payment_intent_id": payment_intent_id,
+            "status": "completed",
+            "created_at": datetime.utcnow()
+        })
+        
+        return {"message": "Booking confirmed", "booking_id": booking_id}
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+# ==================== COACH SUBSCRIPTION ENDPOINTS ====================
+
+# Subscription price IDs (would be configured in Stripe Dashboard)
+SUBSCRIPTION_PRICES = {
+    "monthly_basic": {
+        "price_id": "price_monthly_basic",  # Replace with actual Stripe Price ID
+        "amount": 2999,  # $29.99
+        "name": "الاشتراك الشهري الأساسي"
+    },
+    "monthly_premium": {
+        "price_id": "price_monthly_premium",  # Replace with actual Stripe Price ID
+        "amount": 4999,  # $49.99
+        "name": "الاشتراك الشهري المميز"
+    }
+}
+
+@api_router.get("/subscriptions/plans")
+async def get_subscription_plans():
+    """Get available subscription plans"""
+    return list(SUBSCRIPTION_PRICES.values())
+
+@api_router.post("/subscriptions/create-setup-intent")
+async def create_subscription_setup(coach_user: dict = Depends(get_coach_user)):
+    """Create setup intent for adding payment method for subscription"""
+    try:
+        # Get or create Stripe customer
+        stripe_customer_id = coach_user.get("stripe_customer_id")
+        
+        if not stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=coach_user["email"],
+                name=coach_user.get("full_name", ""),
+                metadata={"user_id": coach_user["_id"], "role": "coach"}
+            )
+            stripe_customer_id = customer.id
+            
+            await db.users.update_one(
+                {"_id": coach_user["_id"]},
+                {"$set": {"stripe_customer_id": stripe_customer_id}}
+            )
+        
+        # Create SetupIntent for collecting payment method
+        setup_intent = stripe.SetupIntent.create(
+            customer=stripe_customer_id,
+            payment_method_types=["card"],
+            metadata={"user_id": coach_user["_id"]}
+        )
+        
+        # Create ephemeral key
+        ephemeral_key = stripe.EphemeralKey.create(
+            customer=stripe_customer_id,
+            stripe_version="2023-10-16"
+        )
+        
+        return {
+            "setupIntent": setup_intent.client_secret,
+            "ephemeralKey": ephemeral_key.secret,
+            "customer": stripe_customer_id,
+            "publishableKey": os.environ.get("STRIPE_PUBLISHABLE_KEY", ""),
+        }
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/subscriptions/activate")
+async def activate_subscription(data: dict, coach_user: dict = Depends(get_coach_user)):
+    """Activate subscription after payment method is set up"""
+    try:
+        plan_key = data.get("plan", "monthly_basic")
+        
+        if plan_key not in SUBSCRIPTION_PRICES:
+            raise HTTPException(status_code=400, detail="Invalid plan")
+        
+        plan = SUBSCRIPTION_PRICES[plan_key]
+        stripe_customer_id = coach_user.get("stripe_customer_id")
+        
+        if not stripe_customer_id:
+            raise HTTPException(status_code=400, detail="No payment method set up")
+        
+        # Check if already has active subscription
+        if coach_user.get("subscription_status") == "active":
+            return {"message": "Subscription already active", "status": "active"}
+        
+        # For now, we'll simulate subscription activation
+        # In production, you would create actual Stripe subscription
+        
+        # Update coach subscription status
+        await db.users.update_one(
+            {"_id": coach_user["_id"]},
+            {
+                "$set": {
+                    "subscription_status": "active",
+                    "subscription_plan": plan_key,
+                    "subscription_amount": plan["amount"],
+                    "subscription_start": datetime.utcnow(),
+                    "subscription_updated": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Record subscription payment
+        await db.payments.insert_one({
+            "_id": str(uuid.uuid4()),
+            "user_id": coach_user["_id"],
+            "type": "subscription",
+            "plan": plan_key,
+            "amount": plan["amount"] / 100,
+            "status": "completed",
+            "created_at": datetime.utcnow()
+        })
+        
+        return {"message": "Subscription activated", "status": "active", "plan": plan}
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/webhooks/stripe")
+async def stripe_webhook(request):
+    """Handle Stripe webhooks"""
+    from fastapi import Request
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        else:
+            # For testing without webhook secret
+            import json
+            event = json.loads(payload)
+            
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError as e:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    
+    # Handle events
+    event_type = event.get("type", "")
+    
+    if event_type == "payment_intent.succeeded":
+        payment_intent = event["data"]["object"]
+        logger.info(f"Payment succeeded: {payment_intent['id']}")
+        
+    elif event_type == "payment_intent.payment_failed":
+        payment_intent = event["data"]["object"]
+        logger.error(f"Payment failed: {payment_intent['id']}")
+        
+    elif event_type == "customer.subscription.updated":
+        subscription = event["data"]["object"]
+        customer_id = subscription.get("customer")
+        
+        # Update subscription status in database
+        user = await db.users.find_one({"stripe_customer_id": customer_id})
+        if user:
+            await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": {"subscription_status": subscription.get("status")}}
+            )
+    
+    return {"status": "success"}
+
 # ==================== ROOT ENDPOINT ====================
 
 @api_router.get("/")
