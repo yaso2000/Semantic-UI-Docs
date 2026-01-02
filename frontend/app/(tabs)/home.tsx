@@ -481,7 +481,7 @@ export default function HomeScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color="#4CAF50" />
       </View>
     );
   }
@@ -490,9 +490,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {user?.role === 'admin' ? (
-          <AdminHome user={user} router={router} />
-        ) : user?.role === 'coach' ? (
-          <CoachHome user={user} router={router} />
+          <YazoHome user={user} router={router} />
         ) : (
           <ClientHome user={user} router={router} />
         )}
