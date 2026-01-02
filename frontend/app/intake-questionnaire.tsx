@@ -297,6 +297,165 @@ export default function IntakeQuestionnaireScreen() {
     }
   };
 
+  // تحليل نتائج الاستبيان وإعطاء توصيات
+  const getAnalysis = () => {
+    const data = savedAnswers || answers;
+    if (!data) return null;
+
+    const focusAreas = data[2] || [];
+    const energyLevel = data[3] || 5;
+    const commitmentLevel = data[5] || 5;
+    const timeAvailable = data[6] || '';
+
+    let recommendations = [];
+    let focusMessage = '';
+
+    // تحليل مجالات التركيز
+    if (focusAreas.includes('الصحة الجسدية')) {
+      recommendations.push('🏃 برنامج لياقة بدنية مخصص');
+    }
+    if (focusAreas.includes('الصحة النفسية')) {
+      recommendations.push('🧘 جلسات تأمل وإدارة التوتر');
+    }
+    if (focusAreas.includes('العلاقات')) {
+      recommendations.push('💬 تطوير مهارات التواصل');
+    }
+    if (focusAreas.includes('العمل والمهنة')) {
+      recommendations.push('📈 تخطيط مسار مهني');
+    }
+    if (focusAreas.includes('الروحانية')) {
+      recommendations.push('🌟 تعزيز الجانب الروحي');
+    }
+
+    // تحليل مستوى الطاقة
+    if (energyLevel <= 4) {
+      focusMessage = 'لاحظنا أن مستوى طاقتك منخفض. سنعمل على تحسين ذلك أولاً!';
+    } else if (energyLevel >= 8) {
+      focusMessage = 'مستوى طاقتك ممتاز! هذا سيساعدك على التقدم بسرعة.';
+    } else {
+      focusMessage = 'مستوى طاقتك جيد ويمكن تحسينه أكثر.';
+    }
+
+    return {
+      focusAreas,
+      energyLevel,
+      commitmentLevel,
+      timeAvailable,
+      recommendations,
+      focusMessage
+    };
+  };
+
+  // صفحة عرض النتائج
+  const renderResults = () => {
+    const analysis = getAnalysis();
+    const data = savedAnswers || {};
+
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-forward" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>نتائج الاستبيان</Text>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.resultsContent}>
+          {/* شارة الإكمال */}
+          <View style={styles.completionBadge}>
+            <Ionicons name="checkmark-circle" size={60} color="#4CAF50" />
+            <Text style={styles.completionTitle}>تم إكمال الاستبيان! 🎉</Text>
+          </View>
+
+          {/* ملخص الأهداف */}
+          <View style={styles.resultCard}>
+            <View style={styles.resultCardHeader}>
+              <Text style={styles.resultCardTitle}>هدفك الرئيسي</Text>
+              <Ionicons name="flag" size={24} color="#FF9800" />
+            </View>
+            <Text style={styles.resultCardValue}>{data[1] || 'لم يحدد'}</Text>
+          </View>
+
+          {/* مجالات التركيز */}
+          <View style={styles.resultCard}>
+            <View style={styles.resultCardHeader}>
+              <Text style={styles.resultCardTitle}>مجالات التركيز</Text>
+              <Ionicons name="layers" size={24} color="#2196F3" />
+            </View>
+            <View style={styles.tagsContainer}>
+              {(data[2] || []).map((area: string, index: number) => (
+                <View key={index} style={styles.tag}>
+                  <Text style={styles.tagText}>{area}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* المقاييس */}
+          <View style={styles.metricsRow}>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricValue}>{data[3] || 5}/10</Text>
+              <Text style={styles.metricLabel}>مستوى الطاقة</Text>
+              <Ionicons name="flash" size={20} color={data[3] >= 7 ? '#4CAF50' : data[3] >= 4 ? '#FF9800' : '#F44336'} />
+            </View>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricValue}>{data[5] || 5}/10</Text>
+              <Text style={styles.metricLabel}>مستوى الالتزام</Text>
+              <Ionicons name="heart" size={20} color={data[5] >= 7 ? '#4CAF50' : data[5] >= 4 ? '#FF9800' : '#F44336'} />
+            </View>
+          </View>
+
+          {/* الوقت المتاح */}
+          <View style={styles.resultCard}>
+            <View style={styles.resultCardHeader}>
+              <Text style={styles.resultCardTitle}>الوقت المتاح أسبوعياً</Text>
+              <Ionicons name="time" size={24} color="#9C27B0" />
+            </View>
+            <Text style={styles.resultCardValue}>{data[6] || 'لم يحدد'}</Text>
+          </View>
+
+          {/* التوصيات */}
+          {analysis && analysis.recommendations.length > 0 && (
+            <View style={styles.recommendationsCard}>
+              <Text style={styles.recommendationsTitle}>التوصيات المقترحة</Text>
+              <Text style={styles.focusMessage}>{analysis.focusMessage}</Text>
+              {analysis.recommendations.map((rec: string, index: number) => (
+                <View key={index} style={styles.recommendationItem}>
+                  <Text style={styles.recommendationText}>{rec}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* أزرار الإجراءات */}
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity 
+              style={styles.bookBtn}
+              onPress={() => router.push('/(tabs)/bookings')}
+            >
+              <Ionicons name="calendar" size={20} color="#fff" />
+              <Text style={styles.bookBtnText}>احجز جلستك الأولى</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.retakeBtn} 
+              onPress={() => { 
+                setCompleted(false); 
+                setCurrentQuestion(0); 
+                setAnswers({}); 
+                setSavedAnswers(null);
+                AsyncStorage.removeItem('intake_completed');
+              }}
+            >
+              <Ionicons name="refresh" size={20} color="#FF9800" />
+              <Text style={styles.retakeBtnText}>إعادة الاستبيان</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  };
+
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -306,24 +465,7 @@ export default function IntakeQuestionnaireScreen() {
   }
 
   if (completed) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-forward" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>استبيان القبول</Text>
-        </View>
-        <View style={styles.completedState}>
-          <Ionicons name="checkmark-circle" size={80} color="#4CAF50" />
-          <Text style={styles.completedTitle}>تم إكمال الاستبيان ✅</Text>
-          <Text style={styles.completedText}>شكراً لك! لقد أكملت استبيان القبول بنجاح.</Text>
-          <TouchableOpacity style={styles.retakeBtn} onPress={() => { setCompleted(false); setCurrentQuestion(0); setAnswers({}); }}>
-            <Text style={styles.retakeBtnText}>إعادة الاستبيان</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
+    return renderResults();
   }
 
   const question = QUESTIONS[currentQuestion];
