@@ -98,7 +98,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/intake-questionnaire' as any)}>
             <View style={styles.menuIconContainer}>
               <Ionicons name="clipboard" size={24} color="#2196F3" />
             </View>
@@ -106,7 +106,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/resources' as any)}>
             <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
               <Ionicons name="folder" size={24} color="#4CAF50" />
             </View>
@@ -114,7 +114,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/habit-tracker' as any)}>
             <View style={[styles.menuIconContainer, { backgroundColor: '#FFF3E0' }]}>
               <Ionicons name="checkmark-done" size={24} color="#FF9800" />
             </View>
@@ -122,7 +122,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings' as any)}>
             <View style={[styles.menuIconContainer, { backgroundColor: '#F3E5F5' }]}>
               <Ionicons name="settings" size={24} color="#9C27B0" />
             </View>
@@ -130,7 +130,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-back" size={24} color="#999" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/help' as any)}>
             <View style={[styles.menuIconContainer, { backgroundColor: '#E0F7FA' }]}>
               <Ionicons name="help-circle" size={24} color="#00BCD4" />
             </View>
