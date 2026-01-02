@@ -15,10 +15,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+
+// Conditionally import Stripe only on native platforms
+let StripeProvider: any = null;
+let useStripe: any = null;
+
+if (Platform.OS !== 'web') {
+  try {
+    const stripe = require('@stripe/stripe-react-native');
+    StripeProvider = stripe.StripeProvider;
+    useStripe = stripe.useStripe;
+  } catch (e) {
+    console.log('Stripe not available on web');
+  }
+}
 
 interface Package {
   id: string;
@@ -42,12 +55,16 @@ function BookingContent() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>(Platform.OS === 'web' ? 'cash' : 'stripe');
   const router = useRouter();
   
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  // Use Stripe hooks only on native
+  const stripeHooks = Platform.OS !== 'web' && useStripe ? useStripe() : { initPaymentSheet: null, presentPaymentSheet: null };
+  const { initPaymentSheet, presentPaymentSheet } = stripeHooks;
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+
+  const isStripeAvailable = Platform.OS !== 'web' && initPaymentSheet && presentPaymentSheet;
 
   useEffect(() => {
     loadData();
@@ -79,7 +96,7 @@ function BookingContent() {
   };
 
   const initializePaymentSheet = async () => {
-    if (!pkg || !coach) return null;
+    if (!pkg || !coach || !initPaymentSheet) return null;
     
     try {
       const token = await AsyncStorage.getItem('token');
@@ -129,7 +146,7 @@ function BookingContent() {
   };
 
   const handleStripePayment = async () => {
-    if (!pkg || !coach) return;
+    if (!pkg || !coach || !presentPaymentSheet) return;
 
     setProcessing(true);
     try {
@@ -245,7 +262,7 @@ function BookingContent() {
   };
 
   const handleBooking = () => {
-    if (paymentMethod === 'stripe') {
+    if (paymentMethod === 'stripe' && isStripeAvailable) {
       handleStripePayment();
     } else {
       handleCashPayment();
@@ -345,24 +362,26 @@ function BookingContent() {
             <Text style={styles.sectionTitle}>طريقة الدفع</Text>
           </View>
           
-          <TouchableOpacity
-            style={[styles.paymentOption, paymentMethod === 'stripe' && styles.paymentOptionActive]}
-            onPress={() => setPaymentMethod('stripe')}
-          >
-            <View style={styles.paymentOptionContent}>
-              <View style={[styles.radioOuter, paymentMethod === 'stripe' && styles.radioOuterActive]}>
-                {paymentMethod === 'stripe' && <View style={styles.radioInner} />}
+          {isStripeAvailable && (
+            <TouchableOpacity
+              style={[styles.paymentOption, paymentMethod === 'stripe' && styles.paymentOptionActive]}
+              onPress={() => setPaymentMethod('stripe')}
+            >
+              <View style={styles.paymentOptionContent}>
+                <View style={[styles.radioOuter, paymentMethod === 'stripe' && styles.radioOuterActive]}>
+                  {paymentMethod === 'stripe' && <View style={styles.radioInner} />}
+                </View>
+                <View style={styles.paymentOptionInfo}>
+                  <Text style={styles.paymentOptionTitle}>الدفع الإلكتروني</Text>
+                  <Text style={styles.paymentOptionDesc}>بطاقة ائتمانية / Apple Pay / Google Pay</Text>
+                </View>
               </View>
-              <View style={styles.paymentOptionInfo}>
-                <Text style={styles.paymentOptionTitle}>الدفع الإلكتروني</Text>
-                <Text style={styles.paymentOptionDesc}>بطاقة ائتمانية / Apple Pay / Google Pay</Text>
+              <View style={styles.paymentIcons}>
+                <Ionicons name="card" size={24} color="#1976D2" />
+                <Ionicons name="logo-apple" size={24} color="#333" />
               </View>
-            </View>
-            <View style={styles.paymentIcons}>
-              <Ionicons name="card" size={24} color="#1976D2" />
-              <Ionicons name="logo-apple" size={24} color="#333" />
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.paymentOption, paymentMethod === 'cash' && styles.paymentOptionActive]}
@@ -379,6 +398,15 @@ function BookingContent() {
             </View>
             <Ionicons name="cash" size={24} color="#4CAF50" />
           </TouchableOpacity>
+
+          {!isStripeAvailable && Platform.OS === 'web' && (
+            <View style={styles.webNotice}>
+              <Ionicons name="information-circle" size={18} color="#1976D2" />
+              <Text style={styles.webNoticeText}>
+                الدفع الإلكتروني متاح عبر التطبيق على الهاتف المحمول
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* ملاحظات */}
@@ -400,7 +428,7 @@ function BookingContent() {
         </View>
 
         {/* معلومات الدفع */}
-        {paymentMethod === 'stripe' ? (
+        {paymentMethod === 'stripe' && isStripeAvailable ? (
           <View style={styles.paymentInfo}>
             <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
             <Text style={styles.paymentInfoText}>
@@ -427,19 +455,19 @@ function BookingContent() {
           ) : (
             <>
               <Ionicons 
-                name={paymentMethod === 'stripe' ? 'card' : 'checkmark-circle'} 
+                name={paymentMethod === 'stripe' && isStripeAvailable ? 'card' : 'checkmark-circle'} 
                 size={24} 
                 color="#fff" 
               />
               <Text style={styles.confirmBtnText}>
-                {paymentMethod === 'stripe' ? `ادفع $${pkg.price} الآن` : 'تأكيد الحجز'}
+                {paymentMethod === 'stripe' && isStripeAvailable ? `ادفع $${pkg.price} الآن` : 'تأكيد الحجز'}
               </Text>
             </>
           )}
         </TouchableOpacity>
 
         {/* شعار الأمان */}
-        {paymentMethod === 'stripe' && (
+        {paymentMethod === 'stripe' && isStripeAvailable && (
           <View style={styles.securityBadge}>
             <Ionicons name="lock-closed" size={14} color="#999" />
             <Text style={styles.securityText}>معاملة آمنة ومشفرة بواسطة Stripe</Text>
@@ -451,6 +479,11 @@ function BookingContent() {
 }
 
 export default function BookingScreen() {
+  // On web, don't wrap with StripeProvider
+  if (Platform.OS === 'web' || !StripeProvider) {
+    return <BookingContent />;
+  }
+
   return (
     <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
       <BookingContent />
@@ -677,6 +710,22 @@ const styles = StyleSheet.create({
   paymentIcons: {
     flexDirection: 'row',
     gap: 8,
+  },
+  webNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    padding: 12,
+    borderRadius: 10,
+    gap: 8,
+    marginTop: 4,
+  },
+  webNoticeText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: 'Cairo_400Regular',
+    color: '#1976D2',
+    textAlign: 'right',
   },
   
   notesSection: {
