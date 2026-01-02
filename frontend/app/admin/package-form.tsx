@@ -18,6 +18,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
+// دالة Alert تعمل على الويب والموبايل
+const showAlert = (title: string, message: string, buttons?: any[]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    if (buttons && buttons[0]?.onPress) {
+      buttons[0].onPress();
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
+
 export default function PackageForm() {
   const router = useRouter();
   const params = useLocalSearchParams();
