@@ -799,8 +799,17 @@ async def get_available_chat_contacts(current_user: dict = Depends(get_current_u
             })
     
     # Sort: unread first, then by last message time
-    contacts.sort(key=lambda x: (-(x.get("unread_count") or 0), x.get("last_message_time") or ""), reverse=False)
-    contacts.sort(key=lambda x: x.get("unread_count") or 0, reverse=True)
+    def sort_key(x):
+        unread = -(x.get("unread_count") or 0)
+        last_time = x.get("last_message_time")
+        if last_time:
+            if isinstance(last_time, str):
+                return (unread, last_time)
+            else:
+                return (unread, last_time.isoformat())
+        return (unread, "")
+    
+    contacts.sort(key=sort_key)
     
     return contacts
 
