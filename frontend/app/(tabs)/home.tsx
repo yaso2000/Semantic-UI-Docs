@@ -13,18 +13,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
-// الركائز الأربع - توجه للحاسبات
+// الركائز الأربع
 const pillars = [
   { 
     id: 'physical', 
     title: 'اللياقة البدنية', 
     titleEn: 'Physical Fitness',
-    icon: 'barbell', 
+    icon: 'fitness', 
     description: 'معاً نبني جسماً قوياً وصحياً',
+    color: COLORS.physical,
     route: '/(tabs)/calculators'
   },
   { 
@@ -33,6 +34,7 @@ const pillars = [
     titleEn: 'Nutritional Health',
     icon: 'nutrition', 
     description: 'تغذية متوازنة لحياة أفضل',
+    color: COLORS.nutritional,
     route: '/(tabs)/calculators'
   },
   { 
@@ -41,6 +43,7 @@ const pillars = [
     titleEn: 'Mental Wellness',
     icon: 'happy', 
     description: 'عقل صافٍ وروح متزنة',
+    color: COLORS.mental,
     route: '/(tabs)/calculators'
   },
   { 
@@ -49,6 +52,7 @@ const pillars = [
     titleEn: 'Spiritual Well-being',
     icon: 'sparkles', 
     description: 'السلام الداخلي والتواصل الروحي',
+    color: COLORS.spiritual,
     route: '/(tabs)/calculators'
   },
 ];
@@ -60,24 +64,36 @@ function ClientHome({ user, router }: { user: any; router: any }) {
       {/* الهيدر */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Ionicons name="sparkles" size={32} color={COLORS.gold} />
+          <Ionicons name="leaf" size={36} color={COLORS.teal} />
         </View>
         <Text style={styles.logo}>اسأل يازو</Text>
         <Text style={styles.greeting}>أهلاً {user?.full_name?.split(' ')[0] || 'بك'}! 👋</Text>
-        <Text style={styles.subtitle}>منهج 4 ركائز للتطوير الشامل</Text>
+        <Text style={styles.subtitle}>رحلتك نحو حياة متوازنة</Text>
+      </View>
+
+      {/* بطاقة الترحيب */}
+      <View style={styles.welcomeCard}>
+        <View style={styles.welcomeIcon}>
+          <Ionicons name="sunny" size={24} color={COLORS.gold} />
+        </View>
+        <View style={styles.welcomeContent}>
+          <Text style={styles.welcomeTitle}>صباح النشاط والتجديد</Text>
+          <Text style={styles.welcomeText}>استكشف الركائز الأربعة لتحقيق التوازن</Text>
+        </View>
       </View>
 
       {/* الركائز الأربع */}
+      <Text style={styles.sectionTitle}>الركائز الأربعة</Text>
       <View style={styles.pillarsContainer}>
         {pillars.map((pillar, index) => (
           <TouchableOpacity
             key={pillar.id}
             style={styles.pillarCard}
             onPress={() => router.push(pillar.route as any)}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <View style={styles.pillarIconContainer}>
-              <Ionicons name={pillar.icon as any} size={28} color={COLORS.gold} />
+            <View style={[styles.pillarIconContainer, { backgroundColor: `${pillar.color}15` }]}>
+              <Ionicons name={pillar.icon as any} size={26} color={pillar.color} />
             </View>
             <View style={styles.pillarContent}>
               <Text style={styles.pillarNumber}>الركيزة {index + 1}</Text>
@@ -85,52 +101,51 @@ function ClientHome({ user, router }: { user: any; router: any }) {
               <Text style={styles.pillarTitleEn}>{pillar.titleEn}</Text>
               <Text style={styles.pillarDescription}>{pillar.description}</Text>
             </View>
-            <Ionicons name="chevron-back" size={22} color={COLORS.gold} />
+            <Ionicons name="chevron-back" size={20} color={pillar.color} />
           </TouchableOpacity>
         ))}
       </View>
 
       {/* أدوات سريعة */}
-      <View style={styles.quickTools}>
-        <Text style={styles.sectionTitle}>أدوات سريعة</Text>
-        <View style={styles.toolsRow}>
-          <TouchableOpacity 
-            style={styles.toolCard}
-            onPress={() => router.push('/habit-tracker' as any)}
-          >
-            <View style={styles.toolIcon}>
-              <Ionicons name="checkmark-done" size={24} color={COLORS.gold} />
-            </View>
-            <Text style={styles.toolText}>متتبع العادات</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.toolCard}
-            onPress={() => router.push('/intake-questionnaire' as any)}
-          >
-            <View style={styles.toolIcon}>
-              <Ionicons name="clipboard" size={24} color={COLORS.gold} />
-            </View>
-            <Text style={styles.toolText}>استبيان القبول</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.toolCard}
-            onPress={() => router.push('/resources' as any)}
-          >
-            <View style={styles.toolIcon}>
-              <Ionicons name="library" size={24} color={COLORS.gold} />
-            </View>
-            <Text style={styles.toolText}>المكتبة</Text>
-          </TouchableOpacity>
-        </View>
+      <Text style={styles.sectionTitle}>أدوات سريعة</Text>
+      <View style={styles.toolsRow}>
+        <TouchableOpacity 
+          style={styles.toolCard}
+          onPress={() => router.push('/habit-tracker' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.teal}10` }]}>
+            <Ionicons name="checkmark-done" size={22} color={COLORS.teal} />
+          </View>
+          <Text style={styles.toolText}>متتبع العادات</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.toolCard}
+          onPress={() => router.push('/intake-questionnaire' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.sage}20` }]}>
+            <Ionicons name="clipboard" size={22} color={COLORS.sageDark} />
+          </View>
+          <Text style={styles.toolText}>استبيان القبول</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.toolCard}
+          onPress={() => router.push('/resources' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.gold}15` }]}>
+            <Ionicons name="library" size={22} color={COLORS.goldDark} />
+          </View>
+          <Text style={styles.toolText}>المكتبة</Text>
+        </TouchableOpacity>
       </View>
 
       {/* زر حجز جلسة */}
       <TouchableOpacity 
         style={styles.bookingBtn}
         onPress={() => router.push('/(tabs)/bookings' as any)}
+        activeOpacity={0.8}
       >
+        <Ionicons name="calendar" size={22} color={COLORS.white} />
         <Text style={styles.bookingBtnText}>احجز جلستك مع يازو</Text>
-        <Ionicons name="calendar" size={22} color={COLORS.primary} />
       </TouchableOpacity>
     </>
   );
@@ -169,9 +184,9 @@ function YazoHome({ user, router }: { user: any; router: any }) {
 
   return (
     <>
-      <View style={styles.yazoHeader}>
+      <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Ionicons name="sparkles" size={32} color={COLORS.gold} />
+          <Ionicons name="leaf" size={36} color={COLORS.teal} />
         </View>
         <Text style={styles.logo}>اسأل يازو</Text>
         <Text style={styles.greeting}>مرحباً يازو! 👋</Text>
@@ -180,78 +195,85 @@ function YazoHome({ user, router }: { user: any; router: any }) {
 
       {/* الإحصائيات */}
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Ionicons name="people" size={28} color={COLORS.gold} />
+        <View style={[styles.statCard, { borderLeftColor: COLORS.teal, borderLeftWidth: 3 }]}>
+          <View style={[styles.statIcon, { backgroundColor: `${COLORS.teal}10` }]}>
+            <Ionicons name="people" size={22} color={COLORS.teal} />
+          </View>
           <Text style={styles.statNumber}>{stats.total_clients}</Text>
           <Text style={styles.statLabel}>المتدربين</Text>
         </View>
-        <View style={styles.statCard}>
-          <Ionicons name="calendar" size={28} color={COLORS.gold} />
+        <View style={[styles.statCard, { borderLeftColor: COLORS.sage, borderLeftWidth: 3 }]}>
+          <View style={[styles.statIcon, { backgroundColor: `${COLORS.sage}20` }]}>
+            <Ionicons name="calendar" size={22} color={COLORS.sageDark} />
+          </View>
           <Text style={styles.statNumber}>{stats.active_bookings}</Text>
           <Text style={styles.statLabel}>الحجوزات</Text>
         </View>
-        <View style={styles.statCard}>
-          <Ionicons name="cash" size={28} color={COLORS.gold} />
+        <View style={[styles.statCard, { borderLeftColor: COLORS.gold, borderLeftWidth: 3 }]}>
+          <View style={[styles.statIcon, { backgroundColor: `${COLORS.gold}15` }]}>
+            <Ionicons name="cash" size={22} color={COLORS.goldDark} />
+          </View>
           <Text style={styles.statNumber}>${stats.total_revenue}</Text>
           <Text style={styles.statLabel}>الإيرادات</Text>
         </View>
       </View>
 
       {/* قائمة الإدارة */}
+      <Text style={styles.sectionTitle}>الإدارة</Text>
       <View style={styles.adminMenu}>
         <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/(tabs)/my-trainees')}>
-          <View style={styles.adminMenuIcon}>
-            <Ionicons name="people" size={24} color={COLORS.gold} />
+          <View style={[styles.adminMenuIcon, { backgroundColor: `${COLORS.teal}10` }]}>
+            <Ionicons name="people" size={22} color={COLORS.teal} />
           </View>
           <View style={styles.adminMenuContent}>
             <Text style={styles.adminMenuTitle}>المتدربين</Text>
-            <Text style={styles.adminMenuSubtitle}>إدارة المتدربين</Text>
+            <Text style={styles.adminMenuSubtitle}>إدارة ومتابعة المتدربين</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/coach/sessions' as any)}>
-          <View style={styles.adminMenuIcon}>
-            <Ionicons name="time" size={24} color={COLORS.gold} />
+          <View style={[styles.adminMenuIcon, { backgroundColor: `${COLORS.sage}20` }]}>
+            <Ionicons name="time" size={22} color={COLORS.sageDark} />
           </View>
           <View style={styles.adminMenuContent}>
             <Text style={styles.adminMenuTitle}>الجلسات</Text>
-            <Text style={styles.adminMenuSubtitle}>سجل الجلسات</Text>
+            <Text style={styles.adminMenuSubtitle}>سجل وإدارة الجلسات</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/admin/packages' as any)}>
-          <View style={styles.adminMenuIcon}>
-            <Ionicons name="pricetags" size={24} color={COLORS.gold} />
+          <View style={[styles.adminMenuIcon, { backgroundColor: `${COLORS.gold}15` }]}>
+            <Ionicons name="pricetags" size={22} color={COLORS.goldDark} />
           </View>
           <View style={styles.adminMenuContent}>
             <Text style={styles.adminMenuTitle}>الباقات</Text>
-            <Text style={styles.adminMenuSubtitle}>إدارة الباقات</Text>
+            <Text style={styles.adminMenuSubtitle}>إدارة الأسعار والباقات</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/(tabs)/bookings')}>
-          <View style={styles.adminMenuIcon}>
-            <Ionicons name="receipt" size={24} color={COLORS.gold} />
+          <View style={[styles.adminMenuIcon, { backgroundColor: `${COLORS.spiritual}15` }]}>
+            <Ionicons name="receipt" size={22} color={COLORS.spiritual} />
           </View>
           <View style={styles.adminMenuContent}>
             <Text style={styles.adminMenuTitle}>الحجوزات الواردة</Text>
             <Text style={styles.adminMenuSubtitle}>طلبات الحجز الجديدة</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/(tabs)/chat')}>
-          <View style={styles.adminMenuIcon}>
-            <Ionicons name="chatbubbles" size={24} color={COLORS.gold} />
+          <View style={[styles.adminMenuIcon, { backgroundColor: `${COLORS.info}15` }]}>
+            <Ionicons name="chatbubbles" size={22} color={COLORS.info} />
           </View>
           <View style={styles.adminMenuContent}>
             <Text style={styles.adminMenuTitle}>المحادثات</Text>
             <Text style={styles.adminMenuSubtitle}>التواصل مع المتدربين</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
       </View>
     </>
@@ -288,16 +310,19 @@ export default function HomeScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-        <ActivityIndicator size="large" color={COLORS.gold} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <ActivityIndicator size="large" color={COLORS.teal} />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {user?.role === 'admin' ? (
           <YazoHome user={user} router={router} />
         ) : (
@@ -311,82 +336,119 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: COLORS.primary 
+    backgroundColor: COLORS.background 
   },
   loadingContainer: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center',
-    backgroundColor: COLORS.primary 
+    backgroundColor: COLORS.background 
   },
   scrollContent: { 
-    padding: 20, 
+    padding: SPACING.lg, 
     paddingBottom: 100 
   },
   
   // Header
   header: { 
     alignItems: 'center', 
-    marginBottom: 28,
-    paddingTop: 10,
-  },
-  yazoHeader: { 
-    alignItems: 'center', 
-    marginBottom: 28,
-    paddingTop: 10,
+    marginBottom: SPACING.lg,
+    paddingTop: SPACING.sm,
   },
   logoContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: `${COLORS.teal}25`,
   },
   logo: { 
-    fontSize: 32, 
+    fontSize: 28, 
     fontFamily: FONTS.bold, 
-    color: COLORS.gold,
-    marginBottom: 4,
+    color: COLORS.teal,
+    marginBottom: 2,
   },
   greeting: { 
-    fontSize: 22, 
+    fontSize: 20, 
     fontFamily: FONTS.semiBold, 
     color: COLORS.text,
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   subtitle: { 
     fontSize: 14, 
     fontFamily: FONTS.regular, 
-    color: COLORS.textMuted,
-    marginTop: 4,
-    textAlign: 'center',
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+
+  // Welcome Card
+  welcomeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.md,
+  },
+  welcomeIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: `${COLORS.gold}15`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: SPACING.md,
+  },
+  welcomeContent: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  welcomeTitle: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    marginBottom: 2,
+  },
+  welcomeText: {
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+  },
+
+  // Section Title
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    textAlign: 'right',
+    marginBottom: SPACING.md,
+    marginTop: SPACING.sm,
   },
 
   // Pillars
   pillarsContainer: {
-    gap: 12,
+    gap: SPACING.sm,
   },
   pillarCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    ...SHADOWS.sm,
   },
   pillarIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 14,
+    marginLeft: SPACING.md,
   },
   pillarContent: {
     flex: 1,
@@ -394,18 +456,18 @@ const styles = StyleSheet.create({
   pillarNumber: {
     fontSize: 11,
     fontFamily: FONTS.semiBold,
-    color: COLORS.gold,
+    color: COLORS.textMuted,
     marginBottom: 2,
     textAlign: 'right',
   },
   pillarTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: FONTS.bold,
     color: COLORS.text,
     textAlign: 'right',
   },
   pillarTitleEn: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
     marginBottom: 4,
@@ -414,42 +476,30 @@ const styles = StyleSheet.create({
   pillarDescription: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'right',
   },
 
   // Quick Tools
-  quickTools: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: FONTS.bold,
-    color: COLORS.gold,
-    textAlign: 'right',
-    marginBottom: 12,
-  },
   toolsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: SPACING.sm,
   },
   toolCard: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    ...SHADOWS.sm,
   },
   toolIcon: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   toolText: {
     fontSize: 12,
@@ -463,67 +513,73 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gold,
-    borderRadius: 14,
-    padding: 16,
-    marginTop: 24,
-    gap: 10,
+    backgroundColor: COLORS.teal,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginTop: SPACING.lg,
+    gap: SPACING.sm,
+    ...SHADOWS.md,
   },
   bookingBtnText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.primary,
+    color: COLORS.white,
   },
 
   // Stats
   statsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
   },
   statCard: {
     flex: 1,
-    backgroundColor: COLORS.secondary,
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    ...SHADOWS.sm,
+  },
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
   },
   statNumber: {
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-    marginTop: 6,
+    color: COLORS.text,
+    marginTop: SPACING.xs,
   },
   statLabel: {
     fontSize: 11,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    marginTop: 4,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
 
   // Admin Menu
   adminMenu: {
-    gap: 10,
+    gap: SPACING.sm,
   },
   adminMenuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    ...SHADOWS.sm,
   },
   adminMenuIcon: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    marginLeft: SPACING.md,
   },
   adminMenuContent: {
     flex: 1,
@@ -537,7 +593,7 @@ const styles = StyleSheet.create({
   adminMenuSubtitle: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
 });
