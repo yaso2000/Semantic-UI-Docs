@@ -7,15 +7,15 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
   RefreshControl,
-  Platform,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -31,11 +31,11 @@ export default function PackagesManagement() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [packages, setPackages] = useState<Package[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
 
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
-  // تحديث القائمة عند كل زيارة للصفحة
   useFocusEffect(
     useCallback(() => {
       loadPackages();
@@ -63,10 +63,7 @@ export default function PackagesManagement() {
     loadPackages();
   };
 
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const handleDeletePackage = async (packageId: string, packageName: string) => {
-    // حذف مباشر بدون confirm (سنضيف تأكيد لاحقاً)
+  const handleDeletePackage = async (packageId: string) => {
     setDeletingId(packageId);
     try {
       const token = await AsyncStorage.getItem('token');
@@ -102,7 +99,7 @@ export default function PackagesManagement() {
     <View style={styles.packageCard}>
       <View style={styles.packageHeader}>
         <View style={styles.packageIcon}>
-          <Ionicons name="fitness" size={28} color="#fff" />
+          <Ionicons name="fitness" size={28} color={COLORS.primary} />
         </View>
         <View style={styles.packageInfo}>
           <Text style={styles.packageName}>{item.name}</Text>
@@ -112,15 +109,15 @@ export default function PackagesManagement() {
       
       <View style={styles.packageDetails}>
         <View style={styles.detailItem}>
-          <Ionicons name="time-outline" size={20} color="#666" />
+          <Ionicons name="time-outline" size={20} color={COLORS.gold} />
           <Text style={styles.detailText}>{item.hours} ساعة</Text>
         </View>
         <View style={styles.detailItem}>
-          <Ionicons name="cash-outline" size={20} color="#666" />
+          <Ionicons name="cash-outline" size={20} color={COLORS.gold} />
           <Text style={styles.detailText}>${item.price}</Text>
         </View>
         <View style={styles.detailItem}>
-          <Ionicons name="calculator-outline" size={20} color="#666" />
+          <Ionicons name="calculator-outline" size={20} color={COLORS.gold} />
           <Text style={styles.detailText}>${(item.price / item.hours).toFixed(2)}/ساعة</Text>
         </View>
       </View>
@@ -130,15 +127,22 @@ export default function PackagesManagement() {
           style={[styles.actionBtn, styles.editBtn]}
           onPress={() => handleEditPackage(item)}
         >
-          <Ionicons name="create" size={20} color="#2196F3" />
-          <Text style={[styles.actionBtnText, { color: '#2196F3' }]}>تعديل</Text>
+          <Ionicons name="create" size={20} color={COLORS.gold} />
+          <Text style={[styles.actionBtnText, { color: COLORS.gold }]}>تعديل</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.actionBtn, styles.deleteBtn]}
-          onPress={() => handleDeletePackage(item.id, item.name)}
+          onPress={() => handleDeletePackage(item.id)}
+          disabled={deletingId === item.id}
         >
-          <Ionicons name="trash" size={20} color="#F44336" />
-          <Text style={[styles.actionBtnText, { color: '#F44336' }]}>حذف</Text>
+          {deletingId === item.id ? (
+            <ActivityIndicator size="small" color={COLORS.error} />
+          ) : (
+            <>
+              <Ionicons name="trash" size={20} color={COLORS.error} />
+              <Text style={[styles.actionBtnText, { color: COLORS.error }]}>حذف</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -147,19 +151,21 @@ export default function PackagesManagement() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.gold} />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-forward" size={24} color="#333" />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>إدارة الباقات</Text>
       </View>
@@ -169,18 +175,18 @@ export default function PackagesManagement() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.gold} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="pricetags-outline" size={64} color="#ccc" />
+            <Ionicons name="pricetags-outline" size={64} color={COLORS.border} />
             <Text style={styles.emptyText}>لا توجد باقات حالياً</Text>
             <Text style={styles.emptySubtext}>أنشئ أول باقة تدريبية</Text>
           </View>
         }
       />
       <TouchableOpacity style={styles.fab} onPress={handleCreatePackage}>
-        <Ionicons name="add" size={32} color="#fff" />
+        <Ionicons name="add" size={32} color={COLORS.primary} />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -189,29 +195,36 @@ export default function PackagesManagement() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.primary,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.primary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: COLORS.border,
   },
   backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 16,
   },
   headerTitle: {
     flex: 1,
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
     textAlign: 'right',
   },
   listContent: {
@@ -219,15 +232,12 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   packageCard: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   packageHeader: {
     flexDirection: 'row',
@@ -237,7 +247,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#4CAF50',
+    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 16,
@@ -247,14 +257,14 @@ const styles = StyleSheet.create({
   },
   packageName: {
     fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
     textAlign: 'right',
   },
   packageDescription: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 4,
     textAlign: 'right',
   },
@@ -264,7 +274,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: COLORS.border,
     marginBottom: 12,
   },
   detailItem: {
@@ -274,8 +284,8 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#666',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textMuted,
   },
   packageActions: {
     flexDirection: 'row',
@@ -291,14 +301,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   editBtn: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    borderWidth: 1,
+    borderColor: COLORS.gold,
   },
   deleteBtn: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+    borderWidth: 1,
+    borderColor: COLORS.error,
   },
   actionBtnText: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
+    fontFamily: FONTS.semiBold,
   },
   emptyContainer: {
     flex: 1,
@@ -308,14 +322,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontFamily: 'Cairo_700Bold',
-    color: '#999',
+    fontFamily: FONTS.bold,
+    color: COLORS.textMuted,
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#bbb',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
   fab: {
@@ -325,7 +339,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#4CAF50',
+    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
