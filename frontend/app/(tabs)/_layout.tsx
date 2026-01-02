@@ -36,6 +36,8 @@ export default function TabsLayout() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { checkAndPlaySound } = useNotificationSound();
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     loadUserRole();
@@ -71,7 +73,16 @@ export default function TabsLayout() {
 
       if (response.ok) {
         const data = await response.json();
-        setUnreadCount(data.unread_count);
+        const newCount = data.unread_count;
+        
+        // Play sound only after first load (not on app startup)
+        if (!isFirstLoad.current) {
+          checkAndPlaySound(newCount);
+        } else {
+          isFirstLoad.current = false;
+        }
+        
+        setUnreadCount(newCount);
       }
     } catch (error) {
       console.error('Error fetching unread count:', error);
