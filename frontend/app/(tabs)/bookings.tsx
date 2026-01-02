@@ -3,16 +3,20 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
+  ScrollView,
   ActivityIndicator,
   Modal,
+  TextInput,
+  Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useRouter } from 'expo-router';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -21,21 +25,19 @@ interface Package {
   name: string;
   hours: number;
   price: number;
-  description: string;
+  description?: string;
 }
 
 interface Booking {
   id: string;
-  coach_id: string;
-  coach_name: string;
   package_name: string;
   hours_purchased: number;
   hours_used: number;
-  amount: number;
-  payment_status: string;
   booking_status: string;
-  notes: string;
+  payment_status: string;
   created_at: string;
+  client_name?: string;
+  amount?: number;
 }
 
 export default function BookingsScreen() {
@@ -44,11 +46,10 @@ export default function BookingsScreen() {
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'packages' | 'bookings'>('packages');
-  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [userRole, setUserRole] = useState<string>('client');
+  const router = useRouter();
   
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   useEffect(() => {
     loadData();
@@ -63,7 +64,6 @@ export default function BookingsScreen() {
       setUserRole(role);
       
       if (role === 'client') {
-        // للمتدرب: تحميل الباقات المتاحة وحجوزاته
         const packagesRes = await fetch(`${API_URL}/api/packages`);
         const packagesData = await packagesRes.json();
         setPackages(packagesData);
@@ -76,7 +76,6 @@ export default function BookingsScreen() {
           setMyBookings(bookingsData);
         }
       } else {
-        // للأدمن (يازو): تحميل جميع الحجوزات الواردة
         if (token) {
           const bookingsRes = await fetch(`${API_URL}/api/admin/bookings`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -92,88 +91,46 @@ export default function BookingsScreen() {
     }
   };
 
-  const handleBookPackage = async (pkg: Package) => {
-    setSelectedPackage(pkg);
-    setShowModal(true);
-  };
-
-  const confirmBooking = async () => {
-    if (!selectedPackage) return;
-    
-    try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/bookings/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          package_id: selectedPackage.id,
-          payment_method: 'stripe'
-        })
-      });
-      
-      if (response.ok) {
-        Alert.alert('نجاح', 'تم حجز الباقة بنجاح! سيتم التواصل معك لتأكيد الدفع.');
-        setShowModal(false);
-        loadData();
-        setActiveTab('bookings');
-      } else {
-        Alert.alert('خطأ', 'فشل في إنشاء الحجز');
-      }
-    } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ في الاتصال');
-    }
-  };
-
   const getTotalHours = () => {
-    // حساب الساعات من الحجوزات المؤكدة أو المدفوعة
     return myBookings
       .filter(b => b.booking_status === 'confirmed' || b.payment_status === 'completed')
       .reduce((sum, b) => sum + ((b.hours_purchased || 0) - (b.hours_used || 0)), 0);
   };
 
-  const getPendingHours = () => {
-    // الساعات في انتظار التأكيد
-    return myBookings
-      .filter(b => b.booking_status === 'pending' && b.payment_status !== 'completed')
-      .reduce((sum, b) => sum + (b.hours_purchased || 0), 0);
+  const handleBookPackage = (pkg: Package) => {
+    router.push(`/booking/${pkg.id}` as any);
   };
 
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color={COLORS.gold} />
       </View>
     );
   }
 
-  // ============ واجهة الأدمن (يازو) - عرض الحجوزات الواردة ============
+  // ============ واجهة الأدمن ============
   if (userRole === 'admin') {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={[styles.header, { backgroundColor: '#FF9800', margin: 16, borderRadius: 16, padding: 20 }]}>
-          <Text style={[styles.headerTitle, { color: '#fff' }]}>الحجوزات الواردة</Text>
-          <Text style={[styles.headerSubtitle, { color: 'rgba(255,255,255,0.9)' }]}>
-            {allBookings.length} حجز
-          </Text>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>الحجوزات الواردة</Text>
+          <Text style={styles.headerSubtitle}>{allBookings.length} حجز</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
           {allBookings.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="calendar-outline" size={60} color="#ccc" />
+              <Ionicons name="calendar-outline" size={60} color={COLORS.textMuted} />
               <Text style={styles.emptyText}>لا توجد حجوزات حالياً</Text>
             </View>
           ) : (
-            allBookings.map((booking: any) => (
-              <View key={booking.id || booking._id} style={styles.bookingCard}>
+            allBookings.map((booking) => (
+              <View key={booking.id} style={styles.bookingCard}>
                 <View style={styles.bookingHeader}>
                   <View style={[styles.statusBadge, 
                     booking.booking_status === 'confirmed' ? styles.statusConfirmed :
-                    booking.booking_status === 'pending' ? styles.statusPending :
-                    styles.statusCompleted
+                    booking.booking_status === 'pending' ? styles.statusPending : styles.statusCompleted
                   ]}>
                     <Text style={styles.statusText}>
                       {booking.booking_status === 'confirmed' ? 'مؤكد' :
@@ -185,28 +142,23 @@ export default function BookingsScreen() {
                   </Text>
                 </View>
                 
-                <View style={styles.bookingDetails}>
+                <View style={styles.bookingInfo}>
                   <View style={styles.bookingRow}>
-                    <Ionicons name="person" size={18} color="#666" />
+                    <Ionicons name="person" size={18} color={COLORS.gold} />
                     <Text style={styles.bookingLabel}>المتدرب:</Text>
                     <Text style={styles.bookingValue}>{booking.client_name || 'غير محدد'}</Text>
                   </View>
                   <View style={styles.bookingRow}>
-                    <Ionicons name="pricetag" size={18} color="#666" />
+                    <Ionicons name="pricetag" size={18} color={COLORS.gold} />
                     <Text style={styles.bookingLabel}>الباقة:</Text>
                     <Text style={styles.bookingValue}>{booking.package_name}</Text>
                   </View>
                   <View style={styles.bookingRow}>
-                    <Ionicons name="time" size={18} color="#666" />
+                    <Ionicons name="time" size={18} color={COLORS.gold} />
                     <Text style={styles.bookingLabel}>الساعات:</Text>
                     <Text style={styles.bookingValue}>
                       {booking.hours_used || 0} / {booking.hours_purchased} ساعة
                     </Text>
-                  </View>
-                  <View style={styles.bookingRow}>
-                    <Ionicons name="cash" size={18} color="#666" />
-                    <Text style={styles.bookingLabel}>المبلغ:</Text>
-                    <Text style={styles.bookingValue}>${booking.amount}</Text>
                   </View>
                 </View>
               </View>
@@ -217,23 +169,15 @@ export default function BookingsScreen() {
     );
   }
 
-  // ============ واجهة المتدرب - عرض الباقات والحجوزات ============
+  // ============ واجهة المتدرب ============
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>احجز مع يازو</Text>
         <Text style={styles.headerSubtitle}>باقات التدريب الشخصي</Text>
-        <View style={styles.hoursContainer}>
-          <View style={styles.hoursBox}>
-            <Ionicons name="time" size={20} color="#4CAF50" />
-            <Text style={styles.hoursText}>{getTotalHours()} ساعة متبقية</Text>
-          </View>
-          {getPendingHours() > 0 && (
-            <View style={[styles.hoursBox, { backgroundColor: '#FFF3E0' }]}>
-              <Ionicons name="hourglass" size={18} color="#FF9800" />
-              <Text style={[styles.hoursText, { color: '#FF9800' }]}>{getPendingHours()} في الانتظار</Text>
-            </View>
-          )}
+        <View style={styles.hoursBox}>
+          <Ionicons name="time" size={20} color={COLORS.gold} />
+          <Text style={styles.hoursText}>{getTotalHours()} ساعة متبقية</Text>
         </View>
       </View>
 
@@ -242,263 +186,320 @@ export default function BookingsScreen() {
           style={[styles.tab, activeTab === 'packages' && styles.tabActive]}
           onPress={() => setActiveTab('packages')}
         >
-          <Ionicons name="pricetag" size={20} color={activeTab === 'packages' ? '#fff' : '#666'} />
+          <Ionicons name="pricetag" size={20} color={activeTab === 'packages' ? COLORS.primary : COLORS.textMuted} />
           <Text style={[styles.tabText, activeTab === 'packages' && styles.tabTextActive]}>الباقات</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'bookings' && styles.tabActive]}
           onPress={() => setActiveTab('bookings')}
         >
-          <Ionicons name="calendar" size={20} color={activeTab === 'bookings' ? '#fff' : '#666'} />
+          <Ionicons name="calendar" size={20} color={activeTab === 'bookings' ? COLORS.primary : COLORS.textMuted} />
           <Text style={[styles.tabText, activeTab === 'bookings' && styles.tabTextActive]}>حجوزاتي</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         {activeTab === 'packages' ? (
-          <>
-            <Text style={styles.sectionTitle}>باقات التدريب المتاحة</Text>
-            {packages.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="pricetag-outline" size={60} color="#ccc" />
-                <Text style={styles.emptyText}>لا توجد باقات متاحة حالياً</Text>
-              </View>
-            ) : (
-              packages.map((pkg) => (
-                <View key={pkg.id} style={styles.packageCard}>
-                  <View style={styles.packageHeader}>
-                    <View style={styles.packageIcon}>
-                      <Ionicons name="fitness" size={28} color="#fff" />
-                    </View>
-                    <View style={styles.packageInfo}>
-                      <Text style={styles.packageName}>{pkg.name}</Text>
-                      <Text style={styles.packageHours}>{pkg.hours} ساعة تدريبية</Text>
-                    </View>
-                    <View style={styles.packagePrice}>
-                      <Text style={styles.priceAmount}>${pkg.price}</Text>
-                    </View>
+          packages.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="pricetag-outline" size={60} color={COLORS.textMuted} />
+              <Text style={styles.emptyText}>لا توجد باقات متاحة</Text>
+            </View>
+          ) : (
+            packages.map((pkg) => (
+              <View key={pkg.id} style={styles.packageCard}>
+                <View style={styles.packageHeader}>
+                  <View style={styles.packageIconBox}>
+                    <Ionicons name="diamond" size={24} color={COLORS.gold} />
                   </View>
+                  <View style={styles.packageInfo}>
+                    <Text style={styles.packageName}>{pkg.name}</Text>
+                    <Text style={styles.packageHours}>{pkg.hours} ساعة تدريب</Text>
+                  </View>
+                </View>
+                {pkg.description && (
                   <Text style={styles.packageDescription}>{pkg.description}</Text>
-                  <View style={styles.packageFeatures}>
-                    <View style={styles.featureItem}>
-                      <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-                      <Text style={styles.featureText}>جلسات فردية</Text>
-                    </View>
-                    <View style={styles.featureItem}>
-                      <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-                      <Text style={styles.featureText}>دعم عبر المحادثة</Text>
-                    </View>
-                    <View style={styles.featureItem}>
-                      <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-                      <Text style={styles.featureText}>متابعة التقدم</Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity
+                )}
+                <View style={styles.packageFooter}>
+                  <Text style={styles.packagePrice}>${pkg.price}</Text>
+                  <TouchableOpacity 
                     style={styles.bookButton}
                     onPress={() => handleBookPackage(pkg)}
                   >
                     <Text style={styles.bookButtonText}>احجز الآن</Text>
-                    <Ionicons name="arrow-back" size={20} color="#fff" />
                   </TouchableOpacity>
                 </View>
-              ))
-            )}
-          </>
-        ) : (
-          <>
-            <Text style={styles.sectionTitle}>حجوزاتي</Text>
-            {myBookings.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="calendar-outline" size={60} color="#ccc" />
-                <Text style={styles.emptyText}>لا توجد حجوزات بعد</Text>
-                <TouchableOpacity
-                  style={styles.browseButton}
-                  onPress={() => setActiveTab('packages')}
-                >
-                  <Text style={styles.browseButtonText}>تصفح الباقات</Text>
-                </TouchableOpacity>
               </View>
-            ) : (
-              myBookings.map((booking) => (
-                <View key={booking.id} style={styles.bookingCard}>
-                  <View style={styles.bookingHeader}>
-                    <View>
-                      <Text style={styles.bookingName}>{booking.package_name}</Text>
-                      <Text style={styles.coachNameText}>مع يازو</Text>
-                    </View>
-                    <View style={[
-                      styles.statusBadge,
-                      { backgroundColor: booking.booking_status === 'confirmed' ? '#E8F5E9' : '#FFF3E0' }
-                    ]}>
-                      <Text style={[
-                        styles.statusText,
-                        { color: booking.booking_status === 'confirmed' ? '#4CAF50' : '#FF9800' }
-                      ]}>
-                        {booking.booking_status === 'confirmed' ? 'مؤكد' : 
-                         booking.booking_status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.bookingDetails}>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailLabel}>الساعات</Text>
-                      <Text style={styles.detailValue}>{booking.hours_purchased} ساعة</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailLabel}>المستخدم</Text>
-                      <Text style={styles.detailValue}>{booking.hours_used} ساعة</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailLabel}>المتبقي</Text>
-                      <Text style={[styles.detailValue, { color: '#4CAF50' }]}>
-                        {booking.hours_purchased - booking.hours_used} ساعة
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.bookingFooter}>
-                    <Text style={styles.bookingDate}>
-                      {new Date(booking.created_at).toLocaleDateString('ar-SA')}
+            ))
+          )
+        ) : (
+          myBookings.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="calendar-outline" size={60} color={COLORS.textMuted} />
+              <Text style={styles.emptyText}>لا توجد حجوزات</Text>
+            </View>
+          ) : (
+            myBookings.map((booking) => (
+              <View key={booking.id} style={styles.bookingCard}>
+                <View style={styles.bookingHeader}>
+                  <View style={[styles.statusBadge, 
+                    booking.booking_status === 'confirmed' ? styles.statusConfirmed :
+                    booking.booking_status === 'pending' ? styles.statusPending : styles.statusCompleted
+                  ]}>
+                    <Text style={styles.statusText}>
+                      {booking.booking_status === 'confirmed' ? 'مؤكد' :
+                       booking.booking_status === 'pending' ? 'في الانتظار' : 'مكتمل'}
                     </Text>
-                    <Text style={styles.bookingAmount}>${booking.amount}</Text>
                   </View>
                 </View>
-              ))
-            )}
-          </>
+                <Text style={styles.bookingPackageName}>{booking.package_name}</Text>
+                <Text style={styles.bookingHours}>
+                  {booking.hours_purchased - booking.hours_used} / {booking.hours_purchased} ساعة متبقية
+                </Text>
+              </View>
+            ))
+          )
         )}
       </ScrollView>
-
-      <Modal visible={showModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>تأكيد الحجز</Text>
-              <TouchableOpacity onPress={() => setShowModal(false)}>
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-            {selectedPackage && (
-              <>
-                <View style={styles.modalPackageInfo}>
-                  <Text style={styles.modalPackageName}>{selectedPackage.name}</Text>
-                  <Text style={styles.modalPackageDetails}>
-                    {selectedPackage.hours} ساعة تدريبية
-                  </Text>
-                  <Text style={styles.modalPackagePrice}>${selectedPackage.price}</Text>
-                </View>
-                <View style={styles.paymentMethods}>
-                  <Text style={styles.paymentTitle}>طريقة الدفع:</Text>
-                  <TouchableOpacity style={styles.paymentOption}>
-                    <Ionicons name="card" size={24} color="#2196F3" />
-                    <Text style={styles.paymentOptionText}>بطاقة ائتمان (Stripe)</Text>
-                    <View style={styles.radioSelected} />
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity style={styles.confirmButton} onPress={confirmBooking}>
-                  <Text style={styles.confirmButtonText}>تأكيد الحجز</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
   },
-  headerTitle: { fontSize: 24, fontFamily: 'Cairo_700Bold', color: '#333', textAlign: 'right' },
-  headerSubtitle: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right', marginTop: 4 },
-  hoursContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 12,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+
+  // Header
+  header: {
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: COLORS.secondary,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
   },
   hoursBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     borderRadius: 20,
-    backgroundColor: '#E8F5E9',
-    gap: 6,
+    gap: 8,
   },
-  hoursText: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#4CAF50' },
+  hoursText: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.gold,
+  },
+
+  // Tabs
   tabs: {
     flexDirection: 'row',
-    padding: 16,
-    gap: 12,
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 12,
+    padding: 4,
   },
   tab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#fff',
+    paddingVertical: 12,
+    borderRadius: 10,
     gap: 8,
   },
-  tabActive: { backgroundColor: '#4CAF50' },
-  tabText: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#666' },
-  tabTextActive: { color: '#fff' },
-  content: { padding: 16, paddingBottom: 100 },
-  sectionTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333', marginBottom: 16, textAlign: 'right' },
-  emptyState: { alignItems: 'center', padding: 40 },
-  emptyText: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#999', marginTop: 16 },
-  browseButton: { marginTop: 16, backgroundColor: '#4CAF50', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
-  browseButtonText: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#fff' },
-  packageCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 16, elevation: 2 },
-  packageHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  packageIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center', marginLeft: 16 },
-  packageInfo: { flex: 1 },
-  packageName: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333', textAlign: 'right' },
-  packageHours: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right' },
-  packagePrice: { alignItems: 'center' },
-  priceAmount: { fontSize: 24, fontFamily: 'Cairo_700Bold', color: '#4CAF50' },
-  packageDescription: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right', marginBottom: 16, lineHeight: 22 },
-  packageFeatures: { marginBottom: 16 },
-  featureItem: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  featureText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#333' },
-  bookButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', padding: 14, borderRadius: 12, gap: 8 },
-  bookButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
-  bookingCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12 },
-  bookingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  bookingName: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333' },
-  coachNameText: { fontSize: 13, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 2 },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
-  statusText: { fontSize: 12, fontFamily: 'Cairo_700Bold' },
-  bookingDetails: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#f0f0f0' },
-  detailItem: { alignItems: 'center' },
-  detailLabel: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#999' },
-  detailValue: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333' },
-  bookingFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
-  bookingDate: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#999' },
-  bookingAmount: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#4CAF50' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontFamily: 'Cairo_700Bold', color: '#333' },
-  modalPackageInfo: { alignItems: 'center', padding: 20, backgroundColor: '#f5f5f5', borderRadius: 16, marginBottom: 20 },
-  modalPackageName: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
-  modalPackageDetails: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 4 },
-  modalPackagePrice: { fontSize: 32, fontFamily: 'Cairo_700Bold', color: '#4CAF50', marginTop: 8 },
-  paymentMethods: { marginBottom: 20 },
-  paymentTitle: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333', marginBottom: 12, textAlign: 'right' },
-  paymentOption: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#E3F2FD', borderRadius: 12, gap: 12 },
-  paymentOptionText: { flex: 1, fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#333', textAlign: 'right' },
-  radioSelected: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#2196F3' },
-  confirmButton: { backgroundColor: '#4CAF50', padding: 16, borderRadius: 12, alignItems: 'center' },
-  confirmButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
+  tabActive: {
+    backgroundColor: COLORS.gold,
+  },
+  tabText: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textMuted,
+  },
+  tabTextActive: {
+    color: COLORS.primary,
+  },
+
+  // Empty State
+  emptyState: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    marginTop: 16,
+  },
+
+  // Package Card
+  packageCard: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  packageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  packageIconBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  packageInfo: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  packageName: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+  packageHours: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.gold,
+    marginTop: 2,
+  },
+  packageDescription: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    textAlign: 'right',
+    marginBottom: 16,
+  },
+  packageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  packagePrice: {
+    fontSize: 24,
+    fontFamily: FONTS.bold,
+    color: COLORS.gold,
+  },
+  bookButton: {
+    backgroundColor: COLORS.gold,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  bookButtonText: {
+    fontSize: 14,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
+  },
+
+  // Booking Card
+  bookingCard: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  bookingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusPending: {
+    backgroundColor: 'rgba(255, 152, 0, 0.2)',
+  },
+  statusConfirmed: {
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+  },
+  statusCompleted: {
+    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+  },
+  statusText: {
+    fontSize: 12,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.gold,
+  },
+  bookingDate: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+  },
+  bookingInfo: {
+    gap: 8,
+  },
+  bookingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  bookingLabel: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+  },
+  bookingValue: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.white,
+  },
+  bookingPackageName: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+    textAlign: 'right',
+  },
+  bookingHours: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.gold,
+    textAlign: 'right',
+    marginTop: 4,
+  },
 });
