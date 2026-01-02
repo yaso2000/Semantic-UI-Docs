@@ -387,6 +387,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 4,
     borderColor: '#fff',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  avatarLetter: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   name: {
     fontSize: 24,
