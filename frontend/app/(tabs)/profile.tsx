@@ -8,19 +8,22 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
+import { COLORS, FONTS } from '../../src/constants/theme';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   
   const [fontsLoaded] = useFonts({
-    Cairo_400Regular,
-    Cairo_700Bold,
+    Alexandria_400Regular,
+    Alexandria_600SemiBold,
+    Alexandria_700Bold,
   });
 
   useEffect(() => {
@@ -42,7 +45,6 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
-      // استخدام replace بدلاً من push لمنع العودة
       router.replace('/');
     } catch (error) {
       console.error('Error logging out:', error);
@@ -50,7 +52,6 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    // تسجيل خروج مباشر على الويب بدون confirm
     if (Platform.OS === 'web') {
       performLogout();
     } else {
@@ -65,131 +66,100 @@ export default function ProfileScreen() {
     }
   };
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={48} color="#2196F3" />
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person" size={50} color={COLORS.gold} />
           </View>
-          <Text style={styles.name}>{user?.full_name || 'المستخدم'}</Text>
-          <Text style={styles.email}>{user?.email || 'email@example.com'}</Text>
-          {user?.role === 'admin' && (
-            <View style={[styles.adminBadge, { backgroundColor: '#FF9800' }]}>
-              <Ionicons name="star" size={14} color="#fff" />
-              <Text style={styles.adminBadgeText}>يازو - المدرب</Text>
-            </View>
-          )}
-          {user?.role === 'client' && (
-            <View style={[styles.adminBadge, { backgroundColor: '#4CAF50' }]}>
-              <Ionicons name="person" size={14} color="#fff" />
-              <Text style={styles.adminBadgeText}>متدرب</Text>
-            </View>
-          )}
+          <Text style={styles.userName}>{user?.full_name || 'المستخدم'}</Text>
+          <Text style={styles.userEmail}>{user?.email}</Text>
+          <View style={styles.badge}>
+            <Ionicons name={user?.role === 'admin' ? 'star' : 'person'} size={14} color={COLORS.primary} />
+            <Text style={styles.badgeText}>
+              {user?.role === 'admin' ? 'يازو - المدرب' : 'متدرب'}
+            </Text>
+          </View>
         </View>
 
+        {/* Menu */}
         <View style={styles.menuSection}>
-          {/* ======= قوائم يازو (الأدمن والمدرب) ======= */}
+          {/* قوائم يازو */}
           {user?.role === 'admin' && (
             <>
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/my-trainees' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
-                  <Ionicons name="people" size={24} color="#4CAF50" />
-                </View>
-                <Text style={styles.menuText}>المتدربين</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/coach/sessions' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#E3F2FD' }]}>
-                  <Ionicons name="time" size={24} color="#2196F3" />
-                </View>
-                <Text style={styles.menuText}>سجل الجلسات</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/packages' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#FFF3E0' }]}>
-                  <Ionicons name="pricetags" size={24} color="#FF9800" />
-                </View>
-                <Text style={styles.menuText}>باقات التدريب</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/payments' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
-                  <Ionicons name="wallet" size={24} color="#4CAF50" />
-                </View>
-                <Text style={styles.menuText}>المدفوعات</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/users' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#F3E5F5' }]}>
-                  <Ionicons name="person-add" size={24} color="#9C27B0" />
-                </View>
-                <Text style={styles.menuText}>إدارة المستخدمين</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
+              <MenuItem 
+                icon="people" 
+                title="المتدربين" 
+                onPress={() => router.push('/(tabs)/my-trainees' as any)} 
+              />
+              <MenuItem 
+                icon="time" 
+                title="سجل الجلسات" 
+                onPress={() => router.push('/coach/sessions' as any)} 
+              />
+              <MenuItem 
+                icon="pricetags" 
+                title="باقات التدريب" 
+                onPress={() => router.push('/admin/packages' as any)} 
+              />
+              <MenuItem 
+                icon="wallet" 
+                title="المدفوعات" 
+                onPress={() => router.push('/admin/payments' as any)} 
+              />
+              <MenuItem 
+                icon="person-add" 
+                title="إدارة المستخدمين" 
+                onPress={() => router.push('/admin/users' as any)} 
+              />
             </>
           )}
 
-          {/* ======= قوائم المتدرب ======= */}
+          {/* قوائم المتدرب */}
           {user?.role === 'client' && (
             <>
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/intake-questionnaire' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#E3F2FD' }]}>
-                  <Ionicons name="clipboard" size={24} color="#2196F3" />
-                </View>
-                <Text style={styles.menuText}>استبيان القبول</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/resources' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#E8F5E9' }]}>
-                  <Ionicons name="folder" size={24} color="#4CAF50" />
-                </View>
-                <Text style={styles.menuText}>مكتبة الموارد</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/habit-tracker' as any)}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#FFF3E0' }]}>
-                  <Ionicons name="checkmark-done" size={24} color="#FF9800" />
-                </View>
-                <Text style={styles.menuText}>متتبع العادات</Text>
-                <Ionicons name="chevron-back" size={24} color="#999" />
-              </TouchableOpacity>
+              <MenuItem 
+                icon="clipboard" 
+                title="استبيان القبول" 
+                onPress={() => router.push('/intake-questionnaire' as any)} 
+              />
+              <MenuItem 
+                icon="folder" 
+                title="مكتبة الموارد" 
+                onPress={() => router.push('/resources' as any)} 
+              />
+              <MenuItem 
+                icon="checkmark-done" 
+                title="متتبع العادات" 
+                onPress={() => router.push('/habit-tracker' as any)} 
+              />
             </>
           )}
 
-          {/* ======= قوائم مشتركة للجميع ======= */}
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings' as any)}>
-            <View style={[styles.menuIconContainer, { backgroundColor: '#F3E5F5' }]}>
-              <Ionicons name="settings" size={24} color="#9C27B0" />
-            </View>
-            <Text style={styles.menuText}>الإعدادات</Text>
-            <Ionicons name="chevron-back" size={24} color="#999" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/help' as any)}>
-            <View style={[styles.menuIconContainer, { backgroundColor: '#E0F7FA' }]}>
-              <Ionicons name="help-circle" size={24} color="#00BCD4" />
-            </View>
-            <Text style={styles.menuText}>المساعدة والدعم</Text>
-            <Ionicons name="chevron-back" size={24} color="#999" />
-          </TouchableOpacity>
+          {/* قوائم مشتركة */}
+          <MenuItem 
+            icon="settings" 
+            title="الإعدادات" 
+            onPress={() => router.push('/settings' as any)} 
+          />
+          <MenuItem 
+            icon="help-circle" 
+            title="المساعدة والدعم" 
+            onPress={() => router.push('/help' as any)} 
+          />
         </View>
 
+        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out" size={24} color="#F44336" />
+          <Ionicons name="log-out" size={24} color={COLORS.error} />
           <Text style={styles.logoutText}>تسجيل الخروج</Text>
         </TouchableOpacity>
 
+        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>اسأل يازو - Ask Yazo</Text>
           <Text style={styles.versionText}>الإصدار 1.0.0</Text>
@@ -199,113 +169,140 @@ export default function ProfileScreen() {
   );
 }
 
+// Menu Item Component
+function MenuItem({ icon, title, onPress }: { icon: string; title: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+      <View style={styles.menuIconContainer}>
+        <Ionicons name={icon as any} size={22} color={COLORS.gold} />
+      </View>
+      <Text style={styles.menuText}>{title}</Text>
+      <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.primary,
   },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  
+  // Header
   header: {
     alignItems: 'center',
-    padding: 32,
-    backgroundColor: '#fff',
-    marginBottom: 16,
+    marginBottom: 30,
+    paddingVertical: 30,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#E3F2FD',
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 2,
+    borderColor: COLORS.gold,
   },
-  name: {
+  userName: {
     fontSize: 24,
-    fontFamily: 'Cairo_700Bold',
-    color: '#333',
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+    marginBottom: 4,
   },
-  email: {
+  userEmail: {
     fontSize: 14,
-    fontFamily: 'Cairo_400Regular',
-    color: '#666',
-    marginTop: 4,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    marginBottom: 12,
   },
-  adminBadge: {
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2196F3',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 12,
-    gap: 4,
+    backgroundColor: COLORS.gold,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
   },
-  adminBadgeText: {
+  badgeText: {
     fontSize: 12,
-    fontFamily: 'Cairo_700Bold',
-    color: '#fff',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.primary,
   },
+
+  // Menu
   menuSection: {
-    backgroundColor: '#fff',
-    paddingVertical: 8,
+    gap: 12,
+    marginBottom: 24,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.secondary,
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  adminMenuItem: {
-    backgroundColor: '#E3F2FD',
-    borderBottomWidth: 2,
-    borderBottomColor: '#2196F3',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   menuIconContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: 12,
   },
   menuText: {
     flex: 1,
     fontSize: 16,
-    fontFamily: 'Cairo_400Regular',
-    color: '#333',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.white,
     textAlign: 'right',
   },
+
+  // Logout
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.secondary,
     padding: 16,
-    marginTop: 16,
-    marginHorizontal: 16,
-    backgroundColor: '#FFEBEE',
-    borderRadius: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.error,
     gap: 8,
+    marginBottom: 24,
   },
   logoutText: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-    color: '#F44336',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.error,
   },
+
+  // Footer
   footer: {
     alignItems: 'center',
-    padding: 24,
   },
   footerText: {
     fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-    color: '#999',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.gold,
   },
   versionText: {
     fontSize: 12,
-    fontFamily: 'Cairo_400Regular',
-    color: '#ccc',
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
 });
