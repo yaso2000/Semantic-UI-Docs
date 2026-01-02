@@ -124,9 +124,27 @@ export default function ChatScreen() {
     }
   };
 
-  const selectContact = (contact: Contact) => {
+  const selectContact = async (contact: Contact) => {
     setSelectedContact(contact);
     loadMessages(contact.user_id);
+    
+    // Mark messages as read
+    if (contact.unread_count > 0) {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        await fetch(`${API_URL}/api/messages/mark-read/${contact.user_id}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Update local contact to show 0 unread
+        setContacts(prev => prev.map(c => 
+          c.user_id === contact.user_id ? { ...c, unread_count: 0 } : c
+        ));
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    }
   };
 
   const sendMessage = async () => {
