@@ -717,106 +717,90 @@ async def send_message(message: Message, current_user: dict = Depends(get_curren
 @api_router.get("/chat/available-contacts")
 async def get_available_chat_contacts(current_user: dict = Depends(get_current_user)):
     """
-    Get list of users the current user can chat with based on bookings.
-    For trainees: shows Yazo (admin) if they have any booking
-    For admin (Yazo): shows all trainees who have bookings
+    نظام محادثات مبسط:
+    - المتدربين يتحدثون مع يازو (أي أدمن)
+    - يازو يرى جميع المتدربين
     """
     contacts = []
     
     if current_user["role"] == "client":
-        # Get all bookings for this trainee (any status)
-        bookings = await db.bookings.find({
-            "client_id": current_user["_id"]
-        }).to_list(100)
+        # المتدرب: يرى يازو (جميع الأدمن)
+        admins = await db.users.find({"role": "admin"}).to_list(10)
         
-        if bookings:
-            # Get Yazo (admin) to chat with
-            yazo = await db.users.find_one({"role": "admin"})
-            if yazo:
-                # Get last message with Yazo
-                last_message = await db.messages.find_one({
-                    "$or": [
-                        {"sender_id": current_user["_id"], "recipient_id": yazo["_id"]},
-                        {"sender_id": yazo["_id"], "recipient_id": current_user["_id"]}
-                    ]
-                }, sort=[("timestamp", -1)])
-                
-                # Count unread messages from Yazo
-                unread_count = await db.messages.count_documents({
-                    "sender_id": yazo["_id"],
-                    "recipient_id": current_user["_id"],
-                    "read": False
-                })
-                
-                # Get active booking info
-                confirmed_booking = next((b for b in bookings if b.get("booking_status") == "confirmed"), None)
-                active_booking = confirmed_booking or bookings[0]
-                hours_remaining = active_booking.get("hours_purchased", 0) - active_booking.get("hours_used", 0)
-                
-                contacts.append({
-                    "user_id": yazo["_id"],
-                    "full_name": "يازو",
-                    "role": "coach",
-                    "profile_image": yazo.get("profile_image"),
-                    "specialties": ["تدريب حياة شامل"],
-                    "last_message": last_message.get("message", "") if last_message else "",
-                    "last_message_time": last_message.get("timestamp") if last_message else None,
-                    "unread_count": unread_count,
-                    "booking_status": active_booking.get("booking_status", "pending"),
-                    "package_name": active_booking.get("package_name", ""),
-                    "hours_remaining": hours_remaining
-                })
+        for admin in admins:
+            # Get last message
+            last_message = await db.messages.find_one({
+                "$or": [
+                    {"sender_id": current_user["_id"], "recipient_id": admin["_id"]},
+                    {"sender_id": admin["_id"], "recipient_id": current_user["_id"]}
+                ]
+            }, sort=[("timestamp", -1)])
+            
+            # Count unread messages
+            unread_count = await db.messages.count_documents({
+                "sender_id": admin["_id"],
+                "recipient_id": current_user["_id"],
+                "read": False
+            })
+            
+            contacts.append({
+                "user_id": admin["_id"],
+                "full_name": admin.get("full_name", "يازو"),
+                "role": "coach",
+                "profile_image": admin.get("profile_image"),
+                "specialties": ["تدريب حياة شامل"],
+                "last_message": last_message.get("message", "") if last_message else "",
+                "last_message_time": last_message.get("timestamp") if last_message else None,
+                "unread_count": unread_count,
+                "booking_status": "active",
+                "package_name": "",
+                "hours_remaining": 0
+            })
     
     elif current_user["role"] in ["coach", "admin"]:
-        # Yazo or coach: Get all trainees who have bookings
-        query = {"coach_id": current_user["_id"]} if current_user["role"] == "coach" else {}
-        bookings = await db.bookings.find(query).to_list(100)
+        # يازو/المدرب: يرى جميع المتدربين
+        trainees = await db.users.find({"role": "client"}).to_list(100)
         
-        trainee_ids = list(set([b["client_id"] for b in bookings if b.get("client_id")]))
-        
-        for trainee_id in trainee_ids:
-            trainee = await db.users.find_one({"_id": trainee_id})
-            if trainee:
-                # Get last message
-                last_message = await db.messages.find_one({
-                    "$or": [
-                        {"sender_id": current_user["_id"], "recipient_id": trainee_id},
-                        {"sender_id": trainee_id, "recipient_id": current_user["_id"]}
-                    ]
-                }, sort=[("timestamp", -1)])
-                
-                # Count unread
-                unread_count = await db.messages.count_documents({
-                    "sender_id": trainee_id,
-                    "recipient_id": current_user["_id"],
-                    "read": False
-                })
-                
-                # Get booking info for this trainee
-                trainee_bookings = [b for b in bookings if b.get("client_id") == trainee_id]
-                active_booking = next((b for b in trainee_bookings if b.get("booking_status") == "confirmed"), None)
-                if not active_booking and trainee_bookings:
-                    active_booking = trainee_bookings[0]
-                
-                hours_remaining = 0
-                if active_booking:
-                    hours_remaining = active_booking.get("hours_purchased", 0) - active_booking.get("hours_used", 0)
-                
-                contacts.append({
-                    "user_id": trainee_id,
-                    "full_name": trainee["full_name"],
-                    "role": "client",
-                    "profile_image": trainee.get("profile_image"),
-                    "last_message": last_message.get("message", "") if last_message else "",
-                    "last_message_time": last_message.get("timestamp") if last_message else None,
-                    "unread_count": unread_count,
-                    "hours_remaining": hours_remaining,
-                    "package_name": active_booking.get("package_name") if active_booking else "",
-                    "booking_status": active_booking.get("booking_status") if active_booking else "pending"
-                })
+        for trainee in trainees:
+            # Get last message
+            last_message = await db.messages.find_one({
+                "$or": [
+                    {"sender_id": current_user["_id"], "recipient_id": trainee["_id"]},
+                    {"sender_id": trainee["_id"], "recipient_id": current_user["_id"]}
+                ]
+            }, sort=[("timestamp", -1)])
+            
+            # Count unread messages
+            unread_count = await db.messages.count_documents({
+                "sender_id": trainee["_id"],
+                "recipient_id": current_user["_id"],
+                "read": False
+            })
+            
+            # Get booking info if exists
+            booking = await db.bookings.find_one({"client_id": trainee["_id"]})
+            hours_remaining = 0
+            package_name = ""
+            if booking:
+                hours_remaining = booking.get("hours_purchased", 0) - booking.get("hours_used", 0)
+                package_name = booking.get("package_name", "")
+            
+            contacts.append({
+                "user_id": trainee["_id"],
+                "full_name": trainee["full_name"],
+                "role": "client",
+                "profile_image": trainee.get("profile_image"),
+                "last_message": last_message.get("message", "") if last_message else "",
+                "last_message_time": last_message.get("timestamp") if last_message else None,
+                "unread_count": unread_count,
+                "hours_remaining": hours_remaining,
+                "package_name": package_name,
+                "booking_status": "active" if booking else "no_booking"
+            })
     
-    # Sort by last message time (most recent first)
-    contacts.sort(key=lambda x: x.get("last_message_time") or "", reverse=True)
+    # Sort: unread first, then by last message time
+    contacts.sort(key=lambda x: (-(x.get("unread_count") or 0), x.get("last_message_time") or ""), reverse=False)
+    contacts.sort(key=lambda x: x.get("unread_count") or 0, reverse=True)
     
     return contacts
 
