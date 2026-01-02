@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -28,9 +29,13 @@ export default function SettingsScreen() {
   }, []);
 
   const loadUser = async () => {
-    const userStr = await AsyncStorage.getItem('user');
-    if (userStr) {
-      setUser(JSON.parse(userStr));
+    try {
+      const userStr = await AsyncStorage.getItem('user');
+      if (userStr) {
+        setUser(JSON.parse(userStr));
+      }
+    } catch (e) {
+      console.log('Error loading user');
     }
   };
 
@@ -62,7 +67,13 @@ export default function SettingsScreen() {
     ]);
   };
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF9800" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -213,6 +224,7 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
   header: {
     flexDirection: 'row',
