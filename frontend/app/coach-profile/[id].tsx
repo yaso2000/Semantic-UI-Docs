@@ -196,8 +196,14 @@ export default function CoachProfileScreen() {
         </View>
 
         <View style={styles.profileSection}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={48} color="#fff" />
+          <View style={[styles.avatar, !coach.profile_image && { backgroundColor: getLetterColor(coach.full_name) }]}>
+            {coach.profile_image ? (
+              <Image source={{ uri: coach.profile_image }} style={styles.avatarImage} />
+            ) : (
+              <Text style={styles.avatarLetter}>
+                {coach.full_name?.trim().charAt(0).toUpperCase() || '?'}
+              </Text>
+            )}
           </View>
           <Text style={styles.name}>{coach.full_name}</Text>
           
