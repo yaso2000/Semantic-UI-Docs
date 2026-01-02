@@ -490,6 +490,28 @@ async def get_conversations(current_user: dict = Depends(get_current_user)):
     
     return conversations
 
+@api_router.get("/messages/unread-count")
+async def get_unread_count(current_user: dict = Depends(get_current_user)):
+    """Get total count of unread messages for the current user"""
+    unread_count = await db.messages.count_documents({
+        "recipient_id": current_user["_id"],
+        "read": False
+    })
+    return {"unread_count": unread_count}
+
+@api_router.post("/messages/mark-read/{sender_id}")
+async def mark_messages_as_read(sender_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark all messages from a sender as read"""
+    result = await db.messages.update_many(
+        {
+            "sender_id": sender_id,
+            "recipient_id": current_user["_id"],
+            "read": False
+        },
+        {"$set": {"read": True}}
+    )
+    return {"marked_count": result.modified_count}
+
 @api_router.get("/chat/available-contacts")
 async def get_available_chat_contacts(current_user: dict = Depends(get_current_user)):
     """
