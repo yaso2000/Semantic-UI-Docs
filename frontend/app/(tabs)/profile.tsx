@@ -82,6 +82,18 @@ export default function ProfileScreen() {
               <Text style={styles.adminBadgeText}>مدير</Text>
             </View>
           )}
+          {user?.role === 'coach' && (
+            <View style={[styles.adminBadge, { backgroundColor: '#FF9800' }]}>
+              <Ionicons name="fitness" size={14} color="#fff" />
+              <Text style={styles.adminBadgeText}>مدرب</Text>
+            </View>
+          )}
+          {user?.role === 'client' && (
+            <View style={[styles.adminBadge, { backgroundColor: '#4CAF50' }]}>
+              <Ionicons name="person" size={14} color="#fff" />
+              <Text style={styles.adminBadgeText}>متدرب</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.menuSection}>
