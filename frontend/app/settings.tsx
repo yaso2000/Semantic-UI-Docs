@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,21 +13,38 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth } from '../src/contexts/AuthContext';
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [reminderTime, setReminderTime] = useState('08:00');
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
-  const { logout, user } = useAuth();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
-  const handleLogout = () => {
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    const userStr = await AsyncStorage.getItem('user');
+    if (userStr) {
+      setUser(JSON.parse(userStr));
+    }
+  };
+
+  const handleLogout = async () => {
     Alert.alert('تسجيل الخروج', 'هل أنت متأكد من تسجيل الخروج؟', [
       { text: 'إلغاء', style: 'cancel' },
-      { text: 'تسجيل الخروج', style: 'destructive', onPress: logout }
+      { 
+        text: 'تسجيل الخروج', 
+        style: 'destructive', 
+        onPress: async () => {
+          await AsyncStorage.multiRemove(['token', 'user']);
+          router.replace('/(auth)/login' as any);
+        }
+      }
     ]);
   };
 
