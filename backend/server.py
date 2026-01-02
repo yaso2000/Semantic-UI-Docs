@@ -1030,9 +1030,6 @@ async def get_coach_profile(coach_id: str):
 
 @api_router.post("/coaches/{coach_id}/review")
 async def add_coach_review(coach_id: str, data: dict, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "client":
-        raise HTTPException(status_code=403, detail="Only clients can add reviews")
-    
     review = {
         "_id": str(uuid.uuid4()),
         "coach_id": coach_id,
@@ -1045,6 +1042,31 @@ async def add_coach_review(coach_id: str, data: dict, current_user: dict = Depen
     
     await db.reviews.insert_one(review)
     return {"message": "Review added", "review_id": review["_id"]}
+
+# Intake questionnaire
+@api_router.post("/intake-questionnaire")
+async def save_intake_questionnaire(data: dict, current_user: dict = Depends(get_current_user)):
+    questionnaire = {
+        "_id": str(uuid.uuid4()),
+        "user_id": current_user["_id"],
+        "answers": data.get("answers", {}),
+        "completed_at": datetime.utcnow()
+    }
+    
+    await db.intake_questionnaires.update_one(
+        {"user_id": current_user["_id"]},
+        {"$set": questionnaire},
+        upsert=True
+    )
+    
+    return {"message": "Questionnaire saved"}
+
+@api_router.get("/intake-questionnaire")
+async def get_intake_questionnaire(current_user: dict = Depends(get_current_user)):
+    questionnaire = await db.intake_questionnaires.find_one({"user_id": current_user["_id"]})
+    if questionnaire:
+        return {"completed": True, "answers": questionnaire.get("answers", {})}
+    return {"completed": False, "answers": {}}
 
 @api_router.put("/coach/profile")
 async def update_coach_profile(data: dict, coach_user: dict = Depends(get_coach_user)):
