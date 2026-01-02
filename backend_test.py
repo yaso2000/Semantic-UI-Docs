@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://yazo-coach.preview.emergentagent.com/api"
+BACKEND_URL = "https://yazo-theme.preview.emergentagent.com/api"
 
 # Test credentials
 COACH_EMAIL = "mohamed@coach.com"
