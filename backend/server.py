@@ -1370,8 +1370,8 @@ async def get_coach_stats(coach_user: dict = Depends(get_coach_user)):
         "revenue": revenue
     }
 
-@api_router.get("/coach/clients")
-async def get_coach_clients(coach_user: dict = Depends(get_coach_user)):
+@api_router.get("/coach/clients-list")
+async def get_coach_clients_list(coach_user: dict = Depends(get_coach_user)):
     # Get all unique client IDs from bookings
     client_ids = await db.bookings.distinct("client_id", {"coach_id": coach_user["_id"]})
     
