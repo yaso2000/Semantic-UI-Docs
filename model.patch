@@ -1,379 +1,457 @@
-diff --git a/backend/server.py b/backend/server.py
-index d5f83a5..81f9a2e 100644
---- a/backend/server.py
-+++ b/backend/server.py
-@@ -318,7 +318,11 @@ async def create_booking(booking: dict, current_user: dict = Depends(get_current
-     if not package:
-         raise HTTPException(status_code=404, detail="Package not found")
-     
--    coach_id = booking.get("coach_id") or package.get("coach_id")
-+    # في النموذج الجديد: جميع الحجوزات تكون مع يازو (الأدمن)
-+    # نبحث عن الأدمن تلقائياً
-+    admin_user = await db.users.find_one({"role": "admin"})
-+    coach_id = admin_user["_id"] if admin_user else booking.get("coach_id") or package.get("coach_id")
-+    coach_name = admin_user.get("full_name", "يازو") if admin_user else "يازو"
-     
-     # Create booking
-     booking_id = str(uuid.uuid4())
-@@ -327,6 +331,7 @@ async def create_booking(booking: dict, current_user: dict = Depends(get_current
-         "client_id": current_user["_id"],
-         "client_name": current_user.get("full_name", "متدرب"),
-         "coach_id": coach_id,
-+        "coach_name": coach_name,
-         "package_id": booking.get("package_id"),
-         "package_name": package.get("name"),
-         "hours_purchased": package.get("hours"),
+diff --git a/frontend/app/admin/packages.tsx b/frontend/app/admin/packages.tsx
+index fc3e16b..d40c5b6 100644
+--- a/frontend/app/admin/packages.tsx
++++ b/frontend/app/admin/packages.tsx
+@@ -9,6 +9,7 @@ import {
+   SafeAreaView,
+   Alert,
+   RefreshControl,
++  Platform,
+ } from 'react-native';
+ import { Ionicons } from '@expo/vector-icons';
+ import { useRouter } from 'expo-router';
+@@ -25,6 +26,25 @@ interface Package {
+   description: string;
+ }
+ 
++// دالة Alert تعمل على الويب والموبايل
++const showAlert = (title: string, message: string, buttons?: any[]) => {
++  if (Platform.OS === 'web') {
++    if (buttons && buttons.length > 1) {
++      const confirmed = window.confirm(`${title}\n\n${message}`);
++      if (confirmed && buttons[1]?.onPress) {
++        buttons[1].onPress();
++      }
++    } else {
++      window.alert(`${title}\n\n${message}`);
++      if (buttons && buttons[0]?.onPress) {
++        buttons[0].onPress();
++      }
++    }
++  } else {
++    Alert.alert(title, message, buttons);
++  }
++};
++
+ export default function PackagesManagement() {
+   const [loading, setLoading] = useState(true);
+   const [refreshing, setRefreshing] = useState(false);
+@@ -43,7 +63,7 @@ export default function PackagesManagement() {
+       const data = await response.json();
+       setPackages(data);
+     } catch (error: any) {
+-      Alert.alert('خطأ', 'فشل في تحميل الباقات');
++      showAlert('خطأ', 'فشل في تحميل الباقات');
+       console.error('Error loading packages:', error);
+     } finally {
+       setLoading(false);
+@@ -57,7 +77,7 @@ export default function PackagesManagement() {
+   };
+ 
+   const handleDeletePackage = async (packageId: string, packageName: string) => {
+-    Alert.alert(
++    showAlert(
+       'حذف الباقة',
+       `هل أنت متأكد من حذف "${packageName}"؟`,
+       [
+@@ -73,13 +93,13 @@ export default function PackagesManagement() {
+                 headers: { 'Authorization': `Bearer ${token}` }
+               });
+               if (response.ok) {
+-                Alert.alert('نجاح', 'تم حذف الباقة بنجاح');
++                showAlert('نجاح', 'تم حذف الباقة بنجاح');
+                 loadPackages();
+               } else {
+-                Alert.alert('خطأ', 'فشل في حذف الباقة');
++                showAlert('خطأ', 'فشل في حذف الباقة');
+               }
+             } catch (error) {
+-              Alert.alert('خطأ', 'فشل في حذف الباقة');
++              showAlert('خطأ', 'فشل في حذف الباقة');
+             }
+           },
+         },
 diff --git a/model.patch b/model.patch
-index 6c49700..e69de29 100644
+index ae44a19..e69de29 100644
 --- a/model.patch
 +++ b/model.patch
-@@ -1,349 +0,0 @@
+@@ -1,379 +0,0 @@
+-diff --git a/backend/server.py b/backend/server.py
+-index d5f83a5..81f9a2e 100644
+---- a/backend/server.py
+-+++ b/backend/server.py
+-@@ -318,7 +318,11 @@ async def create_booking(booking: dict, current_user: dict = Depends(get_current
+-     if not package:
+-         raise HTTPException(status_code=404, detail="Package not found")
+-     
+--    coach_id = booking.get("coach_id") or package.get("coach_id")
+-+    # في النموذج الجديد: جميع الحجوزات تكون مع يازو (الأدمن)
+-+    # نبحث عن الأدمن تلقائياً
+-+    admin_user = await db.users.find_one({"role": "admin"})
+-+    coach_id = admin_user["_id"] if admin_user else booking.get("coach_id") or package.get("coach_id")
+-+    coach_name = admin_user.get("full_name", "يازو") if admin_user else "يازو"
+-     
+-     # Create booking
+-     booking_id = str(uuid.uuid4())
+-@@ -327,6 +331,7 @@ async def create_booking(booking: dict, current_user: dict = Depends(get_current
+-         "client_id": current_user["_id"],
+-         "client_name": current_user.get("full_name", "متدرب"),
+-         "coach_id": coach_id,
+-+        "coach_name": coach_name,
+-         "package_id": booking.get("package_id"),
+-         "package_name": package.get("name"),
+-         "hours_purchased": package.get("hours"),
 -diff --git a/model.patch b/model.patch
--index be86d90..e69de29 100644
+-index 6c49700..e69de29 100644
 ---- a/model.patch
 -+++ b/model.patch
--@@ -1,282 +0,0 @@
---diff --git a/backend/server.py b/backend/server.py
---index dc0bc1a..d5f83a5 100644
------ a/backend/server.py
---+++ b/backend/server.py
---@@ -141,6 +141,24 @@ class HabitTracker(BaseModel):
---     habits_completed: List[str]
---     notes: Optional[str] = None
--- 
---+class SessionCreate(BaseModel):
---+    booking_id: str
---+    duration_hours: float
---+    session_type: str  # training, consultation, etc.
---+    notes: Optional[str] = None
---+    session_date: datetime = Field(default_factory=datetime.utcnow)
---+
---+class SessionResponse(BaseModel):
---+    id: str
---+    booking_id: str
---+    coach_id: str
---+    client_id: str
---+    duration_hours: float
---+    session_type: str
---+    notes: Optional[str] = None
---+    session_date: datetime
---+    created_at: datetime
---+
--- # ==================== HELPER FUNCTIONS ====================
--- 
--- def verify_password(plain_password, hashed_password):
---@@ -412,6 +430,180 @@ async def get_all_bookings(admin_user: dict = Depends(get_admin_user)):
---     bookings = await db.bookings.find().sort("created_at", -1).to_list(1000)
---     return [BookingResponse(**booking, id=booking["_id"]) for booking in bookings]
--- 
---+# ==================== SESSION TRACKING ENDPOINTS ====================
---+
---+@api_router.post("/sessions/create")
---+async def create_session(session_data: SessionCreate, coach_user: dict = Depends(get_coach_user)):
---+    """Create a new training session"""
---+    # Verify booking exists and belongs to coach
---+    booking = await db.bookings.find_one({"_id": session_data.booking_id, "coach_id": coach_user["_id"]})
---+    if not booking:
---+        raise HTTPException(status_code=404, detail="Booking not found")
---+    
---+    # Create session record
---+    session_id = str(uuid.uuid4())
---+    session_dict = {
---+        "_id": session_id,
---+        "booking_id": session_data.booking_id,
---+        "coach_id": coach_user["_id"],
---+        "client_id": booking["client_id"],
---+        "duration_hours": session_data.duration_hours,
---+        "session_type": session_data.session_type,
---+        "notes": session_data.notes,
---+        "session_date": session_data.session_date,
---+        "created_at": datetime.utcnow()
---+    }
---+    
---+    await db.sessions.insert_one(session_dict)
---+    
---+    # Update booking hours used
---+    current_hours_used = booking.get("hours_used", 0)
---+    new_hours_used = current_hours_used + session_data.duration_hours
---+    
---+    await db.bookings.update_one(
---+        {"_id": session_data.booking_id},
---+        {"$set": {"hours_used": new_hours_used}}
---+    )
---+    
---+    return {"message": "Session created", "session_id": session_id}
---+
---+@api_router.get("/sessions/my-sessions")
---+async def get_coach_sessions(coach_user: dict = Depends(get_coach_user)):
---+    """Get all sessions for the coach"""
---+    sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).sort("session_date", -1).to_list(1000)
---+    
---+    result = []
---+    for session in sessions:
---+        # Get client info
---+        client = await db.users.find_one({"_id": session["client_id"]})
---+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
---+        
---+        result.append({
---+            "id": session["_id"],
---+            "booking_id": session["booking_id"],
---+            "client_name": client.get("full_name") if client else "متدرب",
---+            "package_name": booking.get("package_name") if booking else "",
---+            "duration_hours": session["duration_hours"],
---+            "session_type": session["session_type"],
---+            "notes": session.get("notes"),
---+            "session_date": session["session_date"],
---+            "created_at": session["created_at"]
---+        })
---+    
---+    return result
---+
---+@api_router.get("/sessions/client-sessions")
---+async def get_client_sessions(current_user: dict = Depends(get_current_user)):
---+    """Get all sessions for the client"""
---+    sessions = await db.sessions.find({"client_id": current_user["_id"]}).sort("session_date", -1).to_list(1000)
---+    
---+    result = []
---+    for session in sessions:
---+        # Get coach info
---+        coach = await db.users.find_one({"_id": session["coach_id"]})
---+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
---+        
---+        result.append({
---+            "id": session["_id"],
---+            "booking_id": session["booking_id"],
---+            "coach_name": coach.get("full_name") if coach else "مدرب",
---+            "package_name": booking.get("package_name") if booking else "",
---+            "duration_hours": session["duration_hours"],
---+            "session_type": session["session_type"],
---+            "notes": session.get("notes"),
---+            "session_date": session["session_date"],
---+            "created_at": session["created_at"]
---+        })
---+    
---+    return result
---+
---+@api_router.put("/sessions/{session_id}")
---+async def update_session(session_id: str, data: dict, coach_user: dict = Depends(get_coach_user)):
---+    """Update a session"""
---+    session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
---+    if not session:
---+        raise HTTPException(status_code=404, detail="Session not found")
---+    
---+    update_data = {}
---+    if "duration_hours" in data:
---+        # If duration changed, update booking hours
---+        old_duration = session["duration_hours"]
---+        new_duration = data["duration_hours"]
---+        duration_diff = new_duration - old_duration
---+        
---+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
---+        if booking:
---+            new_hours_used = booking.get("hours_used", 0) + duration_diff
---+            await db.bookings.update_one(
---+                {"_id": session["booking_id"]},
---+                {"$set": {"hours_used": new_hours_used}}
---+            )
---+        
---+        update_data["duration_hours"] = new_duration
---+    
---+    if "session_type" in data:
---+        update_data["session_type"] = data["session_type"]
---+    if "notes" in data:
---+        update_data["notes"] = data["notes"]
---+    if "session_date" in data:
---+        update_data["session_date"] = data["session_date"]
---+    
---+    if update_data:
---+        update_data["updated_at"] = datetime.utcnow()
---+        await db.sessions.update_one({"_id": session_id}, {"$set": update_data})
---+    
---+    return {"message": "Session updated"}
---+
---+@api_router.delete("/sessions/{session_id}")
---+async def delete_session(session_id: str, coach_user: dict = Depends(get_coach_user)):
---+    """Delete a session"""
---+    session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
---+    if not session:
---+        raise HTTPException(status_code=404, detail="Session not found")
---+    
---+    # Update booking hours (subtract the session duration)
---+    booking = await db.bookings.find_one({"_id": session["booking_id"]})
---+    if booking:
---+        new_hours_used = max(0, booking.get("hours_used", 0) - session["duration_hours"])
---+        await db.bookings.update_one(
---+            {"_id": session["booking_id"]},
---+            {"$set": {"hours_used": new_hours_used}}
---+        )
---+    
---+    await db.sessions.delete_one({"_id": session_id})
---+    return {"message": "Session deleted"}
---+
---+@api_router.get("/sessions/stats")
---+async def get_session_stats(coach_user: dict = Depends(get_coach_user)):
---+    """Get session statistics for coach"""
---+    # Total sessions
---+    total_sessions = await db.sessions.count_documents({"coach_id": coach_user["_id"]})
---+    
---+    # Total hours conducted
---+    sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).to_list(1000)
---+    total_hours = sum(s.get("duration_hours", 0) for s in sessions)
---+    
---+    # This month's sessions
---+    from datetime import datetime
---+    first_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
---+    monthly_sessions = await db.sessions.count_documents({
---+        "coach_id": coach_user["_id"],
---+        "session_date": {"$gte": first_of_month}
---+    })
---+    
---+    # Active clients (clients with sessions this month)
---+    active_clients = await db.sessions.distinct("client_id", {
---+        "coach_id": coach_user["_id"],
---+        "session_date": {"$gte": first_of_month}
---+    })
---+    
---+    return {
---+        "total_sessions": total_sessions,
---+        "total_hours": total_hours,
---+        "monthly_sessions": monthly_sessions,
---+        "active_clients": len(active_clients)
---+    }
---+
--- # ==================== MESSAGING ENDPOINTS ====================
--- 
--- @api_router.get("/messages/unread-count")
---@@ -1178,8 +1370,8 @@ async def get_coach_stats(coach_user: dict = Depends(get_coach_user)):
---         "revenue": revenue
---     }
--- 
----@api_router.get("/coach/clients")
----async def get_coach_clients(coach_user: dict = Depends(get_coach_user)):
---+@api_router.get("/coach/clients-list")
---+async def get_coach_clients_list(coach_user: dict = Depends(get_coach_user)):
---     # Get all unique client IDs from bookings
---     client_ids = await db.bookings.distinct("client_id", {"coach_id": coach_user["_id"]})
---     
---@@ -1871,9 +2063,9 @@ async def stripe_webhook(request):
---             import json
---             event = json.loads(payload)
---             
----    except ValueError as e:
---+    except ValueError:
---         raise HTTPException(status_code=400, detail="Invalid payload")
----    except stripe.error.SignatureVerificationError as e:
---+    except stripe.error.SignatureVerificationError:
---         raise HTTPException(status_code=400, detail="Invalid signature")
---     
---     # Handle events
+-@@ -1,349 +0,0 @@
 --diff --git a/model.patch b/model.patch
---index c46a842..773d973 100644
+--index be86d90..e69de29 100644
 ----- a/model.patch
 --+++ b/model.patch
---@@ -1,44 +0,0 @@
+--@@ -1,282 +0,0 @@
+---diff --git a/backend/server.py b/backend/server.py
+---index dc0bc1a..d5f83a5 100644
+------ a/backend/server.py
+---+++ b/backend/server.py
+---@@ -141,6 +141,24 @@ class HabitTracker(BaseModel):
+---     habits_completed: List[str]
+---     notes: Optional[str] = None
+--- 
+---+class SessionCreate(BaseModel):
+---+    booking_id: str
+---+    duration_hours: float
+---+    session_type: str  # training, consultation, etc.
+---+    notes: Optional[str] = None
+---+    session_date: datetime = Field(default_factory=datetime.utcnow)
+---+
+---+class SessionResponse(BaseModel):
+---+    id: str
+---+    booking_id: str
+---+    coach_id: str
+---+    client_id: str
+---+    duration_hours: float
+---+    session_type: str
+---+    notes: Optional[str] = None
+---+    session_date: datetime
+---+    created_at: datetime
+---+
+--- # ==================== HELPER FUNCTIONS ====================
+--- 
+--- def verify_password(plain_password, hashed_password):
+---@@ -412,6 +430,180 @@ async def get_all_bookings(admin_user: dict = Depends(get_admin_user)):
+---     bookings = await db.bookings.find().sort("created_at", -1).to_list(1000)
+---     return [BookingResponse(**booking, id=booking["_id"]) for booking in bookings]
+--- 
+---+# ==================== SESSION TRACKING ENDPOINTS ====================
+---+
+---+@api_router.post("/sessions/create")
+---+async def create_session(session_data: SessionCreate, coach_user: dict = Depends(get_coach_user)):
+---+    """Create a new training session"""
+---+    # Verify booking exists and belongs to coach
+---+    booking = await db.bookings.find_one({"_id": session_data.booking_id, "coach_id": coach_user["_id"]})
+---+    if not booking:
+---+        raise HTTPException(status_code=404, detail="Booking not found")
+---+    
+---+    # Create session record
+---+    session_id = str(uuid.uuid4())
+---+    session_dict = {
+---+        "_id": session_id,
+---+        "booking_id": session_data.booking_id,
+---+        "coach_id": coach_user["_id"],
+---+        "client_id": booking["client_id"],
+---+        "duration_hours": session_data.duration_hours,
+---+        "session_type": session_data.session_type,
+---+        "notes": session_data.notes,
+---+        "session_date": session_data.session_date,
+---+        "created_at": datetime.utcnow()
+---+    }
+---+    
+---+    await db.sessions.insert_one(session_dict)
+---+    
+---+    # Update booking hours used
+---+    current_hours_used = booking.get("hours_used", 0)
+---+    new_hours_used = current_hours_used + session_data.duration_hours
+---+    
+---+    await db.bookings.update_one(
+---+        {"_id": session_data.booking_id},
+---+        {"$set": {"hours_used": new_hours_used}}
+---+    )
+---+    
+---+    return {"message": "Session created", "session_id": session_id}
+---+
+---+@api_router.get("/sessions/my-sessions")
+---+async def get_coach_sessions(coach_user: dict = Depends(get_coach_user)):
+---+    """Get all sessions for the coach"""
+---+    sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).sort("session_date", -1).to_list(1000)
+---+    
+---+    result = []
+---+    for session in sessions:
+---+        # Get client info
+---+        client = await db.users.find_one({"_id": session["client_id"]})
+---+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
+---+        
+---+        result.append({
+---+            "id": session["_id"],
+---+            "booking_id": session["booking_id"],
+---+            "client_name": client.get("full_name") if client else "متدرب",
+---+            "package_name": booking.get("package_name") if booking else "",
+---+            "duration_hours": session["duration_hours"],
+---+            "session_type": session["session_type"],
+---+            "notes": session.get("notes"),
+---+            "session_date": session["session_date"],
+---+            "created_at": session["created_at"]
+---+        })
+---+    
+---+    return result
+---+
+---+@api_router.get("/sessions/client-sessions")
+---+async def get_client_sessions(current_user: dict = Depends(get_current_user)):
+---+    """Get all sessions for the client"""
+---+    sessions = await db.sessions.find({"client_id": current_user["_id"]}).sort("session_date", -1).to_list(1000)
+---+    
+---+    result = []
+---+    for session in sessions:
+---+        # Get coach info
+---+        coach = await db.users.find_one({"_id": session["coach_id"]})
+---+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
+---+        
+---+        result.append({
+---+            "id": session["_id"],
+---+            "booking_id": session["booking_id"],
+---+            "coach_name": coach.get("full_name") if coach else "مدرب",
+---+            "package_name": booking.get("package_name") if booking else "",
+---+            "duration_hours": session["duration_hours"],
+---+            "session_type": session["session_type"],
+---+            "notes": session.get("notes"),
+---+            "session_date": session["session_date"],
+---+            "created_at": session["created_at"]
+---+        })
+---+    
+---+    return result
+---+
+---+@api_router.put("/sessions/{session_id}")
+---+async def update_session(session_id: str, data: dict, coach_user: dict = Depends(get_coach_user)):
+---+    """Update a session"""
+---+    session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
+---+    if not session:
+---+        raise HTTPException(status_code=404, detail="Session not found")
+---+    
+---+    update_data = {}
+---+    if "duration_hours" in data:
+---+        # If duration changed, update booking hours
+---+        old_duration = session["duration_hours"]
+---+        new_duration = data["duration_hours"]
+---+        duration_diff = new_duration - old_duration
+---+        
+---+        booking = await db.bookings.find_one({"_id": session["booking_id"]})
+---+        if booking:
+---+            new_hours_used = booking.get("hours_used", 0) + duration_diff
+---+            await db.bookings.update_one(
+---+                {"_id": session["booking_id"]},
+---+                {"$set": {"hours_used": new_hours_used}}
+---+            )
+---+        
+---+        update_data["duration_hours"] = new_duration
+---+    
+---+    if "session_type" in data:
+---+        update_data["session_type"] = data["session_type"]
+---+    if "notes" in data:
+---+        update_data["notes"] = data["notes"]
+---+    if "session_date" in data:
+---+        update_data["session_date"] = data["session_date"]
+---+    
+---+    if update_data:
+---+        update_data["updated_at"] = datetime.utcnow()
+---+        await db.sessions.update_one({"_id": session_id}, {"$set": update_data})
+---+    
+---+    return {"message": "Session updated"}
+---+
+---+@api_router.delete("/sessions/{session_id}")
+---+async def delete_session(session_id: str, coach_user: dict = Depends(get_coach_user)):
+---+    """Delete a session"""
+---+    session = await db.sessions.find_one({"_id": session_id, "coach_id": coach_user["_id"]})
+---+    if not session:
+---+        raise HTTPException(status_code=404, detail="Session not found")
+---+    
+---+    # Update booking hours (subtract the session duration)
+---+    booking = await db.bookings.find_one({"_id": session["booking_id"]})
+---+    if booking:
+---+        new_hours_used = max(0, booking.get("hours_used", 0) - session["duration_hours"])
+---+        await db.bookings.update_one(
+---+            {"_id": session["booking_id"]},
+---+            {"$set": {"hours_used": new_hours_used}}
+---+        )
+---+    
+---+    await db.sessions.delete_one({"_id": session_id})
+---+    return {"message": "Session deleted"}
+---+
+---+@api_router.get("/sessions/stats")
+---+async def get_session_stats(coach_user: dict = Depends(get_coach_user)):
+---+    """Get session statistics for coach"""
+---+    # Total sessions
+---+    total_sessions = await db.sessions.count_documents({"coach_id": coach_user["_id"]})
+---+    
+---+    # Total hours conducted
+---+    sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).to_list(1000)
+---+    total_hours = sum(s.get("duration_hours", 0) for s in sessions)
+---+    
+---+    # This month's sessions
+---+    from datetime import datetime
+---+    first_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+---+    monthly_sessions = await db.sessions.count_documents({
+---+        "coach_id": coach_user["_id"],
+---+        "session_date": {"$gte": first_of_month}
+---+    })
+---+    
+---+    # Active clients (clients with sessions this month)
+---+    active_clients = await db.sessions.distinct("client_id", {
+---+        "coach_id": coach_user["_id"],
+---+        "session_date": {"$gte": first_of_month}
+---+    })
+---+    
+---+    return {
+---+        "total_sessions": total_sessions,
+---+        "total_hours": total_hours,
+---+        "monthly_sessions": monthly_sessions,
+---+        "active_clients": len(active_clients)
+---+    }
+---+
+--- # ==================== MESSAGING ENDPOINTS ====================
+--- 
+--- @api_router.get("/messages/unread-count")
+---@@ -1178,8 +1370,8 @@ async def get_coach_stats(coach_user: dict = Depends(get_coach_user)):
+---         "revenue": revenue
+---     }
+--- 
+----@api_router.get("/coach/clients")
+----async def get_coach_clients(coach_user: dict = Depends(get_coach_user)):
+---+@api_router.get("/coach/clients-list")
+---+async def get_coach_clients_list(coach_user: dict = Depends(get_coach_user)):
+---     # Get all unique client IDs from bookings
+---     client_ids = await db.bookings.distinct("client_id", {"coach_id": coach_user["_id"]})
+---     
+---@@ -1871,9 +2063,9 @@ async def stripe_webhook(request):
+---             import json
+---             event = json.loads(payload)
+---             
+----    except ValueError as e:
+---+    except ValueError:
+---         raise HTTPException(status_code=400, detail="Invalid payload")
+----    except stripe.error.SignatureVerificationError as e:
+---+    except stripe.error.SignatureVerificationError:
+---         raise HTTPException(status_code=400, detail="Invalid signature")
+---     
+---     # Handle events
 ---diff --git a/model.patch b/model.patch
----index dbf8648..e69de29 100644
+---index c46a842..773d973 100644
 ------ a/model.patch
 ---+++ b/model.patch
----@@ -1,39 +0,0 @@
+---@@ -1,44 +0,0 @@
 ----diff --git a/model.patch b/model.patch
-----index 7bb6c2b..e69de29 100644
+----index dbf8648..e69de29 100644
 ------- a/model.patch
 ----+++ b/model.patch
-----@@ -1,34 +0,0 @@
------diff --git a/frontend/app/calculators/bmi.tsx b/frontend/app/calculators/bmi.tsx
------index dbc1047..dccc00a 100644
--------- a/frontend/app/calculators/bmi.tsx
------+++ b/frontend/app/calculators/bmi.tsx
------@@ -151,6 +151,29 @@ const styles = StyleSheet.create({
------     flex: 1,
------     backgroundColor: '#f5f5f5',
------   },
------+  navigationHeader: {
------+    flexDirection: 'row',
------+    alignItems: 'center',
------+    justifyContent: 'space-between',
------+    paddingHorizontal: 16,
------+    paddingVertical: 12,
------+    backgroundColor: '#fff',
------+    borderBottomWidth: 1,
------+    borderBottomColor: '#e0e0e0',
------+  },
------+  backButton: {
------+    width: 40,
------+    height: 40,
------+    borderRadius: 20,
------+    backgroundColor: '#f5f5f5',
------+    justifyContent: 'center',
------+    alignItems: 'center',
------+  },
------+  navTitle: {
------+    fontSize: 18,
------+    fontFamily: 'Cairo_700Bold',
------+    color: '#333',
------+  },
------   content: {
------     padding: 20,
------   },
--diff --git a/test_result.md b/test_result.md
--index 7b230ba..717d163 100644
----- a/test_result.md
--+++ b/test_result.md
--@@ -156,6 +156,30 @@ backend:
--         agent: "main"
--         comment: "Returns total users, bookings, and revenue"
-- 
--+  - task: "Sessions API for Coaches"
--+    implemented: true
--+    working: true
--+    file: "server.py"
--+    stuck_count: 0
--+    priority: "high"
--+    needs_retesting: false
--+    status_history:
--+      - working: true
--+        agent: "testing"
--+        comment: "Tested GET /api/sessions/my-sessions, GET /api/sessions/stats, and POST /api/sessions/create endpoints. All working correctly. Stats returns proper structure with total_sessions, total_hours, monthly_sessions, active_clients. My-sessions returns empty array when no sessions exist. Authentication working properly for coach role."
--+
--+  - task: "Messages API"
--+    implemented: true
--+    working: true
--+    file: "server.py"
--+    stuck_count: 0
--+    priority: "high"
--+    needs_retesting: false
--+    status_history:
--+      - working: true
--+        agent: "testing"
--+        comment: "Tested GET /api/messages/unread-count endpoint. Returns proper JSON structure with unread_count field. Works for both coach and trainee roles. Coach had 0 unread messages, trainee had 1 unread message, indicating the system is tracking messages correctly."
--+
-- frontend:
--   - task: "Admin Dashboard"
--     implemented: true
--@@ -244,18 +268,19 @@ frontend:
-- metadata:
--   created_by: "main_agent"
--   version: "1.0"
---  test_sequence: 1
--+  test_sequence: 2
--   run_ui: false
-- 
-- test_plan:
--   current_focus:
---    - "Admin Dashboard"
---    - "Packages Management"
---    - "Client Bookings"
--+    - "Sessions API for Coaches"
--+    - "Messages API"
--   stuck_tasks: []
--   test_all: false
--   test_priority: "high_first"
-- 
-- agent_communication:
--   - agent: "main"
---    message: "Implemented complete admin panel with packages management, bookings view, users list, and client-facing bookings page. All Arabic localized."
--\ No newline at end of file
--+    message: "Implemented complete admin panel with packages management, bookings view, users list, and client-facing bookings page. All Arabic localized."
--+  - agent: "testing"
--+    message: "Completed testing of requested Arabic API endpoints. All sessions endpoints (GET /api/sessions/my-sessions, GET /api/sessions/stats) and messages endpoint (GET /api/messages/unread-count) are working correctly. Authentication tested for both coach (mohamed@coach.com) and trainee (trainee@test.com) accounts. All endpoints return proper JSON responses with expected data structures. No critical issues found."
--\ No newline at end of file
+----@@ -1,39 +0,0 @@
+-----diff --git a/model.patch b/model.patch
+-----index 7bb6c2b..e69de29 100644
+-------- a/model.patch
+-----+++ b/model.patch
+-----@@ -1,34 +0,0 @@
+------diff --git a/frontend/app/calculators/bmi.tsx b/frontend/app/calculators/bmi.tsx
+------index dbc1047..dccc00a 100644
+--------- a/frontend/app/calculators/bmi.tsx
+------+++ b/frontend/app/calculators/bmi.tsx
+------@@ -151,6 +151,29 @@ const styles = StyleSheet.create({
+------     flex: 1,
+------     backgroundColor: '#f5f5f5',
+------   },
+------+  navigationHeader: {
+------+    flexDirection: 'row',
+------+    alignItems: 'center',
+------+    justifyContent: 'space-between',
+------+    paddingHorizontal: 16,
+------+    paddingVertical: 12,
+------+    backgroundColor: '#fff',
+------+    borderBottomWidth: 1,
+------+    borderBottomColor: '#e0e0e0',
+------+  },
+------+  backButton: {
+------+    width: 40,
+------+    height: 40,
+------+    borderRadius: 20,
+------+    backgroundColor: '#f5f5f5',
+------+    justifyContent: 'center',
+------+    alignItems: 'center',
+------+  },
+------+  navTitle: {
+------+    fontSize: 18,
+------+    fontFamily: 'Cairo_700Bold',
+------+    color: '#333',
+------+  },
+------   content: {
+------     padding: 20,
+------   },
+--diff --git a/test_result.md b/test_result.md
+--index 7b230ba..717d163 100644
+----- a/test_result.md
+--+++ b/test_result.md
+--@@ -156,6 +156,30 @@ backend:
+--         agent: "main"
+--         comment: "Returns total users, bookings, and revenue"
+-- 
+--+  - task: "Sessions API for Coaches"
+--+    implemented: true
+--+    working: true
+--+    file: "server.py"
+--+    stuck_count: 0
+--+    priority: "high"
+--+    needs_retesting: false
+--+    status_history:
+--+      - working: true
+--+        agent: "testing"
+--+        comment: "Tested GET /api/sessions/my-sessions, GET /api/sessions/stats, and POST /api/sessions/create endpoints. All working correctly. Stats returns proper structure with total_sessions, total_hours, monthly_sessions, active_clients. My-sessions returns empty array when no sessions exist. Authentication working properly for coach role."
+--+
+--+  - task: "Messages API"
+--+    implemented: true
+--+    working: true
+--+    file: "server.py"
+--+    stuck_count: 0
+--+    priority: "high"
+--+    needs_retesting: false
+--+    status_history:
+--+      - working: true
+--+        agent: "testing"
+--+        comment: "Tested GET /api/messages/unread-count endpoint. Returns proper JSON structure with unread_count field. Works for both coach and trainee roles. Coach had 0 unread messages, trainee had 1 unread message, indicating the system is tracking messages correctly."
+--+
+-- frontend:
+--   - task: "Admin Dashboard"
+--     implemented: true
+--@@ -244,18 +268,19 @@ frontend:
+-- metadata:
+--   created_by: "main_agent"
+--   version: "1.0"
+---  test_sequence: 1
+--+  test_sequence: 2
+--   run_ui: false
+-- 
+-- test_plan:
+--   current_focus:
+---    - "Admin Dashboard"
+---    - "Packages Management"
+---    - "Client Bookings"
+--+    - "Sessions API for Coaches"
+--+    - "Messages API"
+--   stuck_tasks: []
+--   test_all: false
+--   test_priority: "high_first"
+-- 
+-- agent_communication:
+--   - agent: "main"
+---    message: "Implemented complete admin panel with packages management, bookings view, users list, and client-facing bookings page. All Arabic localized."
+--\ No newline at end of file
+--+    message: "Implemented complete admin panel with packages management, bookings view, users list, and client-facing bookings page. All Arabic localized."
+--+  - agent: "testing"
+--+    message: "Completed testing of requested Arabic API endpoints. All sessions endpoints (GET /api/sessions/my-sessions, GET /api/sessions/stats) and messages endpoint (GET /api/messages/unread-count) are working correctly. Authentication tested for both coach (mohamed@coach.com) and trainee (trainee@test.com) accounts. All endpoints return proper JSON responses with expected data structures. No critical issues found."
+--\ No newline at end of file
