@@ -307,7 +307,15 @@ async def update_package(package_id: str, package: HourlyPackage, admin_user: di
 
 @api_router.delete("/packages/{package_id}")
 async def delete_package(package_id: str, admin_user: dict = Depends(get_admin_user)):
-    await db.hourly_packages.update_one({"_id": package_id}, {"$set": {"active": False}})
+    # Try to delete from hourly_packages first
+    result = await db.hourly_packages.delete_one({"_id": package_id})
+    if result.deleted_count == 0:
+        # Try coach_packages
+        result = await db.coach_packages.delete_one({"_id": package_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
     return {"message": "Package deleted"}
 
 # ==================== BOOKING & PAYMENT ENDPOINTS ====================
