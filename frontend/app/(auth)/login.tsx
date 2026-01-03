@@ -423,6 +423,41 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: FONTS.bold},
 
+  // Or Divider
+  orDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: SPACING.lg,
+  },
+  orDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.divider,
+  },
+  orDividerText: {
+    marginHorizontal: SPACING.md,
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textMuted,
+  },
+
+  // Google Button
+  googleButton: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    ...SHADOWS.sm,
+  },
+  googleButtonText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontFamily: FONTS.semiBold,
+  },
+
   // Pillars Section
   pillarsSection: {
     marginTop: SPACING.xl,
