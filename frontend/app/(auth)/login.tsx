@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: COLORS.white,
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: FONTS.bold,
   },
   linkButton: {
