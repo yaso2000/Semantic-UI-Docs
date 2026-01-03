@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,22 +7,28 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../src/constants/theme';
 
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
 interface Resource {
   id: string;
   title: string;
   description: string;
   category: string;
-  type: 'article' | 'video' | 'audio' | 'pdf';
-  icon: string;
-  color: string;
+  content_type: string;
+  content?: string;
+  external_url?: string;
+  internal_route?: string;
   duration?: string;
-  route?: string;
+  icon: string;
+  is_active: boolean;
 }
 
 const CATEGORIES = [
@@ -33,23 +39,45 @@ const CATEGORIES = [
   { id: 'relationships', name: 'العلاقات', icon: 'people' },
 ];
 
-const RESOURCES: Resource[] = [
-  { id: '1', title: '10 عادات صباحية للنجاح', description: 'اكتشف العادات الصباحية التي يمارسها الناجحون', category: 'productivity', type: 'article', icon: 'document-text', color: COLORS.sage, duration: '5 دقائق', route: '/habit-tracker' },
-  { id: '2', title: 'تقنيات التأمل للمبتدئين', description: 'دليل شامل لتعلم التأمل في 10 دقائق يومياً', category: 'mindset', type: 'video', icon: 'play-circle', color: COLORS.teal, duration: '15 دقيقة', route: '/calculators/meditation-timer' },
-  { id: '3', title: 'فن التواصل الفعال', description: 'تعلم مهارات التواصل لبناء علاقات أقوى', category: 'relationships', type: 'article', icon: 'document-text', color: COLORS.spiritual, duration: '8 دقائق' },
-  { id: '4', title: 'جلسة استرخاء صوتية', description: 'جلسة موجهة للتخلص من التوتر', category: 'wellness', type: 'audio', icon: 'headset', color: COLORS.gold, duration: '20 دقيقة', route: '/calculators/breathing-exercise' },
-  { id: '5', title: 'دليل تحديد الأهداف الذكية', description: 'تعلم وضع أهداف SMART وتحقيقها', category: 'productivity', type: 'pdf', icon: 'document', color: COLORS.goldDark, duration: 'PDF' },
-  { id: '6', title: 'عجلة الحياة: فهم التوازن', description: 'شرح تفصيلي لأداة عجلة الحياة', category: 'mindset', type: 'video', icon: 'play-circle', color: COLORS.tealLight, duration: '12 دقيقة', route: '/calculators/wheel-of-life' },
-  { id: '7', title: 'تحسين جودة النوم', description: 'نصائح علمية لنوم أفضل', category: 'wellness', type: 'article', icon: 'document-text', color: COLORS.sageDark, duration: '6 دقائق' },
-  { id: '8', title: 'دفتر الامتنان اليومي', description: 'تقنيات لزيادة الامتنان والسعادة', category: 'mindset', type: 'video', icon: 'play-circle', color: COLORS.sage, duration: '10 دقائق', route: '/calculators/gratitude-journal' },
+// الموارد الافتراضية (تظهر إذا لم تكن هناك بيانات من السيرفر)
+const DEFAULT_RESOURCES: Resource[] = [
+  { id: '1', title: '10 عادات صباحية للنجاح', description: 'اكتشف العادات الصباحية التي يمارسها الناجحون', category: 'productivity', content_type: 'article', icon: 'document-text', duration: '5 دقائق', internal_route: '/habit-tracker', is_active: true },
+  { id: '2', title: 'تقنيات التأمل للمبتدئين', description: 'دليل شامل لتعلم التأمل في 10 دقائق يومياً', category: 'mindset', content_type: 'video', icon: 'play-circle', duration: '15 دقيقة', internal_route: '/calculators/meditation-timer', is_active: true },
+  { id: '3', title: 'جلسة استرخاء صوتية', description: 'جلسة موجهة للتخلص من التوتر', category: 'wellness', content_type: 'audio', icon: 'headset', duration: '20 دقيقة', internal_route: '/calculators/breathing-exercise', is_active: true },
+  { id: '4', title: 'عجلة الحياة: فهم التوازن', description: 'شرح تفصيلي لأداة عجلة الحياة', category: 'mindset', content_type: 'video', icon: 'play-circle', duration: '12 دقيقة', internal_route: '/calculators/wheel-of-life', is_active: true },
+  { id: '5', title: 'دفتر الامتنان اليومي', description: 'تقنيات لزيادة الامتنان والسعادة', category: 'mindset', content_type: 'video', icon: 'play-circle', duration: '10 دقائق', internal_route: '/calculators/gratitude-journal', is_active: true },
 ];
 
 export default function ResourcesScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [resources, setResources] = useState<Resource[]>(DEFAULT_RESOURCES);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
-  const filteredResources = selectedCategory === 'all' ? RESOURCES : RESOURCES.filter(r => r.category === selectedCategory);
+  useEffect(() => {
+    loadResources();
+  }, []);
+
+  const loadResources = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/resources`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.length > 0) {
+          setResources(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading resources:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredResources = selectedCategory === 'all' 
+    ? resources 
+    : resources.filter(r => r.category === selectedCategory);
   
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -60,10 +88,40 @@ export default function ResourcesScreen() {
     }
   };
 
-  const handleResourcePress = (resource: Resource) => {
-    if (resource.route) {
-      router.push(resource.route as any);
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'video': return COLORS.teal;
+      case 'audio': return COLORS.gold;
+      case 'pdf': return COLORS.sage;
+      default: return COLORS.sageDark;
     }
+  };
+
+  const handleResourcePress = async (resource: Resource) => {
+    // إذا كان هناك رابط خارجي (مثل يوتيوب)
+    if (resource.external_url) {
+      try {
+        await Linking.openURL(resource.external_url);
+      } catch (error) {
+        console.error('Could not open URL:', error);
+      }
+      return;
+    }
+    
+    // إذا كان هناك مسار داخلي
+    if (resource.internal_route) {
+      router.push(resource.internal_route as any);
+      return;
+    }
+    
+    // إذا كان هناك محتوى نصي، انتقل لصفحة العرض
+    if (resource.content) {
+      router.push(`/resource-content/${resource.id}` as any);
+    }
+  };
+
+  const hasLink = (resource: Resource) => {
+    return resource.external_url || resource.internal_route || resource.content;
   };
 
   if (!fontsLoaded) return null;
@@ -116,58 +174,82 @@ export default function ResourcesScreen() {
       </ScrollView>
 
       {/* Resources List */}
-      <ScrollView contentContainerStyle={styles.content}>
-        {filteredResources.map((resource) => (
-          <TouchableOpacity 
-            key={resource.id} 
-            style={[styles.resourceCard, !resource.route && styles.resourceCardDisabled]}
-            onPress={() => handleResourcePress(resource)}
-            disabled={!resource.route}
-          >
-            <View style={[styles.resourceIcon, { backgroundColor: resource.color }]}>
-              <Ionicons name={resource.icon as any} size={26} color={COLORS.white} />
-            </View>
-            <View style={styles.resourceInfo}>
-              <View style={styles.resourceHeader}>
-                <Text style={styles.resourceTitle}>{resource.title}</Text>
-                <View style={styles.typeBadge}>
-                  <Ionicons name={getTypeIcon(resource.type)} size={12} color={COLORS.textSecondary} />
-                </View>
-              </View>
-              <Text style={styles.resourceDesc} numberOfLines={2}>{resource.description}</Text>
-              <View style={styles.resourceMeta}>
-                {resource.route ? (
-                  <View style={styles.availableBadge}>
-                    <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
-                    <Text style={styles.availableText}>متاح</Text>
-                  </View>
-                ) : (
-                  <View style={styles.comingSoonBadge}>
-                    <Ionicons name="time-outline" size={14} color={COLORS.gold} />
-                    <Text style={styles.comingSoonText}>قريباً</Text>
-                  </View>
-                )}
-                <View style={styles.durationBadge}>
-                  <Ionicons name="time-outline" size={14} color={COLORS.teal} />
-                  <Text style={styles.resourceDuration}>{resource.duration}</Text>
-                </View>
-              </View>
-            </View>
-            {resource.route && (
-              <Ionicons name="chevron-back" size={20} color={COLORS.textMuted} />
-            )}
-          </TouchableOpacity>
-        ))}
-
-        {/* More Coming Section */}
-        <View style={styles.moreSection}>
-          <View style={styles.moreIcon}>
-            <Ionicons name="rocket" size={40} color={COLORS.teal} />
-          </View>
-          <Text style={styles.moreTitle}>المزيد قريباً!</Text>
-          <Text style={styles.moreText}>نعمل على إضافة المزيد من المحتوى القيم</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.teal} />
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          {filteredResources.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="library-outline" size={64} color={COLORS.border} />
+              <Text style={styles.emptyText}>لا توجد موارد في هذه الفئة</Text>
+            </View>
+          ) : (
+            filteredResources.map((resource) => (
+              <TouchableOpacity 
+                key={resource.id} 
+                style={[styles.resourceCard, !hasLink(resource) && styles.resourceCardDisabled]}
+                onPress={() => handleResourcePress(resource)}
+                disabled={!hasLink(resource)}
+              >
+                <View style={[styles.resourceIcon, { backgroundColor: getTypeColor(resource.content_type) }]}>
+                  <Ionicons name={resource.icon as any} size={26} color={COLORS.white} />
+                </View>
+                <View style={styles.resourceInfo}>
+                  <View style={styles.resourceHeader}>
+                    <Text style={styles.resourceTitle}>{resource.title}</Text>
+                    <View style={styles.typeBadge}>
+                      <Ionicons name={getTypeIcon(resource.content_type)} size={12} color={COLORS.textSecondary} />
+                    </View>
+                  </View>
+                  <Text style={styles.resourceDesc} numberOfLines={2}>{resource.description}</Text>
+                  <View style={styles.resourceMeta}>
+                    {resource.external_url ? (
+                      <View style={styles.externalBadge}>
+                        <Ionicons name="open-outline" size={14} color={COLORS.info} />
+                        <Text style={styles.externalText}>رابط خارجي</Text>
+                      </View>
+                    ) : hasLink(resource) ? (
+                      <View style={styles.availableBadge}>
+                        <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
+                        <Text style={styles.availableText}>متاح</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.comingSoonBadge}>
+                        <Ionicons name="time-outline" size={14} color={COLORS.gold} />
+                        <Text style={styles.comingSoonText}>قريباً</Text>
+                      </View>
+                    )}
+                    {resource.duration && (
+                      <View style={styles.durationBadge}>
+                        <Ionicons name="time-outline" size={14} color={COLORS.teal} />
+                        <Text style={styles.resourceDuration}>{resource.duration}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                {hasLink(resource) && (
+                  <Ionicons 
+                    name={resource.external_url ? "open-outline" : "chevron-back"} 
+                    size={20} 
+                    color={COLORS.textMuted} 
+                  />
+                )}
+              </TouchableOpacity>
+            ))
+          )}
+
+          {/* More Coming Section */}
+          <View style={styles.moreSection}>
+            <View style={styles.moreIcon}>
+              <Ionicons name="rocket" size={40} color={COLORS.teal} />
+            </View>
+            <Text style={styles.moreTitle}>المزيد قريباً!</Text>
+            <Text style={styles.moreText}>نعمل على إضافة المزيد من المحتوى القيم</Text>
+          </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -176,6 +258,11 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: COLORS.background 
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   
   header: {
@@ -266,6 +353,17 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
+  emptyState: {
+    alignItems: 'center',
+    padding: SPACING['2xl'],
+  },
+  emptyText: {
+    fontSize: 16,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.md,
+  },
+
   resourceCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -346,6 +444,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: FONTS.semiBold,
     color: COLORS.success,
+  },
+  externalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.infoLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  externalText: {
+    fontSize: 11,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.info,
   },
   comingSoonBadge: {
     flexDirection: 'row',
