@@ -49,16 +49,19 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <PaperProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)/login" />
-          <Stack.Screen name="(auth)/register" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-      </PaperProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <PaperProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)/login" />
+            <Stack.Screen name="(auth)/register" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </PaperProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 
