@@ -165,6 +165,36 @@ class ResourceUpdate(BaseModel):
     icon: Optional[str] = None
     is_active: Optional[bool] = None
 
+# ==================== CUSTOM CALCULATORS ====================
+
+class CustomCalculator(BaseModel):
+    id: Optional[str] = None
+    title: str
+    description: str
+    category: str  # physical, nutritional, mental, spiritual
+    icon: str = "calculator"
+    html_content: str  # كود HTML/CSS/JavaScript
+    is_active: bool = True
+    created_by: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CustomCalculatorCreate(BaseModel):
+    title: str
+    description: str
+    category: str
+    icon: str = "calculator"
+    html_content: str
+    is_active: bool = True
+
+class CustomCalculatorUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    icon: Optional[str] = None
+    html_content: Optional[str] = None
+    is_active: Optional[bool] = None
+
 class HabitTracker(BaseModel):
     user_id: str
     date: str  # YYYY-MM-DD
