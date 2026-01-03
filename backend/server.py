@@ -1,10 +1,10 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Response, Cookie
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from pathlib import Path
 import os
@@ -14,6 +14,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 import stripe
 import socketio
+import httpx
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
