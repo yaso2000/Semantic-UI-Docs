@@ -286,6 +286,17 @@ function YazoHome({ user, router }: { user: any; router: any }) {
           </View>
           <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/admin/calculators' as any)}>
+          <View style={[styles.adminMenuIcon, { backgroundColor: `${COLORS.gold}20` }]}>
+            <Ionicons name="calculator" size={22} color={COLORS.gold} />
+          </View>
+          <View style={styles.adminMenuContent}>
+            <Text style={styles.adminMenuTitle}>الحاسبات المخصصة</Text>
+            <Text style={styles.adminMenuSubtitle}>إضافة حاسبات HTML</Text>
+          </View>
+          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
       </View>
     </>
   );
