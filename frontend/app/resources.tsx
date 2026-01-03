@@ -171,7 +171,7 @@ export default function ResourcesScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
@@ -188,7 +188,7 @@ export default function ResourcesScreen() {
           <Ionicons name="library" size={32} color={COLORS.teal} />
         </View>
         <Text style={styles.introText}>
-          مجموعة من المقالات والفيديوهات والأدوات المفيدة لرحلتك
+          مجموعة من المقالات والفيديوهات المفيدة لرحلتك
         </Text>
       </View>
 
