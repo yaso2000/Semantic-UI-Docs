@@ -357,12 +357,12 @@ export default function ChatScreen() {
             />
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.header}>
         <Ionicons name="chatbubbles" size={26} color={COLORS.teal} />
@@ -399,7 +399,7 @@ export default function ChatScreen() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
