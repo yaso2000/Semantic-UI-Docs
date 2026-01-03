@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
