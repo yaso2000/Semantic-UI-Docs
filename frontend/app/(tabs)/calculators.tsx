@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { COLORS, FONTS } from '../../src/constants/theme';
+import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../../src/constants/theme';
 
 const physicalTools = [
   { id: 'bmi', title: 'مؤشر كتلة الجسم', subtitle: 'BMI', icon: 'body', route: '/calculators/bmi' },
@@ -48,10 +48,10 @@ const spiritualTools = [
 ];
 
 const pillars = [
-  { id: 'physical', title: 'اللياقة البدنية', subtitle: 'Physical Fitness', icon: 'barbell', tools: physicalTools },
-  { id: 'nutrition', title: 'الصحة التغذوية', subtitle: 'Nutritional Health', icon: 'nutrition', tools: nutritionTools },
-  { id: 'mental', title: 'الصحة النفسية', subtitle: 'Mental Wellness', icon: 'happy', tools: mentalTools },
-  { id: 'spiritual', title: 'الرفاهية الروحية', subtitle: 'Spiritual Well-being', icon: 'sparkles', tools: spiritualTools },
+  { id: 'physical', title: 'اللياقة البدنية', subtitle: 'Physical Fitness', icon: 'barbell', color: COLORS.teal, tools: physicalTools },
+  { id: 'nutrition', title: 'الصحة التغذوية', subtitle: 'Nutritional Health', icon: 'nutrition', color: COLORS.sage, tools: nutritionTools },
+  { id: 'mental', title: 'الصحة النفسية', subtitle: 'Mental Wellness', icon: 'happy', color: COLORS.gold, tools: mentalTools },
+  { id: 'spiritual', title: 'الرفاهية الروحية', subtitle: 'Spiritual Well-being', icon: 'sparkles', color: COLORS.spiritual, tools: spiritualTools },
 ];
 
 export default function CalculatorsScreen() {
@@ -74,7 +74,9 @@ export default function CalculatorsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>الأدوات والحاسبات</Text>
         <Text style={styles.headerSubtitle}>موزعة على الركائز الأربع</Text>
@@ -89,8 +91,8 @@ export default function CalculatorsScreen() {
               activeOpacity={0.8}
             >
               <View style={styles.pillarHeaderContent}>
-                <View style={styles.pillarIconContainer}>
-                  <Ionicons name={pillar.icon as any} size={28} color={COLORS.primary} />
+                <View style={[styles.pillarIconContainer, { backgroundColor: pillar.color }]}>
+                  <Ionicons name={pillar.icon as any} size={28} color={COLORS.white} />
                 </View>
                 <View style={styles.pillarTitles}>
                   <Text style={styles.pillarTitle}>{pillar.title}</Text>
@@ -98,11 +100,11 @@ export default function CalculatorsScreen() {
                 </View>
               </View>
               <View style={styles.pillarBadge}>
-                <Text style={styles.pillarBadgeText}>{pillar.tools.length}</Text>
+                <Text style={[styles.pillarBadgeText, { color: pillar.color }]}>{pillar.tools.length}</Text>
                 <Ionicons
                   name={expandedPillar === pillar.id ? 'chevron-up' : 'chevron-down'}
                   size={20}
-                  color={COLORS.gold}
+                  color={pillar.color}
                 />
               </View>
             </TouchableOpacity>
@@ -115,8 +117,8 @@ export default function CalculatorsScreen() {
                     style={styles.toolCard}
                     onPress={() => router.push(tool.route as any)}
                   >
-                    <View style={styles.toolIconBg}>
-                      <Ionicons name={tool.icon as any} size={24} color={COLORS.gold} />
+                    <View style={[styles.toolIconBg, { backgroundColor: `${pillar.color}20` }]}>
+                      <Ionicons name={tool.icon as any} size={24} color={pillar.color} />
                     </View>
                     <Text style={styles.toolTitle}>{tool.title}</Text>
                     <Text style={styles.toolSubtitle}>{tool.subtitle}</Text>
@@ -127,15 +129,16 @@ export default function CalculatorsScreen() {
           </View>
         ))}
 
+        {/* Stats Section */}
         <View style={styles.statsContainer}>
           <Text style={styles.statsTitle}>إجمالي الأدوات</Text>
           <View style={styles.statsGrid}>
             {pillars.map((pillar) => (
               <View key={pillar.id} style={styles.statItem}>
-                <View style={styles.statIcon}>
-                  <Ionicons name={pillar.icon as any} size={18} color={COLORS.primary} />
+                <View style={[styles.statIcon, { backgroundColor: pillar.color }]}>
+                  <Ionicons name={pillar.icon as any} size={18} color={COLORS.white} />
                 </View>
-                <Text style={styles.statNumber}>{pillar.tools.length}</Text>
+                <Text style={[styles.statNumber, { color: pillar.color }]}>{pillar.tools.length}</Text>
                 <Text style={styles.statLabel}>{pillar.title.split(' ')[0]}</Text>
               </View>
             ))}
@@ -149,45 +152,44 @@ export default function CalculatorsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
   header: {
-    padding: 20,
-    backgroundColor: COLORS.secondary,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
+    color: COLORS.teal,
     textAlign: 'right',
   },
   headerSubtitle: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'right',
     marginTop: 4,
   },
   scrollContent: {
-    padding: 16,
+    padding: SPACING.md,
     paddingBottom: 100,
   },
   pillarContainer: {
-    marginBottom: 16,
-    borderRadius: 16,
+    marginBottom: SPACING.md,
+    borderRadius: RADIUS.lg,
     overflow: 'hidden',
-    backgroundColor: COLORS.secondary,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    ...SHADOWS.md,
   },
   pillarHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: COLORS.secondary,
+    padding: SPACING.md,
+    backgroundColor: COLORS.white,
   },
   pillarHeaderContent: {
     flexDirection: 'row',
@@ -198,7 +200,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 14,
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
   pillarSubtitle: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'right',
   },
   pillarBadge: {
@@ -226,8 +227,7 @@ const styles = StyleSheet.create({
   pillarBadgeText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    backgroundColor: COLORS.beige,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -235,25 +235,24 @@ const styles = StyleSheet.create({
   toolsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 12,
+    padding: SPACING.sm,
     gap: 10,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    backgroundColor: COLORS.beige,
   },
   toolCard: {
     width: '31%',
-    padding: 12,
-    borderRadius: 12,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    ...SHADOWS.sm,
   },
   toolIconBg: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -267,24 +266,23 @@ const styles = StyleSheet.create({
   toolSubtitle: {
     fontSize: 9,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 2,
   },
   statsContainer: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    ...SHADOWS.md,
   },
   statsTitle: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
+    color: COLORS.teal,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -297,7 +295,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.gold,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -305,11 +302,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
   },
   statLabel: {
     fontSize: 10,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
 });
