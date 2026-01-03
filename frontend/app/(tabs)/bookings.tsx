@@ -304,7 +304,7 @@ export default function BookingsScreen() {
           )
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
