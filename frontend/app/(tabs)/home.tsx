@@ -275,6 +275,17 @@ function YazoHome({ user, router }: { user: any; router: any }) {
           </View>
           <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/admin/resources' as any)}>
+          <View style={[styles.adminMenuIcon, { backgroundColor: `${COLORS.sageLight}30` }]}>
+            <Ionicons name="library" size={22} color={COLORS.sage} />
+          </View>
+          <View style={styles.adminMenuContent}>
+            <Text style={styles.adminMenuTitle}>إدارة المكتبة</Text>
+            <Text style={styles.adminMenuSubtitle}>الموارد والمقالات</Text>
+          </View>
+          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
       </View>
     </>
   );
