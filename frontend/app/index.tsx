@@ -41,7 +41,7 @@ export default function WelcomeScreen() {
         </View>
         <View style={styles.featureItem}>
           <View style={[styles.featureIcon, { backgroundColor: `${COLORS.mental}15` }]}>
-            <Ionicons name="brain" size={24} color={COLORS.mental} />
+            <Ionicons name="happy" size={24} color={COLORS.mental} />
           </View>
           <Text style={styles.featureText}>النفسي</Text>
         </View>
