@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, FONTS } from '../src/constants/theme';
+import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../src/constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -40,16 +40,16 @@ interface HabitStats {
 }
 
 const HABIT_ICONS = [
-  { icon: 'water', color: '#2196F3', name: 'ماء' },
-  { icon: 'fitness', color: '#4CAF50', name: 'رياضة' },
-  { icon: 'book', color: '#9C27B0', name: 'قراءة' },
-  { icon: 'bed', color: '#673AB7', name: 'نوم' },
-  { icon: 'walk', color: '#FF9800', name: 'مشي' },
-  { icon: 'leaf', color: '#8BC34A', name: 'تأمل' },
-  { icon: 'nutrition', color: '#E91E63', name: 'تغذية' },
-  { icon: 'happy', color: '#00BCD4', name: 'امتنان' },
-  { icon: 'pencil', color: '#FF5722', name: 'كتابة' },
-  { icon: 'musical-notes', color: '#3F51B5', name: 'موسيقى' },
+  { icon: 'water', color: COLORS.teal, name: 'ماء' },
+  { icon: 'fitness', color: COLORS.sage, name: 'رياضة' },
+  { icon: 'book', color: COLORS.spiritual, name: 'قراءة' },
+  { icon: 'bed', color: COLORS.sageDark, name: 'نوم' },
+  { icon: 'walk', color: COLORS.gold, name: 'مشي' },
+  { icon: 'leaf', color: COLORS.sageLight, name: 'تأمل' },
+  { icon: 'nutrition', color: COLORS.tealLight, name: 'تغذية' },
+  { icon: 'happy', color: COLORS.goldLight, name: 'امتنان' },
+  { icon: 'pencil', color: COLORS.goldDark, name: 'كتابة' },
+  { icon: 'musical-notes', color: COLORS.tealDark, name: 'موسيقى' },
 ];
 
 export default function HabitTrackerScreen() {
@@ -209,30 +209,32 @@ export default function HabitTrackerScreen() {
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-        <ActivityIndicator size="large" color={COLORS.gold} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <ActivityIndicator size="large" color={COLORS.teal} />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>متتبع العادات</Text>
         <TouchableOpacity style={styles.refreshBtn} onPress={() => { setRefreshing(true); loadData(); }}>
-          <Ionicons name="refresh" size={22} color={COLORS.gold} />
+          <Ionicons name="refresh" size={22} color={COLORS.white} />
         </TouchableOpacity>
       </View>
 
       <ScrollView 
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} tintColor={COLORS.gold} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} tintColor={COLORS.teal} />}
       >
-        {/* تقدم اليوم */}
+        {/* Progress Card */}
         <View style={styles.progressCard}>
           <View style={styles.progressHeader}>
             <View>
@@ -251,7 +253,7 @@ export default function HabitTrackerScreen() {
           <Text style={styles.progressText}>{completedToday} من {totalHabits} عادات مكتملة</Text>
         </View>
 
-        {/* الإحصائيات */}
+        {/* Stats */}
         {stats && (
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
@@ -260,14 +262,14 @@ export default function HabitTrackerScreen() {
               <Text style={styles.statLabel}>أفضل سلسلة</Text>
             </View>
             <View style={styles.statCard}>
-              <Ionicons name="trending-up" size={24} color="#4CAF50" />
+              <Ionicons name="trending-up" size={24} color={COLORS.sage} />
               <Text style={styles.statValue}>{stats.weekly_rate}%</Text>
               <Text style={styles.statLabel}>معدل الأسبوع</Text>
             </View>
           </View>
         )}
 
-        {/* عرض الأسبوع */}
+        {/* Week View */}
         <View style={styles.weekView}>
           {getWeekDays().map((day, index) => (
             <View key={index} style={[styles.dayColumn, day.isToday && styles.dayColumnToday]}>
@@ -288,11 +290,11 @@ export default function HabitTrackerScreen() {
           ))}
         </View>
 
-        {/* قائمة العادات */}
+        {/* Habits Section */}
         <View style={styles.habitsSection}>
           <View style={styles.sectionHeader}>
             <TouchableOpacity style={styles.addBtn} onPress={() => setShowAddModal(true)}>
-              <Ionicons name="add" size={18} color={COLORS.primary} />
+              <Ionicons name="add" size={18} color={COLORS.white} />
               <Text style={styles.addBtnText}>إضافة</Text>
             </TouchableOpacity>
             <Text style={styles.sectionTitle}>عاداتي اليومية</Text>
@@ -312,7 +314,7 @@ export default function HabitTrackerScreen() {
                 onLongPress={() => deleteHabit(habit.id)}
               >
                 <View style={[styles.habitIcon, { backgroundColor: habit.color }]}>
-                  <Ionicons name={habit.icon as any} size={22} color="#fff" />
+                  <Ionicons name={habit.icon as any} size={22} color={COLORS.white} />
                 </View>
                 <View style={styles.habitInfo}>
                   <Text style={styles.habitName}>{habit.name}</Text>
@@ -325,7 +327,7 @@ export default function HabitTrackerScreen() {
                   styles.checkBox,
                   isCompletedToday(habit) && { backgroundColor: habit.color, borderColor: habit.color }
                 ]}>
-                  {isCompletedToday(habit) && <Ionicons name="checkmark" size={18} color="#fff" />}
+                  {isCompletedToday(habit) && <Ionicons name="checkmark" size={18} color={COLORS.white} />}
                 </View>
               </TouchableOpacity>
             ))
@@ -337,7 +339,7 @@ export default function HabitTrackerScreen() {
         </View>
       </ScrollView>
 
-      {/* Modal إضافة عادة */}
+      {/* Add Habit Modal */}
       <Modal visible={showAddModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -366,7 +368,7 @@ export default function HabitTrackerScreen() {
                   onPress={() => setSelectedIcon(item)}
                 >
                   <View style={[styles.iconPreview, { backgroundColor: item.color }]}>
-                    <Ionicons name={item.icon as any} size={22} color="#fff" />
+                    <Ionicons name={item.icon as any} size={22} color={COLORS.white} />
                   </View>
                   <Text style={styles.iconName}>{item.name}</Text>
                 </TouchableOpacity>
@@ -374,9 +376,9 @@ export default function HabitTrackerScreen() {
             </View>
 
             <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={addHabit} disabled={saving}>
-              {saving ? <ActivityIndicator color={COLORS.primary} /> : (
+              {saving ? <ActivityIndicator color={COLORS.white} /> : (
                 <>
-                  <Ionicons name="add-circle" size={22} color={COLORS.primary} />
+                  <Ionicons name="add-circle" size={22} color={COLORS.white} />
                   <Text style={styles.saveBtnText}>إضافة العادة</Text>
                 </>
               )}
@@ -389,129 +391,366 @@ export default function HabitTrackerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: COLORS.background 
+  },
   
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: COLORS.secondary,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    padding: SPACING.md,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.teal,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center', alignItems: 'center', marginLeft: 16,
+    width: 40, 
+    height: 40, 
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginLeft: SPACING.md,
   },
   headerTitle: {
-    flex: 1, fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold, textAlign: 'right',
+    flex: 1, 
+    fontSize: 20, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.white, 
+    textAlign: 'right',
   },
   refreshBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center', alignItems: 'center',
+    width: 40, 
+    height: 40, 
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center', 
+    alignItems: 'center',
   },
 
-  content: { padding: 16, paddingBottom: 40 },
+  content: { 
+    padding: SPACING.md, 
+    paddingBottom: 40 
+  },
 
   progressCard: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16, padding: 20, marginBottom: 16,
-    borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg, 
+    padding: SPACING.lg, 
+    marginBottom: SPACING.md,
+    ...SHADOWS.md,
   },
   progressHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16,
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: SPACING.md,
   },
-  progressTitle: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right' },
-  progressDate: { fontSize: 13, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'right', marginTop: 4 },
+  progressTitle: { 
+    fontSize: 18, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.text, 
+    textAlign: 'right' 
+  },
+  progressDate: { 
+    fontSize: 13, 
+    fontFamily: FONTS.regular, 
+    color: COLORS.textSecondary, 
+    textAlign: 'right', 
+    marginTop: 4 
+  },
   progressCircle: {
-    width: 60, height: 60, borderRadius: 30,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: COLORS.gold,
+    width: 60, 
+    height: 60, 
+    borderRadius: 30,
+    backgroundColor: COLORS.beige,
+    justifyContent: 'center', 
+    alignItems: 'center',
+    borderWidth: 2, 
+    borderColor: COLORS.teal,
   },
-  progressPercent: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.gold },
-  progressBar: { height: 8, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: COLORS.gold, borderRadius: 4 },
-  progressText: { fontSize: 14, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'center', marginTop: 12 },
+  progressPercent: { 
+    fontSize: 18, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.teal 
+  },
+  progressBar: { 
+    height: 8, 
+    backgroundColor: COLORS.beige, 
+    borderRadius: 4, 
+    overflow: 'hidden' 
+  },
+  progressFill: { 
+    height: '100%', 
+    backgroundColor: COLORS.teal, 
+    borderRadius: 4 
+  },
+  progressText: { 
+    fontSize: 14, 
+    fontFamily: FONTS.regular, 
+    color: COLORS.textSecondary, 
+    textAlign: 'center', 
+    marginTop: 12 
+  },
 
-  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  statCard: {
-    flex: 1, backgroundColor: COLORS.secondary, borderRadius: 14, padding: 14, alignItems: 'center',
-    borderWidth: 1, borderColor: COLORS.border,
+  statsRow: { 
+    flexDirection: 'row', 
+    gap: 12, 
+    marginBottom: SPACING.md 
   },
-  statValue: { fontSize: 22, fontFamily: FONTS.bold, color: COLORS.gold, marginTop: 6 },
-  statLabel: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 4 },
+  statCard: {
+    flex: 1, 
+    backgroundColor: COLORS.white, 
+    borderRadius: RADIUS.lg, 
+    padding: SPACING.md, 
+    alignItems: 'center',
+    ...SHADOWS.sm,
+  },
+  statValue: { 
+    fontSize: 22, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.teal, 
+    marginTop: 6 
+  },
+  statLabel: { 
+    fontSize: 12, 
+    fontFamily: FONTS.regular, 
+    color: COLORS.textSecondary, 
+    marginTop: 4 
+  },
 
   weekView: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    backgroundColor: COLORS.secondary, borderRadius: 14, padding: 12, marginBottom: 16,
-    borderWidth: 1, borderColor: COLORS.border,
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white, 
+    borderRadius: RADIUS.lg, 
+    padding: SPACING.sm, 
+    marginBottom: SPACING.md,
+    ...SHADOWS.sm,
   },
-  dayColumn: { alignItems: 'center', padding: 6, borderRadius: 10 },
-  dayColumnToday: { backgroundColor: 'rgba(212, 175, 55, 0.15)' },
-  dayLabel: { fontSize: 10, fontFamily: FONTS.semiBold, color: COLORS.textMuted, marginBottom: 4 },
-  dayLabelToday: { color: COLORS.gold },
-  dayNum: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: 6 },
-  dayNumToday: { color: COLORS.gold },
-  dayDots: { gap: 3 },
-  dayDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.border },
+  dayColumn: { 
+    alignItems: 'center', 
+    padding: 6, 
+    borderRadius: RADIUS.sm 
+  },
+  dayColumnToday: { 
+    backgroundColor: COLORS.beige 
+  },
+  dayLabel: { 
+    fontSize: 10, 
+    fontFamily: FONTS.semiBold, 
+    color: COLORS.textSecondary, 
+    marginBottom: 4 
+  },
+  dayLabelToday: { 
+    color: COLORS.teal 
+  },
+  dayNum: { 
+    fontSize: 14, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.text, 
+    marginBottom: 6 
+  },
+  dayNumToday: { 
+    color: COLORS.teal 
+  },
+  dayDots: { 
+    gap: 3 
+  },
+  dayDot: { 
+    width: 6, 
+    height: 6, 
+    borderRadius: 3, 
+    backgroundColor: COLORS.border 
+  },
 
   habitsSection: {
-    backgroundColor: COLORS.secondary, borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: COLORS.white, 
+    borderRadius: RADIUS.lg, 
+    padding: SPACING.md,
+    ...SHADOWS.md,
   },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  sectionTitle: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.text },
+  sectionHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: SPACING.md 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.text 
+  },
   addBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: COLORS.gold, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 4,
+    backgroundColor: COLORS.teal, 
+    paddingHorizontal: 14, 
+    paddingVertical: 6, 
+    borderRadius: RADIUS.full,
   },
-  addBtnText: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.primary },
+  addBtnText: { 
+    fontSize: 14, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.white 
+  },
 
-  emptyState: { alignItems: 'center', padding: 40 },
-  emptyText: { fontSize: 16, fontFamily: FONTS.semiBold, color: COLORS.textMuted, marginTop: 16 },
+  emptyState: { 
+    alignItems: 'center', 
+    padding: SPACING.xl 
+  },
+  emptyText: { 
+    fontSize: 16, 
+    fontFamily: FONTS.semiBold, 
+    color: COLORS.textSecondary, 
+    marginTop: SPACING.md 
+  },
 
   habitCard: {
-    flexDirection: 'row', alignItems: 'center', padding: 14,
-    backgroundColor: COLORS.primary, borderRadius: 12, marginBottom: 10,
-    borderWidth: 1, borderColor: COLORS.border,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: SPACING.md,
+    backgroundColor: COLORS.beige, 
+    borderRadius: RADIUS.md, 
+    marginBottom: 10,
   },
-  habitIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginLeft: 14 },
-  habitInfo: { flex: 1 },
-  habitName: { fontSize: 15, fontFamily: FONTS.semiBold, color: COLORS.text, textAlign: 'right' },
-  habitStreak: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4 },
-  streakText: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textMuted },
+  habitIcon: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: RADIUS.md, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginLeft: 14 
+  },
+  habitInfo: { 
+    flex: 1 
+  },
+  habitName: { 
+    fontSize: 15, 
+    fontFamily: FONTS.semiBold, 
+    color: COLORS.text, 
+    textAlign: 'right' 
+  },
+  habitStreak: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'flex-end', 
+    gap: 4, 
+    marginTop: 4 
+  },
+  streakText: { 
+    fontSize: 12, 
+    fontFamily: FONTS.regular, 
+    color: COLORS.textSecondary 
+  },
   checkBox: {
-    width: 28, height: 28, borderRadius: 8, borderWidth: 2, borderColor: COLORS.border,
-    justifyContent: 'center', alignItems: 'center',
+    width: 28, 
+    height: 28, 
+    borderRadius: 8, 
+    borderWidth: 2, 
+    borderColor: COLORS.border,
+    justifyContent: 'center', 
+    alignItems: 'center',
   },
 
-  tipText: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'center', marginTop: 16 },
+  tipText: { 
+    fontSize: 12, 
+    fontFamily: FONTS.regular, 
+    color: COLORS.textSecondary, 
+    textAlign: 'center', 
+    marginTop: SPACING.md 
+  },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: COLORS.overlay, 
+    justifyContent: 'flex-end' 
+  },
   modalContent: {
-    backgroundColor: COLORS.secondary,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40,
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: RADIUS.xl, 
+    borderTopRightRadius: RADIUS.xl, 
+    padding: SPACING.lg, 
+    paddingBottom: 40,
   },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold },
+  modalHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: SPACING.lg 
+  },
+  modalTitle: { 
+    fontSize: 20, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.teal 
+  },
   habitInput: {
-    backgroundColor: COLORS.primary, borderRadius: 12, padding: 14,
-    fontSize: 16, fontFamily: FONTS.regular, color: COLORS.text, marginBottom: 20,
-    borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: COLORS.beige, 
+    borderRadius: RADIUS.md, 
+    padding: SPACING.md,
+    fontSize: 16, 
+    fontFamily: FONTS.regular, 
+    color: COLORS.text, 
+    marginBottom: SPACING.lg,
+    borderWidth: 1, 
+    borderColor: COLORS.border,
   },
-  iconsLabel: { fontSize: 15, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right', marginBottom: 12 },
-  iconsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  iconOption: { alignItems: 'center', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: 'transparent', width: '18%' },
-  iconPreview: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  iconName: { fontSize: 10, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 4 },
+  iconsLabel: { 
+    fontSize: 15, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.text, 
+    textAlign: 'right', 
+    marginBottom: 12 
+  },
+  iconsGrid: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    gap: 10, 
+    marginBottom: SPACING.lg 
+  },
+  iconOption: { 
+    alignItems: 'center', 
+    padding: 8, 
+    borderRadius: RADIUS.md, 
+    borderWidth: 1, 
+    borderColor: 'transparent', 
+    width: '18%' 
+  },
+  iconPreview: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: RADIUS.sm, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  iconName: { 
+    fontSize: 10, 
+    fontFamily: FONTS.regular, 
+    color: COLORS.textSecondary, 
+    marginTop: 4 
+  },
   saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.gold, padding: 16, borderRadius: 12, gap: 8,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    backgroundColor: COLORS.teal, 
+    padding: SPACING.md, 
+    borderRadius: RADIUS.md, 
+    gap: 8,
   },
-  saveBtnDisabled: { opacity: 0.7 },
-  saveBtnText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.primary },
+  saveBtnDisabled: { 
+    opacity: 0.7 
+  },
+  saveBtnText: { 
+    fontSize: 18, 
+    fontFamily: FONTS.bold, 
+    color: COLORS.white 
+  },
 });

@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { COLORS, FONTS } from '../src/constants/theme';
+import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../src/constants/theme';
 
 interface FAQItem {
   id: string;
@@ -106,17 +106,20 @@ export default function HelpScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>المساعدة والدعم</Text>
       </View>
 
+      {/* Intro */}
       <View style={styles.intro}>
         <View style={styles.introIcon}>
-          <Ionicons name="help-buoy" size={36} color={COLORS.gold} />
+          <Ionicons name="help-buoy" size={36} color={COLORS.teal} />
         </View>
         <Text style={styles.introTitle}>كيف يمكننا مساعدتك؟</Text>
         <Text style={styles.introText}>
@@ -124,6 +127,7 @@ export default function HelpScreen() {
         </Text>
       </View>
 
+      {/* Categories */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -142,7 +146,7 @@ export default function HelpScreen() {
             <Ionicons
               name={cat.icon as any}
               size={16}
-              color={selectedCategory === cat.id ? COLORS.primary : COLORS.textMuted}
+              color={selectedCategory === cat.id ? COLORS.white : COLORS.textSecondary}
             />
             <Text style={[
               styles.categoryText,
@@ -152,6 +156,7 @@ export default function HelpScreen() {
         ))}
       </ScrollView>
 
+      {/* FAQ List */}
       <ScrollView contentContainerStyle={styles.content}>
         {filteredFAQs.map((faq) => (
           <TouchableOpacity
@@ -164,14 +169,14 @@ export default function HelpScreen() {
               <Ionicons
                 name={expandedId === faq.id ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color={COLORS.gold}
+                color={COLORS.teal}
               />
               <Text style={styles.faqQuestion}>{faq.question}</Text>
               <View style={styles.faqIcon}>
                 <Ionicons
                   name={faq.category === 'terms' ? 'shield-checkmark' : 'help-circle'}
                   size={20}
-                  color={COLORS.gold}
+                  color={COLORS.teal}
                 />
               </View>
             </View>
@@ -183,7 +188,7 @@ export default function HelpScreen() {
           </TouchableOpacity>
         ))}
 
-        {/* قسم التواصل */}
+        {/* Contact Section */}
         <View style={styles.contactSection}>
           <Text style={styles.contactTitle}>لم تجد إجابتك؟</Text>
           <Text style={styles.contactText}>
@@ -191,13 +196,13 @@ export default function HelpScreen() {
           </Text>
           <View style={styles.contactButtons}>
             <TouchableOpacity style={styles.contactBtn}>
-              <Ionicons name="mail" size={22} color={COLORS.gold} />
+              <Ionicons name="mail" size={22} color={COLORS.teal} />
               <Text style={styles.contactBtnText}>support@askyazo.com</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* التحذيرات */}
+        {/* Warning Section */}
         <View style={styles.warningSection}>
           <View style={styles.warningHeader}>
             <Ionicons name="warning" size={24} color={COLORS.error} />
@@ -215,37 +220,39 @@ export default function HelpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
   
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: COLORS.secondary,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    padding: SPACING.md,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.teal,
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: SPACING.md,
   },
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
+    color: COLORS.white,
     textAlign: 'right',
   },
 
   intro: {
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    padding: 20,
+    backgroundColor: COLORS.white,
+    padding: SPACING.lg,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
@@ -253,7 +260,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    backgroundColor: COLORS.beige,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -266,17 +273,17 @@ const styles = StyleSheet.create({
   introText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginTop: 4,
   },
 
   categoriesScroll: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   categoriesContent: {
-    padding: 12,
+    padding: SPACING.sm,
     gap: 8,
   },
   categoryBtn: {
@@ -284,48 +291,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.beige,
     gap: 6,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   categoryBtnActive: {
-    backgroundColor: COLORS.gold,
-    borderColor: COLORS.gold,
+    backgroundColor: COLORS.teal,
+    borderColor: COLORS.teal,
   },
   categoryText: {
     fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
   categoryTextActive: {
-    color: COLORS.primary,
+    color: COLORS.white,
   },
 
   content: {
-    padding: 16,
+    padding: SPACING.md,
     paddingBottom: 40,
   },
 
   faqCard: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 14,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
     marginBottom: 10,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    ...SHADOWS.md,
   },
   faqHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.md,
   },
   faqIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    backgroundColor: COLORS.beige,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -339,26 +345,25 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   faqAnswer: {
-    padding: 16,
+    padding: SPACING.md,
     paddingTop: 0,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.beige,
   },
   faqAnswerText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'right',
     lineHeight: 24,
   },
 
   contactSection: {
     alignItems: 'center',
-    padding: 24,
-    marginTop: 16,
-    backgroundColor: COLORS.secondary,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    ...SHADOWS.md,
   },
   contactTitle: {
     fontSize: 18,
@@ -368,35 +373,35 @@ const styles = StyleSheet.create({
   contactText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginTop: 8,
     textAlign: 'center',
   },
   contactButtons: {
-    marginTop: 16,
+    marginTop: SPACING.md,
   },
   contactBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    backgroundColor: COLORS.beige,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     gap: 10,
     borderWidth: 1,
-    borderColor: COLORS.gold,
+    borderColor: COLORS.teal,
   },
   contactBtnText: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
-    color: COLORS.gold,
+    color: COLORS.teal,
   },
 
   warningSection: {
-    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 16,
+    backgroundColor: COLORS.errorLight,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    marginTop: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.error,
   },
