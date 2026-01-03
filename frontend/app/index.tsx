@@ -179,32 +179,42 @@ const styles = StyleSheet.create({
   // Buttons
   buttonsContainer: {
     gap: SPACING.md,
-    marginBottom: SPACING.lg},
+    marginBottom: SPACING.lg,
+    paddingHorizontal: SPACING.sm,
+  },
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.teal,
     paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
     borderRadius: RADIUS.full,
     gap: SPACING.sm,
-    ...SHADOWS.md},
+    minWidth: 200,
+    ...SHADOWS.md,
+  },
   primaryButtonText: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.white},
+    color: COLORS.white,
+  },
   secondaryButton: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
     paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
     borderRadius: RADIUS.full,
     borderWidth: 2,
-    borderColor: COLORS.teal},
+    borderColor: COLORS.teal,
+    minWidth: 200,
+  },
   secondaryButtonText: {
     fontSize: 18,
     fontFamily: FONTS.semiBold,
-    color: COLORS.teal},
+    color: COLORS.teal,
+  },
 
   // Footer
   footer: {
