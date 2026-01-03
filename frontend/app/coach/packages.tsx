@@ -5,15 +5,15 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   RefreshControl,
   Alert,
   Modal,
   TextInput,
   KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+  Platform} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -35,6 +35,7 @@ interface PriceSettings {
 }
 
 export default function CoachPackages() {
+  const insets = useSafeAreaInsets();
   const [packages, setPackages] = useState<Package[]>([]);
   const [priceSettings, setPriceSettings] = useState<PriceSettings>({ min_hourly_rate: 20, max_hourly_rate: 200 });
   const [loading, setLoading] = useState(true);
@@ -233,7 +234,7 @@ export default function CoachPackages() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#fff" />
@@ -352,7 +353,7 @@ export default function CoachPackages() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -363,8 +364,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF9800',
-  },
+    backgroundColor: '#FF9800'},
   backButton: {
     width: 40,
     height: 40,
@@ -372,28 +372,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   priceInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFF3E0',
     padding: 10,
-    gap: 8,
-  },
+    gap: 8},
   priceInfoText: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
-    color: '#E65100',
-  },
+    color: '#E65100'},
   listContent: { padding: 16, paddingBottom: 100 },
   packageCard: {
     backgroundColor: '#fff',
@@ -404,13 +400,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+    shadowRadius: 4},
   packageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   packageIcon: {
     width: 48,
     height: 48,
@@ -418,47 +412,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9800',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
-  },
+    marginLeft: 12},
   packageInfo: { flex: 1 },
   packageName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   packageHours: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   priceTag: { alignItems: 'center' },
   priceAmount: {
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   pricePerHour: {
     fontSize: 11,
     fontFamily: 'Cairo_400Regular',
-    color: '#999',
-  },
+    color: '#999'},
   packageDesc: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     textAlign: 'right',
     marginBottom: 12,
-    lineHeight: 20,
-  },
+    lineHeight: 20},
   packageActions: {
     flexDirection: 'row',
     gap: 10,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    paddingTop: 12,
-  },
+    paddingTop: 12},
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -466,25 +453,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 10,
     borderRadius: 8,
-    gap: 6,
-  },
+    gap: 6},
   actionBtnText: {
     fontSize: 14,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   emptyState: { alignItems: 'center', paddingTop: 80 },
   emptyText: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
     color: '#999',
-    marginTop: 16,
-  },
+    marginTop: 16},
   emptySubtext: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: '#bbb',
-    marginTop: 4,
-  },
+    marginTop: 4},
   fab: {
     position: 'absolute',
     left: 20,
@@ -495,39 +478,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9800',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
-  },
+    elevation: 8},
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
+    justifyContent: 'flex-end'},
   modalContent: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    maxHeight: '85%',
-  },
+    maxHeight: '85%'},
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-  },
+    marginBottom: 20},
   modalTitle: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   inputLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     marginBottom: 8,
     marginTop: 12,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   input: {
     backgroundColor: '#f5f5f5',
     borderRadius: 10,
@@ -537,8 +514,7 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'right',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   textArea: { minHeight: 80 },
   row: { flexDirection: 'row', gap: 12 },
   halfInput: { flex: 1 },
@@ -549,29 +525,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E9',
     padding: 12,
     borderRadius: 10,
-    marginTop: 12,
-  },
+    marginTop: 12},
   totalPriceLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   totalPriceValue: {
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   saveBtn: {
     backgroundColor: '#FF9800',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    marginTop: 20,
-  },
+    marginTop: 20},
   saveBtnDisabled: { backgroundColor: '#ccc' },
   saveBtnText: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
-});
+    color: '#fff'}});

@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  
   ScrollView,
   TextInput,
   Alert,
-  ActivityIndicator,
-} from 'react-native';
+  ActivityIndicator} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -23,6 +23,7 @@ interface PriceSettings {
 }
 
 export default function AdminSettings() {
+  const insets = useSafeAreaInsets();
   const [settings, setSettings] = useState<PriceSettings>({
     min_hourly_rate: 20,
     max_hourly_rate: 200
@@ -93,7 +94,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#fff" />
@@ -157,7 +158,7 @@ export default function AdminSettings() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -168,8 +169,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#2196F3',
-  },
+    backgroundColor: '#2196F3'},
   backButton: {
     width: 40,
     height: 40,
@@ -177,97 +177,82 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   content: { padding: 16 },
   section: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 10,
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   sectionDesc: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     textAlign: 'right',
     marginBottom: 20,
-    lineHeight: 22,
-  },
+    lineHeight: 22},
   inputGroup: { marginBottom: 16 },
   inputLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     marginBottom: 8,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   input: {
     flex: 1,
     padding: 14,
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   inputSuffix: {
     paddingHorizontal: 16,
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   priceRange: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E3F2FD',
     padding: 12,
     borderRadius: 10,
-    gap: 10,
-  },
+    gap: 10},
   priceRangeText: {
     flex: 1,
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
     color: '#1976D2',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   saveBtn: {
     backgroundColor: '#4CAF50',
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   saveBtnDisabled: { backgroundColor: '#ccc' },
   saveBtnText: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
-});
+    color: '#fff'}});

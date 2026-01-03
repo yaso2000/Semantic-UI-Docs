@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  Dimensions,
-} from 'react-native';
+  
+  Dimensions} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
@@ -30,6 +30,7 @@ const lifeAreas = [
 ];
 
 export default function WheelOfLifeScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [ratings, setRatings] = useState<Record<string, number>>(
     Object.fromEntries(lifeAreas.map(a => [a.id, 5]))
@@ -71,8 +72,7 @@ export default function WheelOfLifeScreen() {
     const r = (value / 10) * radius;
     return {
       x: center + r * Math.cos(angle),
-      y: center + r * Math.sin(angle),
-    };
+      y: center + r * Math.sin(angle)};
   };
 
   const getLabelPosition = (index: number) => {
@@ -80,14 +80,13 @@ export default function WheelOfLifeScreen() {
     const r = radius + 25;
     return {
       x: center + r * Math.cos(angle),
-      y: center + r * Math.sin(angle),
-    };
+      y: center + r * Math.sin(angle)};
   };
 
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -253,7 +252,7 @@ export default function WheelOfLifeScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -267,16 +266,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
   content: { padding: 20 },
   header: { alignItems: 'center', marginBottom: 24 },
@@ -298,8 +295,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 16,
     gap: 10,
-    marginTop: 24,
-  },
+    marginTop: 24},
   submitButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
   resultsContainer: { alignItems: 'center' },
   chartContainer: { position: 'relative', marginBottom: 20 },
@@ -318,5 +314,4 @@ const styles = StyleSheet.create({
   adviceTitle: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#7B1FA2', marginBottom: 8 },
   adviceText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', lineHeight: 24, textAlign: 'right' },
   resetButton: { backgroundColor: '#9C27B0', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12 },
-  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
-});
+  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' }});

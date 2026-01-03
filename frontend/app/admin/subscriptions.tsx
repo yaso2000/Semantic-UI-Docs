@@ -5,13 +5,13 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   RefreshControl,
   Alert,
   Modal,
-  TextInput,
-} from 'react-native';
+  TextInput} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -38,6 +38,7 @@ interface Coach {
 }
 
 export default function AdminSubscriptions() {
+  const insets = useSafeAreaInsets();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,7 +220,7 @@ export default function AdminSubscriptions() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#fff" />
@@ -328,7 +329,7 @@ export default function AdminSubscriptions() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -339,8 +340,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF9800',
-  },
+    backgroundColor: '#FF9800'},
   backButton: {
     width: 40,
     height: 40,
@@ -348,15 +348,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   listContent: { padding: 16, paddingBottom: 100 },
   subscriptionCard: {
     backgroundColor: '#fff',
@@ -367,75 +365,63 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+    shadowRadius: 4},
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   coachInfo: { flex: 1 },
   coachName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   coachEmail: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12,
-  },
+    borderRadius: 12},
   statusText: {
     fontSize: 12,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   cardDetails: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
+    borderTopColor: '#f0f0f0'},
   detailRow: { alignItems: 'center' },
   detailLabel: {
     fontSize: 10,
     fontFamily: 'Cairo_400Regular',
-    color: '#999',
-  },
+    color: '#999'},
   detailValue: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    marginTop: 2,
-  },
+    marginTop: 2},
   cancelBtn: {
     marginTop: 12,
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#F44336',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   cancelBtnText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#F44336',
-  },
+    color: '#F44336'},
   emptyState: { alignItems: 'center', paddingTop: 80 },
   emptyText: {
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
-    marginTop: 16,
-  },
+    marginTop: 16},
   fab: {
     position: 'absolute',
     left: 20,
@@ -446,39 +432,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9800',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
-  },
+    elevation: 8},
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
+    justifyContent: 'flex-end'},
   modalContent: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    maxHeight: '80%',
-  },
+    maxHeight: '80%'},
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-  },
+    marginBottom: 20},
   modalTitle: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   inputLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     marginBottom: 8,
     marginTop: 12,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   coachList: { maxHeight: 150 },
   coachOption: {
     flexDirection: 'row',
@@ -488,17 +468,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   coachOptionSelected: {
     backgroundColor: '#FF9800',
-    borderColor: '#FF9800',
-  },
+    borderColor: '#FF9800'},
   coachOptionText: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
-    color: '#333',
-  },
+    color: '#333'},
   coachOptionTextSelected: { color: '#fff' },
   planOptions: { flexDirection: 'row', gap: 12 },
   planOption: {
@@ -507,17 +484,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   planOptionSelected: {
     backgroundColor: '#FF9800',
-    borderColor: '#FF9800',
-  },
+    borderColor: '#FF9800'},
   planOptionText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   planOptionTextSelected: { color: '#fff' },
   input: {
     backgroundColor: '#f5f5f5',
@@ -525,18 +499,14 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   submitBtn: {
     backgroundColor: '#FF9800',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    marginTop: 20,
-  },
+    marginTop: 20},
   submitBtnText: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
-});
+    color: '#fff'}});

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView,  KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
 
 export default function MacrosCalculator() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [calories, setCalories] = useState('');
   const [goal, setGoal] = useState('balanced');
@@ -41,7 +43,7 @@ export default function MacrosCalculator() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -108,7 +110,7 @@ export default function MacrosCalculator() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -135,5 +137,4 @@ const styles = StyleSheet.create({
   macroCard: { flex: 1, minWidth: '30%', borderRadius: 16, padding: 20, alignItems: 'center' },
   macroLabel: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 8 },
   macroValue: { fontSize: 28, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 4 },
-  macroCal: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 2 },
-});
+  macroCal: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 2 }});

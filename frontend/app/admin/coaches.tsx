@@ -5,11 +5,11 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   RefreshControl,
-  Alert,
-} from 'react-native';
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -27,6 +27,7 @@ interface Coach {
 }
 
 export default function AdminCoaches() {
+  const insets = useSafeAreaInsets();
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -154,7 +155,7 @@ export default function AdminCoaches() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#fff" />
@@ -180,7 +181,7 @@ export default function AdminCoaches() {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -191,8 +192,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF9800',
-  },
+    backgroundColor: '#FF9800'},
   backButton: {
     width: 40,
     height: 40,
@@ -200,26 +200,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   countBadge: {
     backgroundColor: 'rgba(255,255,255,0.3)',
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12,
-  },
+    borderRadius: 12},
   countText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   listContent: { padding: 16 },
   coachCard: {
     backgroundColor: '#fff',
@@ -230,13 +226,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+    shadowRadius: 4},
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   avatar: {
     width: 48,
     height: 48,
@@ -244,37 +238,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9800',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
-  },
+    marginLeft: 12},
   coachInfo: { flex: 1 },
   coachName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   coachEmail: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 10,
-  },
+    borderRadius: 10},
   statusText: {
     fontSize: 11,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   cardActions: {
     flexDirection: 'row',
     gap: 8,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    paddingTop: 12,
-  },
+    paddingTop: 12},
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -282,17 +270,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 8,
     borderRadius: 8,
-    gap: 4,
-  },
+    gap: 4},
   actionBtnText: {
     fontSize: 11,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   emptyState: { alignItems: 'center', paddingTop: 80 },
   emptyText: {
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
-    marginTop: 16,
-  },
-});
+    marginTop: 16}});

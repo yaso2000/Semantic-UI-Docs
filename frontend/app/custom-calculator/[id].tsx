@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  
   StatusBar,
   ActivityIndicator,
-  Platform,
-} from 'react-native';
+  Platform} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
@@ -27,6 +27,7 @@ interface CustomCalculator {
 }
 
 export default function CustomCalculatorScreen() {
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams();
   const [calculator, setCalculator] = useState<CustomCalculator | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,7 +67,7 @@ export default function CustomCalculatorScreen() {
 
   if (error || !calculator) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -81,7 +82,7 @@ export default function CustomCalculatorScreen() {
             <Text style={styles.retryBtnText}>العودة</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -105,7 +106,7 @@ export default function CustomCalculatorScreen() {
   `;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
       {/* Header */}
@@ -140,29 +141,26 @@ export default function CustomCalculatorScreen() {
           }}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40,
     height: 40,
@@ -170,20 +168,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontFamily: FONTS.bold,
     color: COLORS.white,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
 
   webview: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   webviewLoading: {
     position: 'absolute',
     top: 0,
@@ -192,32 +187,26 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
 
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.xl,
-  },
+    padding: SPACING.xl},
   errorText: {
     fontSize: 16,
     fontFamily: FONTS.semiBold,
     color: COLORS.textSecondary,
     marginTop: SPACING.md,
-    textAlign: 'center',
-  },
+    textAlign: 'center'},
   retryBtn: {
     marginTop: SPACING.lg,
     backgroundColor: COLORS.teal,
     paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.md,
-  },
+    borderRadius: RADIUS.md},
   retryBtnText: {
     fontSize: 14,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
-});
+    color: COLORS.white}});

@@ -10,13 +10,13 @@ import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../src/constants/theme'
 SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   
   const [fontsLoaded] = useFonts({
     Alexandria_400Regular,
     Alexandria_600SemiBold,
-    Alexandria_700Bold,
-  });
+    Alexandria_700Bold});
 
   React.useEffect(() => {
     if (fontsLoaded) {
@@ -29,7 +29,7 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       <View style={styles.content}>
@@ -103,26 +103,23 @@ export default function Index() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   content: {
     flex: 1,
     padding: SPACING.lg,
-    justifyContent: 'center',
-  },
+    justifyContent: 'center'},
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
-  },
+    marginBottom: SPACING.xl},
   logoContainer: {
     width: 110,
     height: 110,
@@ -132,25 +129,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.lg,
     borderWidth: 2,
-    borderColor: `${COLORS.teal}25`,
-  },
+    borderColor: `${COLORS.teal}25`},
   title: {
     fontSize: 40,
     fontFamily: FONTS.bold,
     color: COLORS.teal,
-    marginBottom: 4,
-  },
+    marginBottom: 4},
   titleEn: {
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
-    marginBottom: SPACING.sm,
-  },
+    marginBottom: SPACING.sm},
   subtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
 
   // Features Card
   featuresCard: {
@@ -158,42 +151,35 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
     marginBottom: SPACING.xl,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   featuresTitle: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   featuresContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
+    justifyContent: 'space-around'},
   featureItem: {
     alignItems: 'center',
-    width: '22%',
-  },
+    width: '22%'},
   featureIcon: {
     width: 52,
     height: 52,
     borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.xs,
-  },
+    marginBottom: SPACING.xs},
   featureText: {
     fontSize: 11,
     fontFamily: FONTS.semiBold,
-    textAlign: 'center',
-  },
+    textAlign: 'center'},
 
   // Buttons
   buttonsContainer: {
     gap: SPACING.md,
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -202,13 +188,11 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.full,
     gap: SPACING.sm,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   primaryButtonText: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
   secondaryButton: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -216,31 +200,24 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.full,
     borderWidth: 2,
-    borderColor: COLORS.teal,
-  },
+    borderColor: COLORS.teal},
   secondaryButtonText: {
     fontSize: 18,
     fontFamily: FONTS.semiBold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
 
   // Footer
   footer: {
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   footerDivider: {
     flexDirection: 'row',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.divider,
-  },
+    backgroundColor: COLORS.divider},
   footerText: {
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
-    marginHorizontal: SPACING.md,
-  },
-});
+    marginHorizontal: SPACING.md}});

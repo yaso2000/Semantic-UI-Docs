@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
+  
   Animated,
-  Easing,
-} from 'react-native';
+  Easing} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
@@ -32,6 +32,7 @@ const ambientSounds = [
 ];
 
 export default function MeditationTimerScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [duration, setDuration] = useState(5);
   const [selectedSound, setSelectedSound] = useState('none');
@@ -58,14 +59,12 @@ export default function MeditationTimerScreen() {
             toValue: 1,
             duration: 4000,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
+            useNativeDriver: true}),
           Animated.timing(breathAnim, {
             toValue: 0,
             duration: 4000,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
+            useNativeDriver: true}),
         ])
       ).start();
     } else if (timeLeft === 0 && isRunning) {
@@ -101,13 +100,12 @@ export default function MeditationTimerScreen() {
 
   const breathScale = breathAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.3],
-  });
+    outputRange: [1, 1.3]});
 
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -230,7 +228,7 @@ export default function MeditationTimerScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -244,16 +242,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
   content: { padding: 20 },
   header: { alignItems: 'center', marginBottom: 32 },
@@ -268,8 +264,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#fff',
     borderWidth: 2,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   durationSelected: { backgroundColor: '#EDE7F6', borderColor: '#7C4DFF' },
   durationText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666' },
   durationTextSelected: { color: '#7C4DFF', fontFamily: 'Cairo_700Bold' },
@@ -281,8 +276,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'transparent',
-  },
+    borderColor: 'transparent'},
   soundSelected: { backgroundColor: '#EDE7F6', borderColor: '#7C4DFF' },
   soundText: { fontSize: 11, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 8, textAlign: 'center' },
   soundTextSelected: { color: '#7C4DFF', fontFamily: 'Cairo_700Bold' },
@@ -294,8 +288,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 16,
     gap: 10,
-    marginTop: 20,
-  },
+    marginTop: 20},
   startButtonText: { fontSize: 20, fontFamily: 'Cairo_700Bold', color: '#fff' },
   timerContainer: { alignItems: 'center', paddingVertical: 40 },
   breathText: { fontSize: 24, fontFamily: 'Cairo_700Bold', color: '#7C4DFF', marginBottom: 30 },
@@ -306,8 +299,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#7C4DFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
-  },
+    marginBottom: 30},
   timerText: { fontSize: 48, fontFamily: 'Cairo_700Bold', color: '#fff' },
   timerLabel: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#E8E0FF' },
   soundIndicator: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 30 },
@@ -322,13 +314,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 14,
     borderRadius: 12,
-    gap: 8,
-  },
+    gap: 8},
   stopButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
   completeContainer: { alignItems: 'center', paddingVertical: 40 },
   completeTitle: { fontSize: 32, fontFamily: 'Cairo_700Bold', color: '#4CAF50', marginTop: 20 },
   completeText: { fontSize: 18, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 12, textAlign: 'center' },
   completeQuote: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#999', marginTop: 24, textAlign: 'center', fontStyle: 'italic', paddingHorizontal: 20 },
   resetButton: { backgroundColor: '#7C4DFF', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12, marginTop: 30 },
-  resetButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
-});
+  resetButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' }});

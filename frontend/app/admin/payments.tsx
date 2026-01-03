@@ -5,13 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   RefreshControl,
   Modal,
   TextInput,
-  Alert,
-} from 'react-native';
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -54,6 +54,7 @@ interface Payment {
 }
 
 export default function AdminPaymentsScreen() {
+  const insets = useSafeAreaInsets();
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -173,7 +174,7 @@ export default function AdminPaymentsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#fff" />
@@ -403,7 +404,7 @@ export default function AdminPaymentsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -417,54 +418,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#4CAF50',
-  },
+    backgroundColor: '#4CAF50'},
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   headerTitle: {
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   addBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
 
   tabs: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   tab: {
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
     borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
-  },
+    borderBottomColor: 'transparent'},
   tabActive: {
-    borderBottomColor: '#4CAF50',
-  },
+    borderBottomColor: '#4CAF50'},
   tabText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#999',
-  },
+    color: '#999'},
   tabTextActive: {
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
 
   content: { padding: 16, paddingBottom: 40 },
 
@@ -472,49 +464,41 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     borderRadius: 20,
     padding: 24,
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   revenueLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-  },
+    textAlign: 'center'},
   revenueAmount: {
     fontSize: 42,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
     textAlign: 'center',
-    marginVertical: 8,
-  },
+    marginVertical: 8},
   revenueBreakdown: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.2)',
-  },
+    borderTopColor: 'rgba(255,255,255,0.2)'},
   breakdownItem: {
     alignItems: 'center',
-    gap: 4,
-  },
+    gap: 4},
   breakdownLabel: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
-    color: 'rgba(255,255,255,0.7)',
-  },
+    color: 'rgba(255,255,255,0.7)'},
   breakdownValue: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
 
   statsGrid: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   statCard: {
     flex: 1,
     backgroundColor: '#fff',
@@ -525,57 +509,48 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 2,
-  },
+    elevation: 2},
   statValue: {
     fontSize: 22,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    marginTop: 8,
-  },
+    marginTop: 8},
   statLabel: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    marginTop: 4,
-  },
+    marginTop: 4},
 
   statusSection: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   sectionTitle: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     textAlign: 'right',
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   statusGrid: {
     flexDirection: 'row',
-    gap: 10,
-  },
+    gap: 10},
   statusCard: {
     flex: 1,
     backgroundColor: '#f9f9f9',
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
-    borderLeftWidth: 4,
-  },
+    borderLeftWidth: 4},
   statusCount: {
     fontSize: 24,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   statusLabel: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    marginTop: 4,
-  },
+    marginTop: 4},
 
   transactionsSection: {},
   transactionCard: {
@@ -587,55 +562,45 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 1,
-  },
+    elevation: 1},
   transactionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   transactionInfo: {
     flex: 1,
-    alignItems: 'flex-end',
-  },
+    alignItems: 'flex-end'},
   transactionName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   transactionType: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
-    color: '#666',
-  },
+    color: '#666'},
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
-  },
+    borderRadius: 8},
   statusText: {
     fontSize: 12,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   transactionFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
+    borderTopColor: '#f0f0f0'},
   transactionDate: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
-    color: '#999',
-  },
+    color: '#999'},
   transactionAmount: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
 
   coachesSection: {},
   coachCard: {
@@ -644,8 +609,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 16,
-    marginBottom: 10,
-  },
+    marginBottom: 10},
   coachRank: {
     width: 36,
     height: 36,
@@ -653,101 +617,84 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 14,
-  },
+    marginLeft: 14},
   rankText: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
-  },
+    color: '#FF9800'},
   coachInfo: {
-    flex: 1,
-  },
+    flex: 1},
   coachName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   coachRevenue: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 6,
-    marginTop: 4,
-  },
+    marginTop: 4},
   coachRevenueText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   viewDetailsBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: '#E3F2FD',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
 
   emptyState: {
     alignItems: 'center',
-    padding: 40,
-  },
+    padding: 40},
   emptyText: {
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
-    marginTop: 16,
-  },
+    marginTop: 16},
 
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
+    justifyContent: 'flex-end'},
   modalContent: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    paddingBottom: 40,
-  },
+    paddingBottom: 40},
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
-  },
+    marginBottom: 24},
   modalTitle: {
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   inputLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     textAlign: 'right',
     marginBottom: 8,
-    marginTop: 16,
-  },
+    marginTop: 16},
   input: {
     backgroundColor: '#f5f5f5',
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
-    color: '#333',
-  },
+    color: '#333'},
   textArea: {
     minHeight: 80,
-    textAlignVertical: 'top',
-  },
+    textAlignVertical: 'top'},
   typeButtons: {
     flexDirection: 'row',
-    gap: 10,
-  },
+    gap: 10},
   typeBtn: {
     flex: 1,
     padding: 12,
@@ -755,20 +702,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'transparent',
-  },
+    borderColor: 'transparent'},
   typeBtnActive: {
     backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50',
-  },
+    borderColor: '#4CAF50'},
   typeBtnText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#666',
-  },
+    color: '#666'},
   typeBtnTextActive: {
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   submitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -777,11 +720,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginTop: 24,
-    gap: 8,
-  },
+    gap: 8},
   submitBtnText: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
-});
+    color: '#fff'}});

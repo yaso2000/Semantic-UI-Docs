@@ -5,14 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   TextInput,
   Modal,
   Alert,
   ActivityIndicator,
   StatusBar,
-  Switch,
-} from 'react-native';
+  Switch} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -58,6 +58,7 @@ const ICONS = [
 ];
 
 export default function AdminResourcesScreen() {
+  const insets = useSafeAreaInsets();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -153,8 +154,7 @@ export default function AdminResourcesScreen() {
         internal_route: internalRoute || null,
         duration: duration || null,
         icon,
-        is_active: isActive,
-      };
+        is_active: isActive};
 
       const url = editingResource 
         ? `${API_URL}/api/admin/resources/${editingResource.id}`
@@ -235,7 +235,7 @@ export default function AdminResourcesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
@@ -474,21 +474,19 @@ export default function AdminResourcesScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
 
   header: {
     flexDirection: 'row',
@@ -496,69 +494,58 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   headerTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
   addBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
 
   statsRow: {
     flexDirection: 'row',
     padding: SPACING.md,
-    gap: SPACING.sm,
-  },
+    gap: SPACING.sm},
   statCard: {
     flex: 1,
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.md,
     padding: SPACING.md,
     alignItems: 'center',
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   statNumber: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
   statLabel: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
 
   content: {
     padding: SPACING.md,
-    paddingBottom: 40,
-  },
+    paddingBottom: 40},
 
   emptyState: {
     alignItems: 'center',
-    padding: SPACING['2xl'],
-  },
+    padding: SPACING['2xl']},
   emptyText: {
     fontSize: 16,
     fontFamily: FONTS.semiBold,
     color: COLORS.textSecondary,
-    marginTop: SPACING.md,
-  },
+    marginTop: SPACING.md},
   emptyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -567,83 +554,69 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
     gap: 6,
-    marginTop: SPACING.md,
-  },
+    marginTop: SPACING.md},
   emptyBtnText: {
     fontSize: 14,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
 
   resourceCard: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   resourceCardInactive: {
-    opacity: 0.7,
-  },
+    opacity: 0.7},
   resourceHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
+    alignItems: 'flex-start'},
   resourceIcon: {
     width: 48,
     height: 48,
     borderRadius: RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.sm,
-  },
+    marginLeft: SPACING.sm},
   resourceInfo: {
-    flex: 1,
-  },
+    flex: 1},
   resourceTitle: {
     fontSize: 16,
     fontFamily: FONTS.bold,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   resourceMeta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-end',
     gap: 6,
-    marginTop: 6,
-  },
+    marginTop: 6},
   badge: {
     backgroundColor: `${COLORS.teal}15`,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-  },
+    borderRadius: RADIUS.sm},
   badgeText: {
     fontSize: 11,
     fontFamily: FONTS.semiBold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
   resourceDesc: {
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
     textAlign: 'right',
     marginTop: SPACING.sm,
-    lineHeight: 20,
-  },
+    lineHeight: 20},
   linkIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 4,
-    marginTop: SPACING.sm,
-  },
+    marginTop: SPACING.sm},
   linkText: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.info,
-  },
+    color: COLORS.info},
   resourceActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -651,8 +624,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     paddingTop: SPACING.sm,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
+    borderTopColor: COLORS.border},
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -660,41 +632,34 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.sm,
     backgroundColor: `${COLORS.teal}10`,
-    gap: 4,
-  },
+    gap: 4},
   actionBtnText: {
     fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
   deleteBtn: {
-    backgroundColor: COLORS.errorLight,
-  },
+    backgroundColor: COLORS.errorLight},
 
   // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: COLORS.overlay,
-    justifyContent: 'flex-end',
-  },
+    justifyContent: 'flex-end'},
   modalContent: {
     backgroundColor: COLORS.white,
     borderTopLeftRadius: RADIUS.xl,
     borderTopRightRadius: RADIUS.xl,
     padding: SPACING.lg,
-    maxHeight: '90%',
-  },
+    maxHeight: '90%'},
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
   modalTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
 
   inputLabel: {
     fontSize: 14,
@@ -702,8 +667,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'right',
     marginBottom: 6,
-    marginTop: SPACING.sm,
-  },
+    marginTop: SPACING.sm},
   input: {
     backgroundColor: COLORS.beige,
     borderRadius: RADIUS.md,
@@ -712,57 +676,47 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     color: COLORS.text,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   textArea: {
     minHeight: 80,
-    textAlignVertical: 'top',
-  },
+    textAlignVertical: 'top'},
   contentArea: {
     minHeight: 150,
-    textAlignVertical: 'top',
-  },
+    textAlignVertical: 'top'},
 
   pickerContainer: {
     backgroundColor: COLORS.beige,
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.border,
-    overflow: 'hidden',
-  },
+    overflow: 'hidden'},
   picker: {
-    height: 50,
-  },
+    height: 50},
 
   iconsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: SPACING.sm,
-  },
+    gap: SPACING.sm},
   iconOption: {
     width: 48,
     height: 48,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.beige,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   iconOptionSelected: {
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
 
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: SPACING.md,
-    gap: SPACING.sm,
-  },
+    gap: SPACING.sm},
   switchLabel: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
 
   saveBtn: {
     flexDirection: 'row',
@@ -773,14 +727,10 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     gap: 8,
     marginTop: SPACING.lg,
-    marginBottom: SPACING.xl,
-  },
+    marginBottom: SPACING.xl},
   saveBtnDisabled: {
-    opacity: 0.7,
-  },
+    opacity: 0.7},
   saveBtnText: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
-});
+    color: COLORS.white}});

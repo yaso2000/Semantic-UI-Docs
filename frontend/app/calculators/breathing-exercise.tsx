@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  
   Animated,
   Easing,
   Dimensions,
   StatusBar,
-  ScrollView,
-} from 'react-native';
+  ScrollView} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import { useRouter } from 'expo-router';
@@ -26,6 +26,7 @@ const breathingPatterns = [
 ];
 
 export default function BreathingExerciseScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [selectedPattern, setSelectedPattern] = useState(breathingPatterns[0]);
   const [isRunning, setIsRunning] = useState(false);
@@ -50,8 +51,7 @@ export default function BreathingExerciseScreen() {
       toValue: 1,
       duration: selectedPattern.inhale * 1000,
       easing: Easing.inOut(Easing.ease),
-      useNativeDriver: true,
-    }).start();
+      useNativeDriver: true}).start();
     
     for (let i = selectedPattern.inhale; i > 0 && isRunningRef.current; i--) {
       setCountdown(i);
@@ -77,8 +77,7 @@ export default function BreathingExerciseScreen() {
       toValue: 0.5,
       duration: selectedPattern.exhale * 1000,
       easing: Easing.inOut(Easing.ease),
-      useNativeDriver: true,
-    }).start();
+      useNativeDriver: true}).start();
 
     for (let i = selectedPattern.exhale; i > 0 && isRunningRef.current; i--) {
       setCountdown(i);
@@ -139,7 +138,7 @@ export default function BreathingExerciseScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
@@ -231,8 +230,7 @@ export default function BreathingExerciseScreen() {
                 styles.breathCircle,
                 {
                   backgroundColor: selectedPattern.color,
-                  transform: [{ scale: scaleAnim }],
-                },
+                  transform: [{ scale: scaleAnim }]},
               ]}
             >
               <Text style={styles.countdownText}>{countdown}</Text>
@@ -270,69 +268,59 @@ export default function BreathingExerciseScreen() {
           </TouchableOpacity>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   headerTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
 
   content: {
     padding: SPACING.md,
-    paddingBottom: 40,
-  },
+    paddingBottom: 40},
 
   introSection: {
     alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
   introIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   introTitle: {
     fontSize: 22,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   introText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    marginTop: 4,
-  },
+    marginTop: 4},
 
   patternsContainer: {
-    gap: SPACING.sm,
-  },
+    gap: SPACING.sm},
   patternCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -341,43 +329,36 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderWidth: 2,
     borderColor: 'transparent',
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   patternIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   patternInfo: {
-    flex: 1,
-  },
+    flex: 1},
   patternName: {
     fontSize: 16,
     fontFamily: FONTS.bold,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   patternDesc: {
     fontSize: 12,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   patternDetails: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-end',
     gap: 4,
-    marginTop: 6,
-  },
+    marginTop: 6},
   patternDetail: {
     fontSize: 11,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-  },
+    color: COLORS.textMuted},
 
   startButton: {
     flexDirection: 'row',
@@ -387,125 +368,105 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     marginTop: SPACING.lg,
     gap: SPACING.sm,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   startButtonText: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
 
   tipsSection: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginTop: SPACING.lg,
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   tipsTitle: {
     fontSize: 16,
     fontFamily: FONTS.bold,
     color: COLORS.teal,
     textAlign: 'center',
-    marginBottom: SPACING.sm,
-  },
+    marginBottom: SPACING.sm},
   tipItem: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
     textAlign: 'right',
-    paddingVertical: 4,
-  },
+    paddingVertical: 4},
 
   // Exercise Screen
   exerciseContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: SPACING.lg,
-  },
+    padding: SPACING.lg},
   cycleCounter: {
     alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
   cycleLabel: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
   cycleNumber: {
     fontSize: 32,
-    fontFamily: FONTS.bold,
-  },
+    fontFamily: FONTS.bold},
 
   breathingVisual: {
     width: width * 0.7,
     height: width * 0.7,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
   outerRing: {
     position: 'absolute',
     width: '100%',
     height: '100%',
     borderRadius: width * 0.35,
-    borderWidth: 2,
-  },
+    borderWidth: 2},
   middleRing: {
     position: 'absolute',
     width: '80%',
     height: '80%',
     borderRadius: width * 0.28,
-    borderWidth: 2,
-  },
+    borderWidth: 2},
   breathCircle: {
     width: '60%',
     height: '60%',
     borderRadius: width * 0.21,
     justifyContent: 'center',
     alignItems: 'center',
-    ...SHADOWS.lg,
-  },
+    ...SHADOWS.lg},
   countdownText: {
     fontSize: 56,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
   phaseText: {
     fontSize: 18,
     fontFamily: FONTS.semiBold,
     color: COLORS.white,
-    marginTop: 4,
-  },
+    marginTop: 4},
 
   instructionText: {
     fontSize: 18,
     fontFamily: FONTS.semiBold,
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
 
   phaseIndicators: {
     flexDirection: 'row',
     gap: SPACING.sm,
-    marginBottom: SPACING.xl,
-  },
+    marginBottom: SPACING.xl},
   phaseIndicator: {
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.beige,
-  },
+    backgroundColor: COLORS.beige},
   phaseIndicatorText: {
     fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
   phaseActiveText: {
-    color: COLORS.white,
-  },
+    color: COLORS.white},
 
   stopButton: {
     flexDirection: 'row',
@@ -516,11 +477,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.lg,
     gap: SPACING.sm,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   stopButtonText: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
-});
+    color: COLORS.white}});

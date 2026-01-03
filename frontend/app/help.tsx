@@ -5,9 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-} from 'react-native';
+  
+  StatusBar} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -92,6 +92,7 @@ const CATEGORIES = [
 ];
 
 export default function HelpScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const router = useRouter();
@@ -105,7 +106,7 @@ export default function HelpScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
@@ -215,7 +216,7 @@ export default function HelpScreen() {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -230,8 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40,
     height: 40,
@@ -239,23 +239,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.white,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
 
   intro: {
     alignItems: 'center',
     backgroundColor: COLORS.white,
     padding: SPACING.lg,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
+    borderBottomColor: COLORS.border},
   introIcon: {
     width: 60,
     height: 60,
@@ -263,29 +260,24 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.beige,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   introTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   introText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    marginTop: 4,
-  },
+    marginTop: 4},
 
   categoriesScroll: {
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
+    borderBottomColor: COLORS.border},
   categoriesContent: {
     padding: SPACING.sm,
-    gap: 8,
-  },
+    gap: 8},
   categoryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -295,38 +287,31 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.beige,
     gap: 6,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   categoryBtnActive: {
     backgroundColor: COLORS.teal,
-    borderColor: COLORS.teal,
-  },
+    borderColor: COLORS.teal},
   categoryText: {
     fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
   categoryTextActive: {
-    color: COLORS.white,
-  },
+    color: COLORS.white},
 
   content: {
     padding: SPACING.md,
-    paddingBottom: 40,
-  },
+    paddingBottom: 40},
 
   faqCard: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     marginBottom: 10,
     overflow: 'hidden',
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   faqHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.md,
-  },
+    padding: SPACING.md},
   faqIcon: {
     width: 36,
     height: 36,
@@ -334,28 +319,24 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.beige,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-  },
+    marginRight: 12},
   faqQuestion: {
     flex: 1,
     fontSize: 15,
     fontFamily: FONTS.semiBold,
     color: COLORS.text,
     textAlign: 'right',
-    lineHeight: 24,
-  },
+    lineHeight: 24},
   faqAnswer: {
     padding: SPACING.md,
     paddingTop: 0,
-    backgroundColor: COLORS.beige,
-  },
+    backgroundColor: COLORS.beige},
   faqAnswerText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
     textAlign: 'right',
-    lineHeight: 24,
-  },
+    lineHeight: 24},
 
   contactSection: {
     alignItems: 'center',
@@ -363,23 +344,19 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   contactTitle: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   contactText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
     marginTop: 8,
-    textAlign: 'center',
-  },
+    textAlign: 'center'},
   contactButtons: {
-    marginTop: SPACING.md,
-  },
+    marginTop: SPACING.md},
   contactBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,13 +366,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     gap: 10,
     borderWidth: 1,
-    borderColor: COLORS.teal,
-  },
+    borderColor: COLORS.teal},
   contactBtnText: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
 
   warningSection: {
     backgroundColor: COLORS.errorLight,
@@ -403,25 +378,20 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     marginTop: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.error,
-  },
+    borderColor: COLORS.error},
   warningHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 10,
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   warningTitle: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.error,
-  },
+    color: COLORS.error},
   warningText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.error,
     textAlign: 'right',
-    lineHeight: 26,
-  },
-});
+    lineHeight: 26}});

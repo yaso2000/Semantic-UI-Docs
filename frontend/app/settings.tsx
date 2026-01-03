@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   Switch,
   Alert,
   ActivityIndicator,
-  StatusBar,
-} from 'react-native';
+  StatusBar} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../src/constants/theme';
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const [notifications, setNotifications] = useState(true);
   const [reminderTime, setReminderTime] = useState('08:00');
   const [user, setUser] = useState<any>(null);
@@ -60,7 +61,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
@@ -197,7 +198,7 @@ export default function SettingsScreen() {
           <Text style={styles.copyrightText}>© 2025 جميع الحقوق محفوظة</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -218,8 +219,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40,
     height: 40,
@@ -227,32 +227,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.white,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
 
   content: {
     padding: SPACING.md,
-    paddingBottom: 40,
-  },
+    paddingBottom: 40},
 
   section: {
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
   sectionTitle: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
     color: COLORS.textSecondary,
     textAlign: 'right',
     marginBottom: 12,
-    paddingRight: 4,
-  },
+    paddingRight: 4},
 
   profileCard: {
     flexDirection: 'row',
@@ -260,8 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   profileAvatar: {
     width: 60,
     height: 60,
@@ -269,35 +263,29 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 14,
-  },
+    marginLeft: 14},
   profileLetter: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.white,
-  },
+    color: COLORS.white},
   profileInfo: {
-    flex: 1,
-  },
+    flex: 1},
   profileName: {
     fontSize: 18,
     fontFamily: FONTS.bold,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   profileEmail: {
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   profileRole: {
     fontSize: 12,
     fontFamily: FONTS.semiBold,
     color: COLORS.teal,
     textAlign: 'right',
-    marginTop: 4,
-  },
+    marginTop: 4},
 
   settingItem: {
     flexDirection: 'row',
@@ -306,8 +294,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: 8,
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   settingIconContainer: {
     width: 44,
     height: 44,
@@ -315,25 +302,21 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.beige,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-  },
+    marginRight: 12},
   settingInfo: {
     flex: 1,
-    marginHorizontal: 14,
-  },
+    marginHorizontal: 14},
   settingLabel: {
     fontSize: 16,
     fontFamily: FONTS.semiBold,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   settingDesc: {
     fontSize: 12,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
     textAlign: 'right',
-    marginTop: 2,
-  },
+    marginTop: 2},
 
   logoutBtn: {
     flexDirection: 'row',
@@ -345,36 +328,29 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 10,
     borderWidth: 1,
-    borderColor: COLORS.error,
-  },
+    borderColor: COLORS.error},
   logoutBtnText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.error,
-  },
+    color: COLORS.error},
 
   versionSection: {
     alignItems: 'center',
     marginTop: SPACING.xl,
     paddingTop: SPACING.lg,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
+    borderTopColor: COLORS.border},
   appName: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
   versionText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    marginTop: 4,
-  },
+    marginTop: 4},
   copyrightText: {
     fontSize: 12,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
-    marginTop: 4,
-  },
-});
+    marginTop: 4}});

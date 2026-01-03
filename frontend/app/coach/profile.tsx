@@ -5,14 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   TextInput,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Image,
-} from 'react-native';
+  Image} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -47,6 +47,7 @@ const SPECIALTY_OPTIONS = [
 ];
 
 export default function CoachProfileEdit() {
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<CoachProfile>({
     bio: '',
     specialties: [],
@@ -108,8 +109,7 @@ export default function CoachProfileEdit() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
-      base64: true,
-    });
+      base64: true});
 
     if (!result.canceled && result.assets[0].base64) {
       const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
@@ -187,8 +187,7 @@ export default function CoachProfileEdit() {
   const getLetterColor = (name: string) => {
     const colors: { [key: string]: string } = {
       'ا': '#E91E63', 'أ': '#E91E63', 'م': '#00BCD4', 'ع': '#E91E63',
-      'ب': '#9C27B0', 'ت': '#673AB7', 'ث': '#3F51B5', 'ج': '#2196F3',
-    };
+      'ب': '#9C27B0', 'ت': '#673AB7', 'ث': '#3F51B5', 'ج': '#2196F3'};
     const firstLetter = name?.trim().charAt(0).toLowerCase() || '?';
     return colors[firstLetter] || '#FF9800';
   };
@@ -202,7 +201,7 @@ export default function CoachProfileEdit() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -386,7 +385,7 @@ export default function CoachProfileEdit() {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -397,8 +396,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FF9800',
-  },
+    backgroundColor: '#FF9800'},
   backButton: {
     width: 40,
     height: 40,
@@ -406,79 +404,67 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   content: { padding: 16, paddingBottom: 40 },
   
   section: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 10,
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   sectionDesc: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     textAlign: 'right',
     marginBottom: 16,
-    lineHeight: 22,
-  },
+    lineHeight: 22},
 
   // Image styles
   imageContainer: {
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   imageWrapper: {
     position: 'relative',
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: '#FF9800',
-  },
+    borderColor: '#FF9800'},
   removeImageBtn: {
     position: 'absolute',
     top: 0,
     right: 0,
     backgroundColor: '#fff',
-    borderRadius: 14,
-  },
+    borderRadius: 14},
   placeholderImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   placeholderLetter: {
     fontSize: 48,
     color: '#fff',
-    fontWeight: 'bold',
-  },
+    fontWeight: 'bold'},
   changeImageBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -488,13 +474,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#FF9800',
-    gap: 8,
-  },
+    gap: 8},
   changeImageText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
-  },
+    color: '#FF9800'},
   
   textArea: {
     backgroundColor: '#f9f9f9',
@@ -506,23 +490,20 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     minHeight: 120,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   charCount: {
     fontSize: 11,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
     textAlign: 'left',
-    marginTop: 8,
-  },
+    marginTop: 8},
   
   specialtiesList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
     marginBottom: 12,
-    justifyContent: 'flex-end',
-  },
+    justifyContent: 'flex-end'},
   specialtyTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -530,13 +511,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    gap: 8,
-  },
+    gap: 8},
   specialtyTagText: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
-    color: '#9C27B0',
-  },
+    color: '#9C27B0'},
   addSpecialtyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -546,51 +525,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#9C27B0',
     borderStyle: 'dashed',
-    gap: 8,
-  },
+    gap: 8},
   addSpecialtyText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#9C27B0',
-  },
+    color: '#9C27B0'},
   
   specialtyPicker: {
     backgroundColor: '#f9f9f9',
     borderRadius: 12,
     padding: 16,
-    marginTop: 12,
-  },
+    marginTop: 12},
   pickerTitle: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     textAlign: 'right',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   specialtyOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     justifyContent: 'flex-end',
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   specialtyOption: {
     backgroundColor: '#fff',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   specialtyOptionText: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
-    color: '#666',
-  },
+    color: '#666'},
   customSpecialty: {
     flexDirection: 'row',
-    gap: 10,
-  },
+    gap: 10},
   customSpecialtyInput: {
     flex: 1,
     backgroundColor: '#fff',
@@ -601,16 +572,14 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'right',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   customSpecialtyBtn: {
     width: 48,
     height: 48,
     borderRadius: 10,
     backgroundColor: '#9C27B0',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   
   priceInput: {
     flexDirection: 'row',
@@ -620,27 +589,23 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   priceCurrency: {
     fontSize: 24,
     fontFamily: 'Cairo_700Bold',
     color: '#2196F3',
-    marginRight: 8,
-  },
+    marginRight: 8},
   priceValue: {
     fontSize: 32,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     minWidth: 80,
-    textAlign: 'center',
-  },
+    textAlign: 'center'},
   priceLabel: {
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    marginLeft: 8,
-  },
+    marginLeft: 8},
   
   saveBtn: {
     flexDirection: 'row',
@@ -650,16 +615,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 18,
     gap: 10,
-    marginTop: 8,
-  },
+    marginTop: 8},
   saveBtnDisabled: {
-    backgroundColor: '#ccc',
-  },
+    backgroundColor: '#ccc'},
   saveBtnText: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   
   packagesLink: {
     flexDirection: 'row',
@@ -667,11 +629,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
     marginTop: 16,
-    gap: 8,
-  },
+    gap: 8},
   packagesLinkText: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#FF9800',
-  },
-});
+    color: '#FF9800'}});

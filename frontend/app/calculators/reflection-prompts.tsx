@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  TextInput,
-} from 'react-native';
+  
+  TextInput} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
@@ -45,6 +45,7 @@ const deepPrompts = [
 ];
 
 export default function ReflectionPromptsScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [category, setCategory] = useState<'daily' | 'weekly' | 'deep'>('daily');
   const [currentPrompt, setCurrentPrompt] = useState('');
@@ -73,8 +74,7 @@ export default function ReflectionPromptsScreen() {
         date: new Date().toISOString(),
         category,
         prompt: currentPrompt,
-        reflection: reflection.trim(),
-      };
+        reflection: reflection.trim()};
       
       const data = await AsyncStorage.getItem('reflections');
       const reflections = data ? JSON.parse(data) : [];
@@ -101,7 +101,7 @@ export default function ReflectionPromptsScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -191,7 +191,7 @@ export default function ReflectionPromptsScreen() {
           <Text style={styles.tipText}>• اكتب بحرية دون حكم على نفسك</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -205,16 +205,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
   content: { padding: 20 },
   header: { alignItems: 'center', marginBottom: 20 },
@@ -229,8 +227,7 @@ const styles = StyleSheet.create({
     gap: 6,
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#fff',
-  },
+    backgroundColor: '#fff'},
   categoryTabText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666' },
   categoryTabTextActive: { color: '#fff', fontFamily: 'Cairo_700Bold' },
   promptCard: {
@@ -238,8 +235,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    borderWidth: 2,
-  },
+    borderWidth: 2},
   promptHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   promptLabel: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#666' },
   promptText: { fontSize: 20, fontFamily: 'Cairo_700Bold', color: '#333', lineHeight: 34, textAlign: 'right' },
@@ -255,8 +251,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo_400Regular',
     color: '#333',
     minHeight: 150,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -264,15 +259,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     gap: 8,
-    marginBottom: 20,
-  },
+    marginBottom: 20},
   saveButtonDisabled: { backgroundColor: '#ccc' },
   saveButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
   tipsBox: {
     backgroundColor: '#E3F2FD',
     borderRadius: 16,
-    padding: 20,
-  },
+    padding: 20},
   tipsTitle: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#1976D2', marginBottom: 12 },
-  tipText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#1976D2', marginBottom: 6, textAlign: 'right' },
-});
+  tipText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#1976D2', marginBottom: 6, textAlign: 'right' }});

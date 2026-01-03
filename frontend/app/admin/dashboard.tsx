@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   Alert,
   TextInput,
-  Modal,
-} from 'react-native';
+  Modal} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
@@ -52,6 +52,7 @@ interface Booking {
 }
 
 export default function AdminDashboard() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'packages' | 'bookings'>('stats');
   const [stats, setStats] = useState<Stats | null>(null);
@@ -65,8 +66,7 @@ export default function AdminDashboard() {
     name: '',
     hours: '',
     price: '',
-    description: '',
-  });
+    description: ''});
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -115,8 +115,7 @@ export default function AdminDashboard() {
         name: pkg.name,
         hours: pkg.hours.toString(),
         price: pkg.price.toString(),
-        description: pkg.description,
-      });
+        description: pkg.description});
     } else {
       setEditingPackage(null);
       setPackageForm({ name: '', hours: '', price: '', description: '' });
@@ -147,8 +146,7 @@ export default function AdminDashboard() {
           hours: parseInt(packageForm.hours),
           price: parseFloat(packageForm.price),
           description: packageForm.description,
-          active: true,
-        })
+          active: true})
       });
 
       if (response.ok) {
@@ -188,7 +186,7 @@ export default function AdminDashboard() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -399,7 +397,7 @@ export default function AdminDashboard() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -412,8 +410,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f5f5f5', justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 20, fontFamily: 'Cairo_700Bold', color: '#333' },
   tabsContainer: { backgroundColor: '#fff', maxHeight: 60 },
@@ -465,5 +462,4 @@ const styles = StyleSheet.create({
   formInput: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 14, fontSize: 16, fontFamily: 'Cairo_400Regular', textAlign: 'right' },
   formRow: { flexDirection: 'row' },
   saveButton: { backgroundColor: '#4CAF50', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
-  saveButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
-});
+  saveButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' }});

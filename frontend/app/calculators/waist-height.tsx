@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView,  KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
 
 export default function WaistHeightCalculator() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [waist, setWaist] = useState('');
   const [height, setHeight] = useState('');
@@ -32,7 +34,7 @@ export default function WaistHeightCalculator() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -75,7 +77,7 @@ export default function WaistHeightCalculator() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -98,5 +100,4 @@ const styles = StyleSheet.create({
   circle: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   value: { fontSize: 36, fontFamily: 'Cairo_700Bold', color: '#fff' },
   category: { fontSize: 24, fontFamily: 'Cairo_700Bold' },
-  advice: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'center', marginTop: 8 },
-});
+  advice: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'center', marginTop: 8 }});

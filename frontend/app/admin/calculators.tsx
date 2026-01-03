@@ -5,14 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   TextInput,
   Modal,
   Alert,
   ActivityIndicator,
   StatusBar,
-  Switch,
-} from 'react-native';
+  Switch} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -281,6 +281,7 @@ const TEMPLATES = [
 ];
 
 export default function AdminCalculatorsScreen() {
+  const insets = useSafeAreaInsets();
   const [calculators, setCalculators] = useState<CustomCalculator[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -371,8 +372,7 @@ export default function AdminCalculatorsScreen() {
         category,
         icon,
         html_content: htmlContent,
-        is_active: isActive,
-      };
+        is_active: isActive};
 
       const url = editingCalc
         ? `${API_URL}/api/admin/custom-calculators/${editingCalc.id}`
@@ -448,7 +448,7 @@ export default function AdminCalculatorsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
       {/* Header */}
@@ -693,7 +693,7 @@ export default function AdminCalculatorsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -707,25 +707,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center', alignItems: 'center',
-  },
+    justifyContent: 'center', alignItems: 'center'},
   headerTitle: { fontSize: 20, fontFamily: FONTS.bold, color: COLORS.white },
   addBtn: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center', alignItems: 'center',
-  },
+    justifyContent: 'center', alignItems: 'center'},
 
   statsRow: { flexDirection: 'row', padding: SPACING.md, gap: SPACING.sm },
   statCard: {
     flex: 1, backgroundColor: COLORS.white, borderRadius: RADIUS.md,
-    padding: SPACING.md, alignItems: 'center', ...SHADOWS.sm,
-  },
+    padding: SPACING.md, alignItems: 'center', ...SHADOWS.sm},
   statNumber: { fontSize: 24, fontFamily: FONTS.bold, color: COLORS.teal, marginTop: 4 },
   statLabel: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textSecondary },
 
@@ -736,20 +732,17 @@ const styles = StyleSheet.create({
   emptyBtn: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.teal,
     paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full, gap: 6, marginTop: SPACING.md,
-  },
+    borderRadius: RADIUS.full, gap: 6, marginTop: SPACING.md},
   emptyBtnText: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.white },
 
   calcCard: {
     backgroundColor: COLORS.white, borderRadius: RADIUS.lg,
-    padding: SPACING.md, marginBottom: SPACING.sm, ...SHADOWS.md,
-  },
+    padding: SPACING.md, marginBottom: SPACING.sm, ...SHADOWS.md},
   calcCardInactive: { opacity: 0.7 },
   calcHeader: { flexDirection: 'row', alignItems: 'flex-start' },
   calcIcon: {
     width: 50, height: 50, borderRadius: RADIUS.md,
-    justifyContent: 'center', alignItems: 'center', marginLeft: SPACING.sm,
-  },
+    justifyContent: 'center', alignItems: 'center', marginLeft: SPACING.sm},
   calcInfo: { flex: 1 },
   calcTitle: { fontSize: 16, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right' },
   calcMeta: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 6, marginTop: 6 },
@@ -757,85 +750,69 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 11, fontFamily: FONTS.semiBold },
   calcDesc: {
     fontSize: 13, fontFamily: FONTS.regular, color: COLORS.textSecondary,
-    textAlign: 'right', marginTop: SPACING.sm, lineHeight: 20,
-  },
+    textAlign: 'right', marginTop: SPACING.sm, lineHeight: 20},
   calcActions: {
     flexDirection: 'row', justifyContent: 'flex-end', gap: SPACING.sm,
     marginTop: SPACING.md, paddingTop: SPACING.sm,
-    borderTopWidth: 1, borderTopColor: COLORS.border,
-  },
+    borderTopWidth: 1, borderTopColor: COLORS.border},
   actionBtn: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.sm, backgroundColor: `${COLORS.teal}10`, gap: 4,
-  },
+    borderRadius: RADIUS.sm, backgroundColor: `${COLORS.teal}10`, gap: 4},
   actionBtnText: { fontSize: 13, fontFamily: FONTS.semiBold, color: COLORS.teal },
   deleteBtn: { backgroundColor: COLORS.errorLight },
 
   modalOverlay: { flex: 1, backgroundColor: COLORS.overlay, justifyContent: 'flex-end' },
   modalContent: {
     backgroundColor: COLORS.white, borderTopLeftRadius: RADIUS.xl,
-    borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, maxHeight: '90%',
-  },
+    borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, maxHeight: '90%'},
   templatesModal: {
     backgroundColor: COLORS.white, borderTopLeftRadius: RADIUS.xl,
-    borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, maxHeight: '70%',
-  },
+    borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, maxHeight: '70%'},
   modalHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: SPACING.lg,
-  },
+    alignItems: 'center', marginBottom: SPACING.lg},
   modalTitle: { fontSize: 20, fontFamily: FONTS.bold, color: COLORS.teal },
 
   templatesTitle: {
     fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary,
-    textAlign: 'right', marginTop: SPACING.lg, marginBottom: SPACING.sm,
-  },
+    textAlign: 'right', marginTop: SPACING.lg, marginBottom: SPACING.sm},
   templateOption: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: COLORS.beige, borderRadius: RADIUS.md,
-    padding: SPACING.md, marginBottom: SPACING.sm,
-  },
+    padding: SPACING.md, marginBottom: SPACING.sm},
   templateIcon: {
     width: 50, height: 50, borderRadius: RADIUS.md,
-    justifyContent: 'center', alignItems: 'center', marginLeft: SPACING.md,
-  },
+    justifyContent: 'center', alignItems: 'center', marginLeft: SPACING.md},
   templateInfo: { flex: 1 },
   templateTitle: { fontSize: 15, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right' },
   templateDesc: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textSecondary, textAlign: 'right' },
 
   inputLabel: {
     fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.text,
-    textAlign: 'right', marginBottom: 6, marginTop: SPACING.sm,
-  },
+    textAlign: 'right', marginBottom: 6, marginTop: SPACING.sm},
   input: {
     backgroundColor: COLORS.beige, borderRadius: RADIUS.md, padding: SPACING.md,
     fontSize: 15, fontFamily: FONTS.regular, color: COLORS.text,
-    borderWidth: 1, borderColor: COLORS.border,
-  },
+    borderWidth: 1, borderColor: COLORS.border},
   textArea: { minHeight: 60, textAlignVertical: 'top' },
   codeArea: { minHeight: 150, textAlignVertical: 'top', fontFamily: 'monospace' },
   pickerContainer: {
     backgroundColor: COLORS.beige, borderRadius: RADIUS.md,
-    borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden',
-  },
+    borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden'},
   picker: { height: 50 },
   iconsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
   iconOption: {
     width: 48, height: 48, borderRadius: RADIUS.md,
-    backgroundColor: COLORS.beige, justifyContent: 'center', alignItems: 'center',
-  },
+    backgroundColor: COLORS.beige, justifyContent: 'center', alignItems: 'center'},
   iconOptionSelected: { backgroundColor: COLORS.teal },
   switchRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
-    marginTop: SPACING.md, gap: SPACING.sm,
-  },
+    marginTop: SPACING.md, gap: SPACING.sm},
   switchLabel: { fontSize: 14, fontFamily: FONTS.regular, color: COLORS.text },
   saveBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     backgroundColor: COLORS.teal, padding: SPACING.md, borderRadius: RADIUS.md,
-    gap: 8, marginTop: SPACING.lg, marginBottom: SPACING.xl,
-  },
+    gap: 8, marginTop: SPACING.lg, marginBottom: SPACING.xl},
   saveBtnDisabled: { opacity: 0.7 },
-  saveBtnText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.white },
-});
+  saveBtnText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.white }});

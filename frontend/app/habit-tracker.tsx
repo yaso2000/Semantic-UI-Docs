@@ -5,14 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   Alert,
   TextInput,
   Modal,
   ActivityIndicator,
   RefreshControl,
-  StatusBar,
-} from 'react-native';
+  StatusBar} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -53,6 +53,7 @@ const HABIT_ICONS = [
 ];
 
 export default function HabitTrackerScreen() {
+  const insets = useSafeAreaInsets();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [stats, setStats] = useState<HabitStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -216,7 +217,7 @@ export default function HabitTrackerScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
@@ -386,7 +387,7 @@ export default function HabitTrackerScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -407,8 +408,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40, 
     height: 40, 
@@ -416,23 +416,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   headerTitle: {
     flex: 1, 
     fontSize: 20, 
     fontFamily: FONTS.bold, 
     color: COLORS.white, 
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   refreshBtn: {
     width: 40, 
     height: 40, 
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center', 
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
 
   content: { 
     padding: SPACING.md, 
@@ -444,14 +441,12 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg, 
     padding: SPACING.lg, 
     marginBottom: SPACING.md,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   progressHeader: {
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   progressTitle: { 
     fontSize: 18, 
     fontFamily: FONTS.bold, 
@@ -473,8 +468,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center',
     borderWidth: 2, 
-    borderColor: COLORS.teal,
-  },
+    borderColor: COLORS.teal},
   progressPercent: { 
     fontSize: 18, 
     fontFamily: FONTS.bold, 
@@ -510,8 +504,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg, 
     padding: SPACING.md, 
     alignItems: 'center',
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   statValue: { 
     fontSize: 22, 
     fontFamily: FONTS.bold, 
@@ -532,8 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg, 
     padding: SPACING.sm, 
     marginBottom: SPACING.md,
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   dayColumn: { 
     alignItems: 'center', 
     padding: 6, 
@@ -574,8 +566,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white, 
     borderRadius: RADIUS.lg, 
     padding: SPACING.md,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   sectionHeader: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -594,8 +585,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.teal, 
     paddingHorizontal: 14, 
     paddingVertical: 6, 
-    borderRadius: RADIUS.full,
-  },
+    borderRadius: RADIUS.full},
   addBtnText: { 
     fontSize: 14, 
     fontFamily: FONTS.bold, 
@@ -619,8 +609,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     backgroundColor: COLORS.beige, 
     borderRadius: RADIUS.md, 
-    marginBottom: 10,
-  },
+    marginBottom: 10},
   habitIcon: { 
     width: 44, 
     height: 44, 
@@ -657,8 +646,7 @@ const styles = StyleSheet.create({
     borderWidth: 2, 
     borderColor: COLORS.border,
     justifyContent: 'center', 
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
 
   tipText: { 
     fontSize: 12, 
@@ -678,8 +666,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: RADIUS.xl, 
     borderTopRightRadius: RADIUS.xl, 
     padding: SPACING.lg, 
-    paddingBottom: 40,
-  },
+    paddingBottom: 40},
   modalHeader: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -700,8 +687,7 @@ const styles = StyleSheet.create({
     color: COLORS.text, 
     marginBottom: SPACING.lg,
     borderWidth: 1, 
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   iconsLabel: { 
     fontSize: 15, 
     fontFamily: FONTS.bold, 
@@ -743,8 +729,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.teal, 
     padding: SPACING.md, 
     borderRadius: RADIUS.md, 
-    gap: 8,
-  },
+    gap: 8},
   saveBtnDisabled: { 
     opacity: 0.7 
   },
@@ -752,5 +737,4 @@ const styles = StyleSheet.create({
     fontSize: 18, 
     fontFamily: FONTS.bold, 
     color: COLORS.white 
-  },
-});
+  }});

@@ -5,15 +5,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   Modal,
   TextInput,
   Alert,
   RefreshControl,
   StatusBar,
-  Platform,
-} from 'react-native';
+  Platform} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -73,6 +73,7 @@ const showAlert = (title: string, message: string, buttons?: any[]) => {
 };
 
 export default function SessionsScreen() {
+  const insets = useSafeAreaInsets();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -155,7 +156,7 @@ export default function SessionsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -279,7 +280,7 @@ export default function SessionsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -288,8 +289,7 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16,
-    backgroundColor: COLORS.secondary, borderBottomWidth: 1, borderBottomColor: COLORS.border,
-  },
+    backgroundColor: COLORS.secondary, borderBottomWidth: 1, borderBottomColor: COLORS.border},
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold },
   addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
@@ -297,22 +297,19 @@ const styles = StyleSheet.create({
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   statCard: {
     width: '48%', backgroundColor: COLORS.secondary, borderRadius: 14, padding: 14, alignItems: 'center',
-    borderWidth: 1, borderColor: COLORS.border,
-  },
+    borderWidth: 1, borderColor: COLORS.border},
   statValue: { fontSize: 22, fontFamily: FONTS.bold, color: COLORS.gold, marginTop: 6 },
   statLabel: { fontSize: 11, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 4 },
   sessionsSection: {},
   sectionTitle: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: 12, textAlign: 'right' },
   emptyState: {
     alignItems: 'center', padding: 40, backgroundColor: COLORS.secondary, borderRadius: 16,
-    borderWidth: 1, borderColor: COLORS.border,
-  },
+    borderWidth: 1, borderColor: COLORS.border},
   emptyText: { fontSize: 16, fontFamily: FONTS.bold, color: COLORS.textMuted, marginTop: 16 },
   emptySubtext: { fontSize: 14, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 8 },
   sessionCard: {
     backgroundColor: COLORS.secondary, borderRadius: 14, padding: 16, marginBottom: 12,
-    borderWidth: 1, borderColor: COLORS.border,
-  },
+    borderWidth: 1, borderColor: COLORS.border},
   sessionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   sessionInfo: { flex: 1, alignItems: 'flex-end' },
   sessionClient: { fontSize: 16, fontFamily: FONTS.bold, color: COLORS.text },
@@ -322,36 +319,30 @@ const styles = StyleSheet.create({
   detailValue: { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.text },
   sessionNotes: {
     fontSize: 13, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'right', marginBottom: 8,
-    paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.border,
-  },
+    paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.border},
   sessionDate: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'right' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   modalContent: {
     backgroundColor: COLORS.secondary, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 24, paddingBottom: 40, maxHeight: '90%',
-  },
+    padding: 24, paddingBottom: 40, maxHeight: '90%'},
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   modalTitle: { fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold },
   inputLabel: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right', marginBottom: 8, marginTop: 16 },
   input: {
     backgroundColor: COLORS.primary, borderRadius: 12, padding: 14,
-    fontSize: 16, fontFamily: FONTS.regular, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border,
-  },
+    fontSize: 16, fontFamily: FONTS.regular, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border},
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   pickerContainer: { backgroundColor: COLORS.primary, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
   picker: { height: 50, color: COLORS.text },
   typeButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeBtn: {
     paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: COLORS.primary,
-    borderWidth: 1, borderColor: COLORS.border,
-  },
+    borderWidth: 1, borderColor: COLORS.border},
   typeBtnActive: { backgroundColor: 'rgba(212, 175, 55, 0.15)', borderColor: COLORS.gold },
   typeBtnText: { fontSize: 13, fontFamily: FONTS.semiBold, color: COLORS.textMuted },
   typeBtnTextActive: { color: COLORS.gold },
   submitBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.gold, borderRadius: 12, padding: 16, marginTop: 24, gap: 8,
-  },
+    backgroundColor: COLORS.gold, borderRadius: 12, padding: 16, marginTop: 24, gap: 8},
   submitBtnDisabled: { opacity: 0.7 },
-  submitBtnText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.primary },
-});
+  submitBtnText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.primary }});

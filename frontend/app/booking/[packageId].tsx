@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   Alert,
   TextInput,
-  StatusBar,
-} from 'react-native';
+  StatusBar} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -35,6 +35,7 @@ interface Coach {
 }
 
 export default function BookingScreen() {
+  const insets = useSafeAreaInsets();
   const { packageId, coachId } = useLocalSearchParams();
   const [pkg, setPkg] = useState<Package | null>(null);
   const [coach, setCoach] = useState<Coach | null>(null);
@@ -135,7 +136,7 @@ export default function BookingScreen() {
 
   if (!pkg || !coach) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.errorState}>
           <Ionicons name="alert-circle" size={64} color={COLORS.border} />
@@ -144,12 +145,12 @@ export default function BookingScreen() {
             <Text style={styles.backBtnText}>العودة</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.teal} />
       
       <View style={styles.header}>
@@ -251,7 +252,7 @@ export default function BookingScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -264,14 +265,12 @@ const styles = StyleSheet.create({
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   errorState: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center',
-    padding: SPACING.xl,
-  },
+    padding: SPACING.xl},
   errorText: { 
     fontSize: 16, 
     fontFamily: FONTS.regular, 
@@ -283,13 +282,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.teal,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.md,
-  },
+    borderRadius: RADIUS.md},
   backBtnText: {
     fontSize: 14,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
   
   header: {
     flexDirection: 'row',
@@ -297,21 +294,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   headerTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
   
   content: { 
     padding: SPACING.md, 
@@ -325,21 +319,18 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.md,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   coachAvatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   coachLetter: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: COLORS.white,
-  },
+    color: COLORS.white},
   coachInfo: { 
     flex: 1 
   },
@@ -347,22 +338,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: FONTS.bold,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   coachLabel: {
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   
   packageCard: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     marginBottom: SPACING.md,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   packageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -371,37 +359,30 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     paddingBottom: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
+    borderBottomColor: COLORS.border},
   packageTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   packageDetails: {
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-  },
+    paddingVertical: 10},
   detailLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
+    gap: 8},
   detailLabelText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
   detailValue: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   packageDesc: {
     fontSize: 14,
     fontFamily: FONTS.regular,
@@ -411,8 +392,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     paddingTop: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
+    borderTopColor: COLORS.border},
   totalSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -422,38 +402,32 @@ const styles = StyleSheet.create({
     marginBottom: -SPACING.lg,
     padding: SPACING.lg,
     borderBottomLeftRadius: RADIUS.lg,
-    borderBottomRightRadius: RADIUS.lg,
-  },
+    borderBottomRightRadius: RADIUS.lg},
   totalLabel: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-  },
+    color: COLORS.gold},
   totalAmount: {
     fontSize: 28,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-  },
+    color: COLORS.gold},
   
   notesSection: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     marginBottom: SPACING.md,
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 8,
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   sectionTitle: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   notesInput: {
     backgroundColor: COLORS.beige,
     borderRadius: RADIUS.md,
@@ -464,8 +438,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     minHeight: 80,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   
   paymentInfo: {
     flexDirection: 'row',
@@ -474,16 +447,14 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     padding: SPACING.md,
     marginBottom: SPACING.lg,
-    gap: 10,
-  },
+    gap: 10},
   paymentInfoText: {
     flex: 1,
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.info,
     textAlign: 'right',
-    lineHeight: 22,
-  },
+    lineHeight: 22},
   
   confirmBtn: {
     flexDirection: 'row',
@@ -493,14 +464,10 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     gap: 10,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   confirmBtnDisabled: {
-    backgroundColor: COLORS.border,
-  },
+    backgroundColor: COLORS.border},
   confirmBtnText: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
-});
+    color: COLORS.white}});

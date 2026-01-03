@@ -5,10 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   StatusBar,
-  ActivityIndicator,
-} from 'react-native';
+  ActivityIndicator} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -29,6 +29,7 @@ interface Resource {
 }
 
 export default function ResourceContentScreen() {
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams();
   const [resource, setResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,8 +60,7 @@ export default function ResourceContentScreen() {
       wellness: 'الصحة',
       mindset: 'العقلية',
       productivity: 'الإنتاجية',
-      relationships: 'العلاقات',
-    };
+      relationships: 'العلاقات'};
     return categories[category] || category;
   };
 
@@ -75,7 +75,7 @@ export default function ResourceContentScreen() {
 
   if (!resource) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -90,12 +90,12 @@ export default function ResourceContentScreen() {
             <Text style={styles.backButtonText}>العودة للمكتبة</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
@@ -140,29 +140,26 @@ export default function ResourceContentScreen() {
           <Text style={styles.returnBtnText}>العودة للمكتبة</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
     paddingVertical: SPACING.lg,
-    backgroundColor: COLORS.teal,
-  },
+    backgroundColor: COLORS.teal},
   backBtn: {
     width: 40,
     height: 40,
@@ -170,107 +167,91 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontFamily: FONTS.bold,
     color: COLORS.white,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
 
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.xl,
-  },
+    padding: SPACING.xl},
   emptyText: {
     fontSize: 16,
     fontFamily: FONTS.semiBold,
     color: COLORS.textSecondary,
-    marginTop: SPACING.md,
-  },
+    marginTop: SPACING.md},
   backButton: {
     marginTop: SPACING.lg,
     backgroundColor: COLORS.teal,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.md,
-  },
+    borderRadius: RADIUS.md},
   backButtonText: {
     fontSize: 14,
     fontFamily: FONTS.bold,
-    color: COLORS.white,
-  },
+    color: COLORS.white},
 
   content: {
     padding: SPACING.md,
-    paddingBottom: 40,
-  },
+    paddingBottom: 40},
 
   articleHeader: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     alignItems: 'center',
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   iconContainer: {
     width: 70,
     height: 70,
     borderRadius: 35,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   articleTitle: {
     fontSize: 22,
     fontFamily: FONTS.bold,
     color: COLORS.text,
     textAlign: 'center',
-    lineHeight: 32,
-  },
+    lineHeight: 32},
   articleDesc: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: SPACING.sm,
-    lineHeight: 22,
-  },
+    lineHeight: 22},
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: SPACING.lg,
-    marginTop: SPACING.md,
-  },
+    marginTop: SPACING.md},
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
+    gap: 6},
   metaText: {
     fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.teal,
-  },
+    color: COLORS.teal},
 
   articleContent: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     marginTop: SPACING.md,
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   contentText: {
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.text,
     textAlign: 'right',
-    lineHeight: 28,
-  },
+    lineHeight: 28},
 
   returnBtn: {
     flexDirection: 'row',
@@ -282,11 +263,8 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
     gap: 8,
     borderWidth: 1,
-    borderColor: COLORS.teal,
-  },
+    borderColor: COLORS.teal},
   returnBtnText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.teal,
-  },
-});
+    color: COLORS.teal}});

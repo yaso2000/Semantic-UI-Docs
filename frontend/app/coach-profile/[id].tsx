@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   Image,
   TextInput,
-  Alert,
-} from 'react-native';
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -59,8 +59,7 @@ const LETTER_COLORS: { [key: string]: string } = {
   'ظ': '#9E9E9E', 'ع': '#E91E63', 'غ': '#9C27B0',
   'ف': '#673AB7', 'ق': '#3F51B5', 'ك': '#2196F3',
   'ل': '#03A9F4', 'م': '#00BCD4', 'ن': '#009688',
-  'ه': '#4CAF50', 'و': '#8BC34A', 'ي': '#FFC107',
-};
+  'ه': '#4CAF50', 'و': '#8BC34A', 'ي': '#FFC107'};
 
 const getLetterColor = (name: string): string => {
   const firstLetter = name?.trim().charAt(0) || '?';
@@ -68,6 +67,7 @@ const getLetterColor = (name: string): string => {
 };
 
 export default function CoachProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams();
   const [coach, setCoach] = useState<CoachProfile | null>(null);
   const [packages, setPackages] = useState<Package[]>([]);
@@ -177,17 +177,17 @@ export default function CoachProfileScreen() {
 
   if (!coach) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.errorState}>
           <Ionicons name="alert-circle" size={64} color="#ccc" />
           <Text style={styles.errorText}>لم يتم العثور على المدرب</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -348,7 +348,7 @@ export default function CoachProfileScreen() {
           <Text style={styles.contactBtnText}>تواصل مع المدرب</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -362,22 +362,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     height: 120,
     justifyContent: 'flex-end',
-    padding: 16,
-  },
+    padding: 16},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   
   profileSection: {
     alignItems: 'center',
     marginTop: -50,
-    paddingBottom: 20,
-  },
+    paddingBottom: 20},
   avatar: {
     width: 100,
     height: 100,
@@ -387,39 +384,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 4,
     borderColor: '#fff',
-    overflow: 'hidden',
-  },
+    overflow: 'hidden'},
   avatarImage: {
     width: 100,
     height: 100,
-    borderRadius: 50,
-  },
+    borderRadius: 50},
   avatarLetter: {
     fontSize: 42,
     fontWeight: 'bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   name: {
     fontSize: 24,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    marginTop: 12,
-  },
+    marginTop: 12},
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
-    gap: 8,
-  },
+    gap: 8},
   starsContainer: {
     flexDirection: 'row',
-    gap: 2,
-  },
+    gap: 2},
   ratingText: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
-    color: '#666',
-  },
+    color: '#666'},
   priceTag: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -427,88 +417,74 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E9',
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: 20,
-  },
+    borderRadius: 20},
   priceAmount: {
     fontSize: 24,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   priceLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   
   section: {
     backgroundColor: '#fff',
     margin: 16,
     marginTop: 0,
     padding: 16,
-    borderRadius: 16,
-  },
+    borderRadius: 16},
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   bioText: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     lineHeight: 24,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   
   specialtiesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    justifyContent: 'flex-end',
-  },
+    justifyContent: 'flex-end'},
   specialtyBadge: {
     backgroundColor: '#E8F5E9',
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 16,
-  },
+    borderRadius: 16},
   specialtyText: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   
   addReviewBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
+    gap: 4},
   addReviewText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   
   reviewForm: {
     backgroundColor: '#f9f9f9',
     padding: 16,
     borderRadius: 12,
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   formLabel: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     marginBottom: 8,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   commentInput: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -519,34 +495,28 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     minHeight: 100,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   submitBtn: {
     backgroundColor: '#4CAF50',
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
-    marginTop: 12,
-  },
+    marginTop: 12},
   submitBtnDisabled: {
-    backgroundColor: '#ccc',
-  },
+    backgroundColor: '#ccc'},
   submitBtnText: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   
   reviewCard: {
     backgroundColor: '#f9f9f9',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   reviewHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   reviewerAvatar: {
     width: 36,
     height: 36,
@@ -554,38 +524,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 10,
-  },
+    marginLeft: 10},
   reviewerInfo: {
-    flex: 1,
-  },
+    flex: 1},
   reviewerName: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   reviewDate: {
     fontSize: 11,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   reviewComment: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     marginTop: 10,
     textAlign: 'right',
-    lineHeight: 22,
-  },
+    lineHeight: 22},
   noReviews: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
     textAlign: 'center',
-    paddingVertical: 20,
-  },
+    paddingVertical: 20},
   
   contactBtn: {
     flexDirection: 'row',
@@ -595,13 +559,11 @@ const styles = StyleSheet.create({
     margin: 16,
     padding: 16,
     borderRadius: 12,
-    gap: 10,
-  },
+    gap: 10},
   contactBtnText: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   
   // Package styles
   packageCard: {
@@ -610,13 +572,11 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e8e8e8',
-  },
+    borderColor: '#e8e8e8'},
   packageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-  },
+    marginBottom: 10},
   packageIcon: {
     width: 40,
     height: 40,
@@ -624,44 +584,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9800',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
-  },
+    marginLeft: 12},
   packageInfo: {
-    flex: 1,
-  },
+    flex: 1},
   packageName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   packageHours: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   packagePrice: {
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   packagePriceAmount: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   packagePricePerHour: {
     fontSize: 10,
     fontFamily: 'Cairo_400Regular',
-    color: '#999',
-  },
+    color: '#999'},
   packageDesc: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     textAlign: 'right',
     marginBottom: 12,
-    lineHeight: 20,
-  },
+    lineHeight: 20},
   bookPackageBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -669,18 +621,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9800',
     padding: 12,
     borderRadius: 10,
-    gap: 8,
-  },
+    gap: 8},
   bookPackageBtnText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   noPackages: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
     textAlign: 'center',
-    paddingVertical: 20,
-  },
-});
+    paddingVertical: 20}});

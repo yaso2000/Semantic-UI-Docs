@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  
   ScrollView,
   ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+  RefreshControl} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -25,6 +25,7 @@ interface AdminStats {
 }
 
 export default function AdminDashboard() {
+  const insets = useSafeAreaInsets();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -66,7 +67,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
@@ -239,7 +240,7 @@ export default function AdminDashboard() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -250,8 +251,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#2196F3',
-  },
+    backgroundColor: '#2196F3'},
   backButton: {
     width: 40,
     height: 40,
@@ -259,45 +259,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 22,
     fontFamily: 'Cairo_700Bold',
     color: '#fff',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   statsGrid: {
     flexDirection: 'row',
     padding: 16,
-    gap: 10,
-  },
+    gap: 10},
   statCard: {
     flex: 1,
     padding: 14,
     borderRadius: 14,
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   statNumber: {
     fontSize: 22,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    marginTop: 8,
-  },
+    marginTop: 8},
   statLabel: {
     fontSize: 11,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    marginTop: 2,
-  },
+    marginTop: 2},
   menuSection: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 14,
-    padding: 16,
-  },
+    padding: 16},
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -306,39 +299,32 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
+    borderBottomColor: '#f0f0f0'},
   sectionTitle: {
     fontSize: 16,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
-  },
+    borderBottomColor: '#f5f5f5'},
   menuIcon: {
     width: 42,
     height: 42,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
-  },
+    marginLeft: 12},
   menuContent: { flex: 1 },
   menuTitle: {
     fontSize: 15,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   menuSubtitle: {
     fontSize: 11,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
     textAlign: 'right',
-    marginTop: 1,
-  },
-});
+    marginTop: 1}});

@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   ActivityIndicator,
   Alert,
   TextInput,
-  StatusBar,
-} from 'react-native';
+  StatusBar} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -108,6 +108,7 @@ const QUESTIONS: Question[] = [
 ];
 
 export default function IntakeQuestionnaireScreen() {
+  const insets = useSafeAreaInsets();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: any }>({});
   const [savedAnswers, setSavedAnswers] = useState<{ [key: number]: any } | null>(null);
@@ -340,7 +341,7 @@ export default function IntakeQuestionnaireScreen() {
     const data = savedAnswers || {};
 
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -434,7 +435,7 @@ export default function IntakeQuestionnaireScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   };
 
@@ -454,7 +455,7 @@ export default function IntakeQuestionnaireScreen() {
   const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -505,7 +506,7 @@ export default function IntakeQuestionnaireScreen() {
           )}
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -519,8 +520,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: COLORS.secondary,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
+    borderBottomColor: COLORS.border},
   backBtn: {
     width: 40,
     height: 40,
@@ -528,71 +528,60 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.gold,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
 
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     backgroundColor: COLORS.secondary,
-    gap: 12,
-  },
+    gap: 12},
   progressBar: {
     flex: 1,
     height: 8,
     backgroundColor: COLORS.border,
     borderRadius: 4,
-    overflow: 'hidden',
-  },
+    overflow: 'hidden'},
   progressFill: {
     height: '100%',
     backgroundColor: COLORS.gold,
-    borderRadius: 4,
-  },
+    borderRadius: 4},
   progressText: {
     fontSize: 14,
     fontFamily: FONTS.bold,
-    color: COLORS.textMuted,
-  },
+    color: COLORS.textMuted},
 
   content: {
     padding: 20,
-    paddingBottom: 100,
-  },
+    paddingBottom: 100},
   questionNumber: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.gold,
     textAlign: 'right',
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   questionText: {
     fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.text,
     textAlign: 'right',
     lineHeight: 32,
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   optionalText: {
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
     textAlign: 'right',
-    marginBottom: 20,
-  },
+    marginBottom: 20},
 
   optionsContainer: {
-    marginTop: 20,
-  },
+    marginTop: 20},
   optionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -601,12 +590,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   optionBtnSelected: {
     borderColor: COLORS.gold,
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-  },
+    backgroundColor: 'rgba(212, 175, 55, 0.1)'},
   radioCircle: {
     width: 24,
     height: 24,
@@ -615,17 +602,14 @@ const styles = StyleSheet.create({
     borderColor: COLORS.textMuted,
     marginLeft: 12,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   radioCircleSelected: {
-    borderColor: COLORS.gold,
-  },
+    borderColor: COLORS.gold},
   radioInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: COLORS.gold,
-  },
+    backgroundColor: COLORS.gold},
   checkBox: {
     width: 24,
     height: 24,
@@ -634,41 +618,33 @@ const styles = StyleSheet.create({
     borderColor: COLORS.textMuted,
     marginLeft: 12,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   checkBoxSelected: {
     borderColor: COLORS.gold,
-    backgroundColor: COLORS.gold,
-  },
+    backgroundColor: COLORS.gold},
   optionText: {
     flex: 1,
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   optionTextSelected: {
     fontFamily: FONTS.semiBold,
-    color: COLORS.gold,
-  },
+    color: COLORS.gold},
 
   scaleContainer: {
-    marginTop: 20,
-  },
+    marginTop: 20},
   scaleLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   scaleLabel: {
     fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-  },
+    color: COLORS.textMuted},
   scaleButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+    justifyContent: 'space-between'},
   scaleBtn: {
     width: 32,
     height: 40,
@@ -677,20 +653,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   scaleBtnSelected: {
     borderColor: COLORS.gold,
-    backgroundColor: COLORS.gold,
-  },
+    backgroundColor: COLORS.gold},
   scaleBtnText: {
     fontSize: 14,
     fontFamily: FONTS.bold,
-    color: COLORS.textMuted,
-  },
+    color: COLORS.textMuted},
   scaleBtnTextSelected: {
-    color: COLORS.primary,
-  },
+    color: COLORS.primary},
 
   textInput: {
     backgroundColor: COLORS.secondary,
@@ -703,8 +675,7 @@ const styles = StyleSheet.create({
     minHeight: 120,
     borderWidth: 1,
     borderColor: COLORS.border,
-    marginTop: 20,
-  },
+    marginTop: 20},
 
   footer: {
     flexDirection: 'row',
@@ -712,8 +683,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.secondary,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    gap: 12,
-  },
+    gap: 12},
   prevBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -723,13 +693,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: COLORS.gold,
-    gap: 8,
-  },
+    gap: 8},
   prevBtnText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-  },
+    color: COLORS.gold},
   nextBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -738,22 +706,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gold,
     paddingVertical: 14,
     borderRadius: 12,
-    gap: 8,
-  },
+    gap: 8},
   nextBtnDisabled: {
-    backgroundColor: COLORS.border,
-  },
+    backgroundColor: COLORS.border},
   nextBtnText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.primary,
-  },
+    color: COLORS.primary},
 
   // Results Styles
   resultsContent: {
     padding: 16,
-    paddingBottom: 100,
-  },
+    paddingBottom: 100},
   completionBadge: {
     alignItems: 'center',
     padding: 24,
@@ -761,63 +725,53 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   completionTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.gold,
-    marginTop: 12,
-  },
+    marginTop: 12},
   resultCard: {
     backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   resultCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   resultCardTitle: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   resultCardValue: {
     fontSize: 15,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
     textAlign: 'right',
-    lineHeight: 24,
-  },
+    lineHeight: 24},
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-  },
+    gap: 8},
   tag: {
     backgroundColor: 'rgba(212, 175, 55, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.gold,
-  },
+    borderColor: COLORS.gold},
   tagText: {
     fontSize: 13,
     fontFamily: FONTS.regular,
-    color: COLORS.gold,
-  },
+    color: COLORS.gold},
   metricsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   metricCard: {
     flex: 1,
     backgroundColor: COLORS.secondary,
@@ -825,58 +779,49 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    borderColor: COLORS.border},
   metricValue: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-  },
+    color: COLORS.gold},
   metricLabel: {
     fontSize: 12,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
     marginTop: 4,
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   recommendationsCard: {
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.gold,
-  },
+    borderColor: COLORS.gold},
   recommendationsTitle: {
     fontSize: 16,
     fontFamily: FONTS.bold,
     color: COLORS.gold,
     marginBottom: 8,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   focusMessage: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.text,
     marginBottom: 12,
     textAlign: 'right',
-    lineHeight: 22,
-  },
+    lineHeight: 22},
   recommendationItem: {
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(212, 175, 55, 0.2)',
-  },
+    borderBottomColor: 'rgba(212, 175, 55, 0.2)'},
   recommendationText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   actionsContainer: {
     marginTop: 8,
-    gap: 12,
-  },
+    gap: 12},
   bookBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -884,13 +829,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gold,
     paddingVertical: 14,
     borderRadius: 12,
-    gap: 8,
-  },
+    gap: 8},
   bookBtnText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.primary,
-  },
+    color: COLORS.primary},
   retakeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -899,11 +842,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: COLORS.gold,
-    gap: 8,
-  },
+    gap: 8},
   retakeBtnText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
-    color: COLORS.gold,
-  },
-});
+    color: COLORS.gold}});

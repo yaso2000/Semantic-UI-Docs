@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+  
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
@@ -36,6 +36,7 @@ const allValues = [
 ];
 
 export default function CoreValuesScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -72,7 +73,7 @@ export default function CoreValuesScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -191,7 +192,7 @@ export default function CoreValuesScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -205,16 +206,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
   content: { padding: 20 },
   header: { alignItems: 'center', marginBottom: 20 },
@@ -233,8 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'transparent',
-  },
+    borderColor: 'transparent'},
   orderBadge: {
     position: 'absolute',
     top: -8,
@@ -243,16 +241,14 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   orderText: { fontSize: 12, fontFamily: 'Cairo_700Bold', color: '#fff' },
   valueName: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 8, textAlign: 'center' },
   submitButton: {
     backgroundColor: '#9C27B0',
     padding: 18,
     borderRadius: 16,
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   submitButtonDisabled: { backgroundColor: '#ccc' },
   submitButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
   resultsContainer: { alignItems: 'center' },
@@ -268,15 +264,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 2,
-    gap: 16,
-  },
+    gap: 16},
   resultRank: {
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   resultRankText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
   resultName: { fontSize: 18, fontFamily: 'Cairo_700Bold', flex: 1, textAlign: 'right' },
   reflectionBox: {
@@ -284,8 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginTop: 24,
-    width: '100%',
-  },
+    width: '100%'},
   reflectionTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#9C27B0', marginBottom: 12 },
   reflectionText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', lineHeight: 26, textAlign: 'right' },
   resetButton: {
@@ -293,7 +286,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 24,
-  },
-  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
-});
+    marginTop: 24},
+  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' }});

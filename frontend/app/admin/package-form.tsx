@@ -4,14 +4,14 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  
   ScrollView,
   TextInput,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  StatusBar,
-} from 'react-native';
+  StatusBar} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -30,6 +30,7 @@ const showAlert = (title: string, message: string, buttons?: any[]) => {
 };
 
 export default function PackageForm() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
@@ -70,8 +71,7 @@ export default function PackageForm() {
         hours: parseInt(hours),
         price: parseFloat(price),
         description: description.trim(),
-        active: true,
-      };
+        active: true};
 
       let response;
       if (isEditing && params.packageData) {
@@ -79,14 +79,12 @@ export default function PackageForm() {
         response = await fetch(`${API_URL}/api/packages/${pkg.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify(packageData),
-        });
+          body: JSON.stringify(packageData)});
       } else {
         response = await fetch(`${API_URL}/api/packages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify(packageData),
-        });
+          body: JSON.stringify(packageData)});
       }
 
       if (response.ok) {
@@ -105,7 +103,7 @@ export default function PackageForm() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView>
@@ -206,7 +204,7 @@ export default function PackageForm() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -214,12 +212,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primary },
   header: {
     flexDirection: 'row', alignItems: 'center', padding: 20,
-    backgroundColor: COLORS.secondary, borderBottomWidth: 1, borderBottomColor: COLORS.border,
-  },
+    backgroundColor: COLORS.secondary, borderBottomWidth: 1, borderBottomColor: COLORS.border},
   backBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary,
-    justifyContent: 'center', alignItems: 'center', marginLeft: 16,
-  },
+    justifyContent: 'center', alignItems: 'center', marginLeft: 16},
   headerTitle: { flex: 1, fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold, textAlign: 'right' },
   form: { padding: 20 },
   inputGroup: { marginBottom: 18 },
@@ -227,20 +223,17 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: COLORS.secondary, borderRadius: 12, padding: 14,
     fontSize: 16, fontFamily: FONTS.regular, color: COLORS.text, textAlign: 'right',
-    borderWidth: 1, borderColor: COLORS.border,
-  },
+    borderWidth: 1, borderColor: COLORS.border},
   textArea: { minHeight: 100, paddingTop: 14 },
   row: { flexDirection: 'row' },
   pricePerHour: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
     backgroundColor: 'rgba(212, 175, 55, 0.15)', padding: 12, borderRadius: 10, marginBottom: 18, gap: 8,
-    borderWidth: 1, borderColor: COLORS.gold,
-  },
+    borderWidth: 1, borderColor: COLORS.gold},
   pricePerHourText: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.gold },
   previewCard: {
     backgroundColor: COLORS.secondary, borderRadius: 16, padding: 16, marginBottom: 20,
-    borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed',
-  },
+    borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed'},
   previewTitle: { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textMuted, marginBottom: 12, textAlign: 'center' },
   previewContent: { backgroundColor: COLORS.primary, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: COLORS.border },
   previewHeader: { flexDirection: 'row', alignItems: 'center' },
@@ -252,5 +245,4 @@ const styles = StyleSheet.create({
   previewDescription: { fontSize: 14, fontFamily: FONTS.regular, color: COLORS.textMuted, marginTop: 12, textAlign: 'right', lineHeight: 22, borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: 12 },
   submitButton: { flexDirection: 'row', backgroundColor: COLORS.gold, borderRadius: 12, padding: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
   submitButtonDisabled: { opacity: 0.7 },
-  submitButtonText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.primary },
-});
+  submitButtonText: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.primary }});

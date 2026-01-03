@@ -6,15 +6,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
+  
   KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+  Platform} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
 
 export default function BMICalculator() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
@@ -57,7 +58,7 @@ export default function BMICalculator() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -142,15 +143,14 @@ export default function BMICalculator() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+    backgroundColor: '#f5f5f5'},
   navigationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -159,57 +159,47 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   content: {
-    padding: 20,
-  },
+    padding: 20},
   header: {
     alignItems: 'center',
-    marginBottom: 32,
-  },
+    marginBottom: 32},
   title: {
     fontSize: 24,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     marginTop: 16,
-    textAlign: 'center',
-  },
+    textAlign: 'center'},
   subtitle: {
     fontSize: 14,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
-    marginTop: 4,
-  },
+    marginTop: 4},
   form: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
-  },
+    marginBottom: 20},
   inputGroup: {
-    marginBottom: 20,
-  },
+    marginBottom: 20},
   label: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
     marginBottom: 8,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -217,72 +207,61 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
     borderRadius: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#fafafa',
-  },
+    backgroundColor: '#fafafa'},
   input: {
     flex: 1,
     height: 56,
     fontSize: 18,
     fontFamily: 'Cairo_400Regular',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   button: {
     backgroundColor: '#4CAF50',
     borderRadius: 12,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
-  },
+    marginTop: 8},
   buttonText: {
     color: '#fff',
     fontSize: 20,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   result: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    borderWidth: 3,
-  },
+    borderWidth: 3},
   bmiCircle: {
     width: 120,
     height: 120,
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   bmiValue: {
     fontSize: 40,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   category: {
     fontSize: 24,
     fontFamily: 'Cairo_700Bold',
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   advice: {
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     textAlign: 'center',
-    marginBottom: 24,
-  },
+    marginBottom: 24},
   scale: {
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+    justifyContent: 'space-between'},
   scaleItem: {
     flex: 1,
     padding: 8,
     borderRadius: 8,
     marginHorizontal: 2,
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   scaleUnder: { backgroundColor: '#E3F2FD' },
   scaleNormal: { backgroundColor: '#E8F5E9' },
   scaleOver: { backgroundColor: '#FFF3E0' },
@@ -290,11 +269,8 @@ const styles = StyleSheet.create({
   scaleText: {
     fontSize: 11,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   scaleRange: {
     fontSize: 10,
     fontFamily: 'Cairo_400Regular',
-    color: '#666',
-  },
-});
+    color: '#666'}});

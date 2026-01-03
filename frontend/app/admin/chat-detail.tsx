@@ -5,9 +5,9 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+  
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +15,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 
 export default function ChatDetail() {
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState('');
@@ -89,7 +90,7 @@ export default function ChatDetail() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <View style={styles.avatar}>
@@ -113,111 +114,89 @@ export default function ChatDetail() {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+    backgroundColor: '#f5f5f5'},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   header: {
     backgroundColor: '#fff',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
+    gap: 12},
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     backgroundColor: '#E3F2FD',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
-  },
+    color: '#333'},
   messageCount: {
     fontSize: 14,
-    color: '#666',
-  },
+    color: '#666'},
   messagesContent: {
-    padding: 16,
-  },
+    padding: 16},
   messageContainer: {
     marginBottom: 12,
-    alignItems: 'flex-start',
-  },
+    alignItems: 'flex-start'},
   adminMessageContainer: {
-    alignItems: 'flex-end',
-  },
+    alignItems: 'flex-end'},
   messageBubble: {
     maxWidth: '80%',
     borderRadius: 12,
-    padding: 12,
-  },
+    padding: 12},
   clientBubble: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
+    borderColor: '#e0e0e0'},
   adminBubble: {
-    backgroundColor: '#E3F2FD',
-  },
+    backgroundColor: '#E3F2FD'},
   messageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 6,
-  },
+    marginBottom: 6},
   senderLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
-  },
+    color: '#666'},
   messageText: {
     fontSize: 16,
     color: '#333',
-    lineHeight: 22,
-  },
+    lineHeight: 22},
   messageTime: {
     fontSize: 12,
     color: '#999',
-    marginTop: 6,
-  },
+    marginTop: 6},
   readIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 4,
-  },
+    marginTop: 4},
   readText: {
     fontSize: 12,
-    color: '#4CAF50',
-  },
+    color: '#4CAF50'},
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 100,
-  },
+    paddingTop: 100},
   emptyText: {
     fontSize: 16,
     color: '#999',
-    marginTop: 16,
-  },
-});
+    marginTop: 16}});

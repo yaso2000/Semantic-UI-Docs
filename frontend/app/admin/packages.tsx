@@ -6,10 +6,10 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
-  SafeAreaView,
+  
   RefreshControl,
-  StatusBar,
-} from 'react-native';
+  StatusBar} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -28,6 +28,7 @@ interface Package {
 }
 
 export default function PackagesManagement() {
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [packages, setPackages] = useState<Package[]>([]);
@@ -91,8 +92,7 @@ export default function PackagesManagement() {
   const handleEditPackage = (pkg: Package) => {
     router.push({
       pathname: '/admin/package-form' as any,
-      params: { packageData: JSON.stringify(pkg) },
-    });
+      params: { packageData: JSON.stringify(pkg) }});
   };
 
   const renderPackageCard = ({ item }: { item: Package }) => (
@@ -158,7 +158,7 @@ export default function PackagesManagement() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.header}>
         <TouchableOpacity
@@ -190,21 +190,19 @@ export default function PackagesManagement() {
       <TouchableOpacity style={styles.fab} onPress={handleCreatePackage}>
         <Ionicons name="add" size={28} color={COLORS.white} />
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -212,8 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   backButton: {
     width: 40,
     height: 40,
@@ -221,30 +218,25 @@ const styles = StyleSheet.create({
     backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   listContent: {
     padding: SPACING.md,
-    paddingBottom: 100,
-  },
+    paddingBottom: 100},
   packageCard: {
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   packageHeader: {
     flexDirection: 'row',
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   packageIcon: {
     width: 52,
     height: 52,
@@ -252,24 +244,20 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
+    marginLeft: SPACING.md},
   packageInfo: {
-    flex: 1,
-  },
+    flex: 1},
   packageName: {
     fontSize: 17,
     fontFamily: FONTS.bold,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   packageDescription: {
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
     marginTop: 2,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   packageDetails: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -277,22 +265,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: COLORS.border,
-    marginBottom: SPACING.sm,
-  },
+    marginBottom: SPACING.sm},
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
+    gap: 4},
   detailText: {
     fontSize: 13,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
   packageActions: {
     flexDirection: 'row',
-    gap: SPACING.sm,
-  },
+    gap: SPACING.sm},
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -300,24 +284,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: SPACING.sm,
     borderRadius: RADIUS.sm,
-    gap: 6,
-  },
+    gap: 6},
   editBtn: {
-    backgroundColor: `${COLORS.teal}10`,
-  },
+    backgroundColor: `${COLORS.teal}10`},
   deleteBtn: {
-    backgroundColor: COLORS.errorLight,
-  },
+    backgroundColor: COLORS.errorLight},
   actionBtnText: {
     fontSize: 14,
-    fontFamily: FONTS.semiBold,
-  },
+    fontFamily: FONTS.semiBold},
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 100,
-  },
+    paddingTop: 100},
   emptyIcon: {
     width: 88,
     height: 88,
@@ -325,19 +304,16 @@ const styles = StyleSheet.create({
     backgroundColor: `${COLORS.teal}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   emptyText: {
     fontSize: 17,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
-  },
+    color: COLORS.text},
   emptySubtext: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    marginTop: 4,
-  },
+    marginTop: 4},
   fab: {
     position: 'absolute',
     left: 20,
@@ -348,6 +324,4 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    ...SHADOWS.lg,
-  },
-});
+    ...SHADOWS.lg}});

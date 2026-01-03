@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  
   FlatList,
   ActivityIndicator,
   RefreshControl,
-  Alert,
-} from 'react-native';
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -29,6 +29,7 @@ interface Booking {
 }
 
 export default function AdminBookings() {
+  const insets = useSafeAreaInsets();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -143,7 +144,7 @@ export default function AdminBookings() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -169,41 +170,35 @@ export default function AdminBookings() {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+    backgroundColor: '#f5f5f5'},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   listContent: {
-    padding: 16,
-  },
+    padding: 16},
   bookingCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -213,69 +208,55 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+    shadowRadius: 4},
   bookingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
-  },
+    marginBottom: 16},
   packageInfo: {
-    flex: 1,
-  },
+    flex: 1},
   packageName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   bookingDate: {
     fontSize: 12,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
     textAlign: 'right',
-    marginTop: 4,
-  },
+    marginTop: 4},
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
-  },
+    borderRadius: 20},
   statusText: {
     fontSize: 12,
-    fontFamily: 'Cairo_700Bold',
-  },
+    fontFamily: 'Cairo_700Bold'},
   bookingDetails: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
+    borderTopColor: '#f0f0f0'},
   detailItem: {
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   detailLabel: {
     fontSize: 10,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
-    marginTop: 4,
-  },
+    marginTop: 4},
   detailValue: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    marginTop: 2,
-  },
+    marginTop: 2},
   emptyState: {
     alignItems: 'center',
-    paddingTop: 80,
-  },
+    paddingTop: 80},
   emptyText: {
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
-    marginTop: 16,
-  },
-});
+    marginTop: 16}});

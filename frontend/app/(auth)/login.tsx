@@ -9,8 +9,7 @@ import {
   Platform,
   ScrollView,
   Alert,
-  StatusBar,
-} from 'react-native';
+  StatusBar} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +19,7 @@ import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,8 +31,7 @@ export default function LoginScreen() {
   const [fontsLoaded] = useFonts({
     Alexandria_400Regular,
     Alexandria_600SemiBold,
-    Alexandria_700Bold,
-  });
+    Alexandria_700Bold});
 
   const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -71,7 +70,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={[styles.container, { paddingTop: insets.top }]} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -206,32 +205,28 @@ export default function LoginScreen() {
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    backgroundColor: COLORS.background},
   loadingContainer: {
     flex: 1,
     backgroundColor: COLORS.background,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   scrollContent: {
     flexGrow: 1,
     padding: SPACING.lg,
-    paddingTop: SPACING['2xl'],
-  },
+    paddingTop: SPACING['2xl']},
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
-  },
+    marginBottom: SPACING.xl},
   logoContainer: {
     width: 88,
     height: 88,
@@ -241,25 +236,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.md,
     borderWidth: 2,
-    borderColor: `${COLORS.teal}30`,
-  },
+    borderColor: `${COLORS.teal}30`},
   title: {
     fontSize: 32,
     fontFamily: FONTS.bold,
     color: COLORS.teal,
-    marginBottom: 2,
-  },
+    marginBottom: 2},
   titleEn: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
-    marginBottom: SPACING.sm,
-  },
+    marginBottom: SPACING.sm},
   subtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
-  },
+    color: COLORS.textSecondary},
 
   // Welcome Card
   welcomeCard: {
@@ -267,36 +258,30 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     marginBottom: SPACING.lg,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   welcomeTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.text,
     textAlign: 'right',
-    marginBottom: SPACING.xs,
-  },
+    marginBottom: SPACING.xs},
   welcomeText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
 
   // Form
   form: {
-    width: '100%',
-  },
+    width: '100%'},
   inputGroup: {
-    marginBottom: SPACING.md,
-  },
+    marginBottom: SPACING.md},
   inputLabel: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
     color: COLORS.text,
     marginBottom: SPACING.sm,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -305,20 +290,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderWidth: 1.5,
     borderColor: COLORS.border,
-    ...SHADOWS.sm,
-  },
+    ...SHADOWS.sm},
   inputContainerFocused: {
     borderColor: COLORS.teal,
-    borderWidth: 2,
-  },
+    borderWidth: 2},
   input: {
     flex: 1,
     height: 52,
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.text,
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   button: {
     backgroundColor: COLORS.teal,
     borderRadius: RADIUS.md,
@@ -326,73 +308,58 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: SPACING.md,
-    ...SHADOWS.md,
-  },
+    ...SHADOWS.md},
   buttonDisabled: {
     backgroundColor: COLORS.tealLight,
-    opacity: 0.7,
-  },
+    opacity: 0.7},
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
-  },
+    gap: SPACING.sm},
   buttonText: {
     color: COLORS.white,
     fontSize: 16,
-    fontFamily: FONTS.bold,
-  },
+    fontFamily: FONTS.bold},
   linkButton: {
     marginTop: SPACING.lg,
     flexDirection: 'row',
-    justifyContent: 'center',
-  },
+    justifyContent: 'center'},
   linkText: {
     color: COLORS.textSecondary,
     fontSize: 15,
-    fontFamily: FONTS.regular,
-  },
+    fontFamily: FONTS.regular},
   linkTextHighlight: {
     color: COLORS.teal,
     fontSize: 15,
-    fontFamily: FONTS.bold,
-  },
+    fontFamily: FONTS.bold},
 
   // Pillars Section
   pillarsSection: {
     marginTop: SPACING.xl,
-    paddingTop: SPACING.lg,
-  },
+    paddingTop: SPACING.lg},
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
+    marginBottom: SPACING.lg},
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.divider,
-  },
+    backgroundColor: COLORS.divider},
   dividerText: {
     marginHorizontal: SPACING.md,
     fontSize: 12,
     fontFamily: FONTS.semiBold,
-    color: COLORS.textMuted,
-  },
+    color: COLORS.textMuted},
   pillarsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+    justifyContent: 'space-between'},
   pillarItem: {
     alignItems: 'center',
     padding: SPACING.sm,
     borderRadius: RADIUS.md,
     width: '23%',
-    gap: SPACING.xs,
-  },
+    gap: SPACING.xs},
   pillarText: {
     fontSize: 11,
     fontFamily: FONTS.semiBold,
-    textAlign: 'center',
-  },
-});
+    textAlign: 'center'}});

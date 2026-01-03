@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  
   FlatList,
   ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+  RefreshControl} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
@@ -24,6 +24,7 @@ interface User {
 }
 
 export default function AdminUsers() {
+  const insets = useSafeAreaInsets();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -83,7 +84,7 @@ export default function AdminUsers() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -112,52 +113,44 @@ export default function AdminUsers() {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+    backgroundColor: '#f5f5f5'},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   headerTitle: {
     flex: 1,
     fontSize: 20,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   countBadge: {
     backgroundColor: '#2196F3',
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12,
-  },
+    borderRadius: 12},
   countText: {
     fontSize: 14,
     fontFamily: 'Cairo_700Bold',
-    color: '#fff',
-  },
+    color: '#fff'},
   listContent: {
-    padding: 16,
-  },
+    padding: 16},
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -169,8 +162,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+    shadowRadius: 4},
   avatar: {
     width: 56,
     height: 56,
@@ -178,47 +170,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
-  },
+    marginLeft: 16},
   userInfo: {
-    flex: 1,
-  },
+    flex: 1},
   userName: {
     fontSize: 16,
     fontFamily: 'Cairo_700Bold',
     color: '#333',
-    textAlign: 'right',
-  },
+    textAlign: 'right'},
   userEmail: {
     fontSize: 13,
     fontFamily: 'Cairo_400Regular',
     color: '#666',
     textAlign: 'right',
-    marginTop: 2,
-  },
+    marginTop: 2},
   userDate: {
     fontSize: 11,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
     textAlign: 'right',
-    marginTop: 4,
-  },
+    marginTop: 4},
   chatButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     backgroundColor: '#E3F2FD',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   emptyState: {
     alignItems: 'center',
-    paddingTop: 80,
-  },
+    paddingTop: 80},
   emptyText: {
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#999',
-    marginTop: 16,
-  },
-});
+    marginTop: 16}});

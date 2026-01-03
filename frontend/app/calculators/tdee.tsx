@@ -6,15 +6,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
+  
   KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+  Platform} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
 
 export default function TDEECalculator() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [gender, setGender] = useState('male');
   const [age, setAge] = useState('');
@@ -58,7 +59,7 @@ export default function TDEECalculator() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -149,7 +150,7 @@ export default function TDEECalculator() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -163,21 +164,18 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: {
     fontSize: 18,
     fontFamily: 'Cairo_700Bold',
-    color: '#333',
-  },
+    color: '#333'},
   content: { padding: 20 },
   header: { alignItems: 'center', marginBottom: 32 },
   title: { fontSize: 24, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 16, textAlign: 'center' },
@@ -201,5 +199,4 @@ const styles = StyleSheet.create({
   resultCard: { flex: 1, minWidth: '45%', backgroundColor: '#fff', borderRadius: 16, padding: 20, alignItems: 'center', elevation: 2 },
   resultLabel: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#666', marginTop: 8 },
   resultValue: { fontSize: 32, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 4 },
-  resultUnit: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#999', marginTop: 2 },
-});
+  resultUnit: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#999', marginTop: 2 }});

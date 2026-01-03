@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
+  
   TextInput,
-  Alert,
-} from 'react-native';
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
@@ -22,6 +22,7 @@ interface GratitudeEntry {
 }
 
 export default function GratitudeJournalScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [item1, setItem1] = useState('');
   const [item2, setItem2] = useState('');
@@ -72,8 +73,7 @@ export default function GratitudeJournalScreen() {
       const today = format(new Date(), 'yyyy-MM-dd');
       const entry: GratitudeEntry = {
         date: today,
-        items: [item1.trim(), item2.trim(), item3.trim()].filter(Boolean),
-      };
+        items: [item1.trim(), item2.trim(), item3.trim()].filter(Boolean)};
 
       const data = await AsyncStorage.getItem('gratitude_journal');
       let entries: GratitudeEntry[] = data ? JSON.parse(data) : [];
@@ -105,7 +105,7 @@ export default function GratitudeJournalScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -229,7 +229,7 @@ export default function GratitudeJournalScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -243,16 +243,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
   content: { padding: 20 },
   header: { alignItems: 'center', marginBottom: 20 },
@@ -265,8 +263,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 24,
     borderRightWidth: 4,
-    borderRightColor: '#FF9800',
-  },
+    borderRightColor: '#FF9800'},
   quote: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', lineHeight: 24, textAlign: 'right' },
   inputSection: { marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333', marginBottom: 16, textAlign: 'right' },
@@ -276,8 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   inputNumber: {
     width: 30,
     height: 30,
@@ -287,16 +283,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 30,
     fontFamily: 'Cairo_700Bold',
-    marginLeft: 12,
-  },
+    marginLeft: 12},
   input: {
     flex: 1,
     fontSize: 16,
     fontFamily: 'Cairo_400Regular',
     color: '#333',
     textAlign: 'right',
-    minHeight: 40,
-  },
+    minHeight: 40},
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -305,8 +299,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     gap: 8,
-    marginBottom: 20,
-  },
+    marginBottom: 20},
   saveButtonSaved: { backgroundColor: '#4CAF50' },
   saveButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
   statsBox: {
@@ -315,8 +308,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
-    justifyContent: 'space-around',
-  },
+    justifyContent: 'space-around'},
   statItem: { alignItems: 'center' },
   statNumber: { fontSize: 32, fontFamily: 'Cairo_700Bold', color: '#FF9800' },
   statLabel: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 4 },
@@ -326,8 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
-  },
+    marginBottom: 12},
   historyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -335,18 +326,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-    paddingBottom: 12,
-  },
+    paddingBottom: 12},
   historyDate: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#333' },
   historyItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
-    marginBottom: 8,
-  },
+    marginBottom: 8},
   historyBullet: { fontSize: 14 },
   historyText: { flex: 1, fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right' },
   emptyHistory: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#999', marginTop: 16 },
-  emptySubtext: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#bbb', marginTop: 8 },
-});
+  emptySubtext: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#bbb', marginTop: 8 }});

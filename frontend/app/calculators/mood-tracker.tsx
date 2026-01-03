@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+  
+  Alert} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
@@ -31,6 +31,7 @@ interface MoodEntry {
 }
 
 export default function MoodTrackerScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [intensity, setIntensity] = useState(5);
@@ -79,8 +80,7 @@ export default function MoodTrackerScreen() {
       const entry: MoodEntry = {
         date: today,
         mood: selectedMood,
-        intensity,
-      };
+        intensity};
 
       const data = await AsyncStorage.getItem('mood_history');
       let history: MoodEntry[] = data ? JSON.parse(data) : [];
@@ -117,7 +117,7 @@ export default function MoodTrackerScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -238,7 +238,7 @@ export default function MoodTrackerScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -252,16 +252,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+    borderBottomColor: '#e0e0e0'},
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   navTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
   content: { padding: 20 },
   disclaimer: {
@@ -271,8 +269,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     marginBottom: 20,
-    gap: 8,
-  },
+    gap: 8},
   disclaimerText: { flex: 1, fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#F57C00', textAlign: 'right' },
   header: { alignItems: 'center', marginBottom: 24 },
   title: { fontSize: 24, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 12 },
@@ -287,8 +284,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
     borderWidth: 2,
-    borderColor: 'transparent',
-  },
+    borderColor: 'transparent'},
   moodLabel: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 8, textAlign: 'center' },
   intensitySection: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 20 },
   intensityBar: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -298,8 +294,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: '#e0e0e0',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   intensityDotActive: { backgroundColor: '#00BCD4' },
   intensityNumber: { fontSize: 12, fontFamily: 'Cairo_700Bold', color: '#666' },
   intensityNumberActive: { color: '#fff' },
@@ -311,8 +306,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     gap: 8,
-    marginBottom: 20,
-  },
+    marginBottom: 20},
   saveButtonSaved: { backgroundColor: '#4CAF50' },
   saveButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
   historySection: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
@@ -325,10 +319,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0F7FA',
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
-  },
+    alignItems: 'center'},
   averageLabel: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#00838F', marginBottom: 8 },
   averageValue: { flexDirection: 'row', alignItems: 'baseline' },
   averageNumber: { fontSize: 36, fontFamily: 'Cairo_700Bold', color: '#00BCD4' },
-  averageMax: { fontSize: 18, fontFamily: 'Cairo_400Regular', color: '#00838F' },
-});
+  averageMax: { fontSize: 18, fontFamily: 'Cairo_400Regular', color: '#00838F' }});

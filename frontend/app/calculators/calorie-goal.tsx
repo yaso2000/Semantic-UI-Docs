@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView,  KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
 
 export default function CalorieGoalCalculator() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [tdee, setTdee] = useState('');
   const [goal, setGoal] = useState('loss');
@@ -31,7 +33,7 @@ export default function CalorieGoalCalculator() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.navigationHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#333" />
@@ -82,7 +84,7 @@ export default function CalorieGoalCalculator() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -110,5 +112,4 @@ const styles = StyleSheet.create({
   resultTitle: { fontSize: 20, fontFamily: 'Cairo_700Bold', color: '#333', marginBottom: 16, textAlign: 'right' },
   optionCard: { padding: 16, backgroundColor: '#f9f9f9', borderRadius: 12, marginBottom: 12, borderLeftWidth: 4 },
   optionLabel: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333', textAlign: 'right' },
-  optionValue: { fontSize: 24, fontFamily: 'Cairo_700Bold', marginTop: 8, textAlign: 'right' },
-});
+  optionValue: { fontSize: 24, fontFamily: 'Cairo_700Bold', marginTop: 8, textAlign: 'right' }});
