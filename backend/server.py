@@ -120,6 +120,31 @@ class Message(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     read: bool = False
 
+# ==================== Google Auth Models ====================
+
+class GoogleSessionRequest(BaseModel):
+    session_id: str
+
+class GoogleSessionResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+    picture: Optional[str] = None
+    session_token: str
+
+class GoogleUserResponse(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    role: str
+    picture: Optional[str] = None
+    created_at: datetime
+
+class GoogleTokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: GoogleUserResponse
+
 class IntakeQuestionnaireResponse(BaseModel):
     user_id: str
     responses: Dict[str, Any]  # Questions and answers
