@@ -24,9 +24,11 @@ export default function WelcomeScreen() {
       
       {/* Logo Section */}
       <View style={styles.logoSection}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="leaf" size={60} color={COLORS.teal} />
-        </View>
+        <Image 
+          source={require('../assets/images/logo.png')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <Text style={styles.appName}>اسأل يازو</Text>
         <Text style={styles.tagline}>رحلتك نحو حياة أفضل تبدأ هنا</Text>
       </View>
