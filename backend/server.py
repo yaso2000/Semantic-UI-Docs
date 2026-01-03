@@ -2334,6 +2334,121 @@ async def get_all_resources_admin(admin: dict = Depends(get_admin_user)):
     
     return result
 
+# ==================== CUSTOM CALCULATORS ENDPOINTS ====================
+
+@api_router.get("/custom-calculators")
+async def get_custom_calculators(category: Optional[str] = None, active_only: bool = True):
+    """جلب الحاسبات المخصصة - متاح للجميع"""
+    query = {}
+    if category and category != "all":
+        query["category"] = category
+    if active_only:
+        query["is_active"] = True
+    
+    calculators = await db.custom_calculators.find(query).sort("created_at", -1).to_list(100)
+    
+    result = []
+    for calc in calculators:
+        result.append({
+            "id": calc["_id"],
+            "title": calc.get("title", ""),
+            "description": calc.get("description", ""),
+            "category": calc.get("category", ""),
+            "icon": calc.get("icon", "calculator"),
+            "is_active": calc.get("is_active", True),
+            "created_at": calc.get("created_at"),
+        })
+    
+    return result
+
+@api_router.get("/custom-calculators/{calculator_id}")
+async def get_custom_calculator(calculator_id: str):
+    """جلب حاسبة واحدة بالكود الكامل"""
+    calculator = await db.custom_calculators.find_one({"_id": calculator_id})
+    if not calculator:
+        raise HTTPException(status_code=404, detail="Calculator not found")
+    
+    return {
+        "id": calculator["_id"],
+        "title": calculator.get("title", ""),
+        "description": calculator.get("description", ""),
+        "category": calculator.get("category", ""),
+        "icon": calculator.get("icon", "calculator"),
+        "html_content": calculator.get("html_content", ""),
+        "is_active": calculator.get("is_active", True),
+        "created_at": calculator.get("created_at"),
+    }
+
+@api_router.post("/admin/custom-calculators")
+async def create_custom_calculator(calculator: CustomCalculatorCreate, admin: dict = Depends(get_admin_user)):
+    """إنشاء حاسبة مخصصة - للأدمن فقط"""
+    calculator_id = str(uuid.uuid4())
+    now = datetime.utcnow()
+    
+    calc_dict = {
+        "_id": calculator_id,
+        "title": calculator.title,
+        "description": calculator.description,
+        "category": calculator.category,
+        "icon": calculator.icon,
+        "html_content": calculator.html_content,
+        "is_active": calculator.is_active,
+        "created_by": admin["_id"],
+        "created_at": now,
+        "updated_at": now,
+    }
+    
+    await db.custom_calculators.insert_one(calc_dict)
+    
+    return {"message": "تم إنشاء الحاسبة بنجاح", "id": calculator_id}
+
+@api_router.put("/admin/custom-calculators/{calculator_id}")
+async def update_custom_calculator(calculator_id: str, calculator: CustomCalculatorUpdate, admin: dict = Depends(get_admin_user)):
+    """تحديث حاسبة - للأدمن فقط"""
+    existing = await db.custom_calculators.find_one({"_id": calculator_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Calculator not found")
+    
+    update_data = {k: v for k, v in calculator.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.custom_calculators.update_one(
+        {"_id": calculator_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "تم تحديث الحاسبة بنجاح"}
+
+@api_router.delete("/admin/custom-calculators/{calculator_id}")
+async def delete_custom_calculator(calculator_id: str, admin: dict = Depends(get_admin_user)):
+    """حذف حاسبة - للأدمن فقط"""
+    result = await db.custom_calculators.delete_one({"_id": calculator_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Calculator not found")
+    
+    return {"message": "تم حذف الحاسبة بنجاح"}
+
+@api_router.get("/admin/custom-calculators")
+async def get_all_custom_calculators_admin(admin: dict = Depends(get_admin_user)):
+    """جلب جميع الحاسبات للأدمن"""
+    calculators = await db.custom_calculators.find({}).sort("created_at", -1).to_list(100)
+    
+    result = []
+    for calc in calculators:
+        result.append({
+            "id": calc["_id"],
+            "title": calc.get("title", ""),
+            "description": calc.get("description", ""),
+            "category": calc.get("category", ""),
+            "icon": calc.get("icon", "calculator"),
+            "html_content": calc.get("html_content", ""),
+            "is_active": calc.get("is_active", True),
+            "created_at": calc.get("created_at"),
+            "updated_at": calc.get("updated_at"),
+        })
+    
+    return result
+
 # Include router
 app.include_router(api_router)
 
