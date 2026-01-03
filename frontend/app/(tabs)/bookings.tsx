@@ -111,7 +111,7 @@ export default function BookingsScreen() {
   // ============ واجهة الأدمن ============
   if (userRole === 'admin') {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.header}>
           <Ionicons name="calendar" size={24} color={COLORS.teal} />
