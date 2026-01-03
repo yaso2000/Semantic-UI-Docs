@@ -128,12 +128,42 @@ class IntakeQuestionnaireResponse(BaseModel):
 class Resource(BaseModel):
     id: Optional[str] = None
     title: str
-    category: str  # physical, nutritional, mental, spiritual
-    file_data: str  # base64 encoded
-    file_name: str
     description: str
-    uploaded_by: str
+    category: str  # wellness, mindset, productivity, relationships
+    content_type: str  # article, video, audio, pdf
+    content: Optional[str] = None  # المحتوى النصي للمقالات
+    external_url: Optional[str] = None  # رابط خارجي (يوتيوب، إلخ)
+    internal_route: Optional[str] = None  # مسار داخلي في التطبيق
+    duration: Optional[str] = None  # مدة القراءة/المشاهدة
+    icon: str = "document-text"
+    is_active: bool = True
+    created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ResourceCreate(BaseModel):
+    title: str
+    description: str
+    category: str
+    content_type: str
+    content: Optional[str] = None
+    external_url: Optional[str] = None
+    internal_route: Optional[str] = None
+    duration: Optional[str] = None
+    icon: str = "document-text"
+    is_active: bool = True
+
+class ResourceUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    content_type: Optional[str] = None
+    content: Optional[str] = None
+    external_url: Optional[str] = None
+    internal_route: Optional[str] = None
+    duration: Optional[str] = None
+    icon: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class HabitTracker(BaseModel):
     user_id: str
