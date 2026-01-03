@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,14 @@ import {
   Platform,
   ScrollView,
   Alert,
-  StatusBar} from 'react-native';
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -23,6 +27,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -34,6 +39,67 @@ export default function LoginScreen() {
     Alexandria_700Bold});
 
   const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+  // Handle Google Auth
+  const handleGoogleLogin = async () => {
+    try {
+      setGoogleLoading(true);
+      
+      // Create redirect URL based on platform
+      const redirectUrl = Platform.OS === 'web'
+        ? `${API_URL}/`
+        : Linking.createURL('/');
+      
+      // Open Google Auth
+      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+      
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
+      
+      if (result.type === 'success' && result.url) {
+        // Extract session_id from URL
+        const url = result.url;
+        let sessionId = null;
+        
+        // Check hash first, then query params
+        if (url.includes('#session_id=')) {
+          sessionId = url.split('#session_id=')[1]?.split('&')[0];
+        } else if (url.includes('?session_id=')) {
+          sessionId = url.split('?session_id=')[1]?.split('&')[0];
+        }
+        
+        if (sessionId) {
+          await processGoogleSession(sessionId);
+        } else {
+          Alert.alert('خطأ', 'فشل في الحصول على بيانات التسجيل');
+        }
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      Alert.alert('خطأ', 'فشل تسجيل الدخول بـ Google');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const processGoogleSession = async (sessionId: string) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/auth/google`, {
+        session_id: sessionId
+      });
+      
+      const { access_token, user } = response.data;
+      
+      // Store token and user data
+      await AsyncStorage.setItem('token', access_token);
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      
+      // Navigate to home
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      console.error('Process Google session error:', error);
+      Alert.alert('خطأ', error.response?.data?.detail || 'فشل في إكمال تسجيل الدخول');
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
