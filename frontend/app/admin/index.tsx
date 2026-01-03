@@ -68,6 +68,7 @@ export default function AdminDashboard() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
