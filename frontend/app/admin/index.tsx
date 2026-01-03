@@ -112,6 +112,20 @@ export default function AdminDashboard() {
 
           <TouchableOpacity
             style={styles.menuItem}
+            onPress={() => router.push('/admin/resources' as any)}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#E0F2F1' }]}>
+              <Ionicons name="library" size={22} color="#009688" />
+            </View>
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>إدارة المكتبة</Text>
+              <Text style={styles.menuSubtitle}>إضافة وتعديل الموارد والمقالات</Text>
+            </View>
+            <Ionicons name="chevron-back" size={20} color="#999" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
             onPress={() => router.push('/admin/packages' as any)}
           >
             <View style={[styles.menuIcon, { backgroundColor: '#E8F5E9' }]}>
