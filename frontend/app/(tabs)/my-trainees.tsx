@@ -51,6 +51,7 @@ export default function MyTraineesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'confirmed' | 'all'>('all');
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -203,7 +204,7 @@ export default function MyTraineesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>المتدربين</Text>
         {pendingCount > 0 && (
@@ -251,7 +252,7 @@ export default function MyTraineesScreen() {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
