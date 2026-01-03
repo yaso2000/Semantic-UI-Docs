@@ -459,7 +459,50 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
 
-  // Pillars
+  // Pillars Main Card
+  pillarsMainCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.md,
+    borderWidth: 1,
+    borderColor: `${COLORS.teal}20`,
+  },
+  pillarsMainContent: {
+    marginBottom: SPACING.md,
+  },
+  pillarsMainTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    textAlign: 'right',
+    marginBottom: 4,
+  },
+  pillarsMainSubtitle: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'right',
+  },
+  pillarsIconsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  pillarMiniIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pillarsArrow: {
+    alignItems: 'center',
+  },
+
+  // Old Pillars (kept for reference)
   pillarsContainer: {
     gap: SPACING.sm,
   },
