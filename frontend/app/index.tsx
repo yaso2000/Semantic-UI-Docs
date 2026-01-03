@@ -1,107 +1,79 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import * as SplashScreen from 'expo-splash-screen';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../src/constants/theme';
 
-SplashScreen.preventAutoHideAsync();
-
-export default function Index() {
+export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
   const [fontsLoaded] = useFonts({
     Alexandria_400Regular,
     Alexandria_600SemiBold,
-    Alexandria_700Bold});
+    Alexandria_700Bold,
+  });
 
-  React.useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
-      <View style={styles.content}>
-        {/* Logo Section */}
-        <View style={styles.logoSection}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="leaf" size={56} color={COLORS.teal} />
+      {/* Logo Section */}
+      <View style={styles.logoSection}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="leaf" size={60} color={COLORS.teal} />
+        </View>
+        <Text style={styles.appName}>اسأل يازو</Text>
+        <Text style={styles.tagline}>رحلتك نحو حياة أفضل تبدأ هنا</Text>
+      </View>
+
+      {/* Features Icons */}
+      <View style={styles.featuresRow}>
+        <View style={styles.featureItem}>
+          <View style={[styles.featureIcon, { backgroundColor: `${COLORS.physical}15` }]}>
+            <Ionicons name="fitness" size={24} color={COLORS.physical} />
           </View>
-          <Text style={styles.title}>اسأل يازو</Text>
-          <Text style={styles.titleEn}>Ask Yazo</Text>
-          <Text style={styles.subtitle}>رحلتك نحو حياة متوازنة</Text>
+          <Text style={styles.featureText}>الجسدي</Text>
         </View>
-
-        {/* Features - Four Pillars */}
-        <View style={styles.featuresCard}>
-          <Text style={styles.featuresTitle}>الأعمدة الأربعة للحياة المتوازنة</Text>
-          <View style={styles.featuresContainer}>
-            <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.physical}15` }]}>
-                <Ionicons name="fitness" size={24} color={COLORS.physical} />
-              </View>
-              <Text style={[styles.featureText, { color: COLORS.physical }]}>البدني</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.nutritional}20` }]}>
-                <Ionicons name="nutrition" size={24} color={COLORS.nutritional} />
-              </View>
-              <Text style={[styles.featureText, { color: COLORS.nutritional }]}>التغذوي</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.mental}15` }]}>
-                <Ionicons name="happy" size={24} color={COLORS.mental} />
-              </View>
-              <Text style={[styles.featureText, { color: COLORS.mental }]}>النفسي</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: `${COLORS.spiritual}15` }]}>
-                <Ionicons name="sparkles" size={24} color={COLORS.spiritual} />
-              </View>
-              <Text style={[styles.featureText, { color: COLORS.spiritual }]}>الروحي</Text>
-            </View>
+        <View style={styles.featureItem}>
+          <View style={[styles.featureIcon, { backgroundColor: `${COLORS.mental}15` }]}>
+            <Ionicons name="brain" size={24} color={COLORS.mental} />
           </View>
+          <Text style={styles.featureText}>النفسي</Text>
         </View>
-
-        {/* Buttons */}
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={() => router.push('/(auth)/login')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="arrow-back" size={20} color={COLORS.white} />
-            <Text style={styles.primaryButtonText}>تسجيل الدخول</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.secondaryButton}
-            onPress={() => router.push('/(auth)/register')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.secondaryButtonText}>إنشاء حساب جديد</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <View style={styles.footerDivider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.footerText}>ابدأ رحلتك الآن</Text>
-            <View style={styles.dividerLine} />
+        <View style={styles.featureItem}>
+          <View style={[styles.featureIcon, { backgroundColor: `${COLORS.social}15` }]}>
+            <Ionicons name="people" size={24} color={COLORS.social} />
           </View>
+          <Text style={styles.featureText}>الاجتماعي</Text>
         </View>
+        <View style={styles.featureItem}>
+          <View style={[styles.featureIcon, { backgroundColor: `${COLORS.spiritual}15` }]}>
+            <Ionicons name="sparkles" size={24} color={COLORS.spiritual} />
+          </View>
+          <Text style={styles.featureText}>الروحي</Text>
+        </View>
+      </View>
+
+      {/* Start Button */}
+      <View style={styles.buttonSection}>
+        <TouchableOpacity 
+          style={styles.startButton}
+          onPress={() => router.push('/(auth)/login')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.startButtonText}>ابدأ الآن</Text>
+          <Ionicons name="arrow-back" size={22} color={COLORS.white} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Ask Yazo</Text>
       </View>
     </View>
   );
@@ -110,124 +82,82 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background},
-  content: {
-    flex: 1,
-    padding: SPACING.lg,
-    justifyContent: 'center'},
-
-  // Logo Section
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SPACING.xl,
+    justifyContent: 'space-between',
+  },
   logoSection: {
     alignItems: 'center',
-    marginBottom: SPACING.xl},
+    marginTop: SPACING['3xl'],
+  },
   logoContainer: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: `${COLORS.teal}10`,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: `${COLORS.teal}15`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: SPACING.lg,
-    borderWidth: 2,
-    borderColor: `${COLORS.teal}25`},
-  title: {
-    fontSize: 40,
+    ...SHADOWS.md,
+  },
+  appName: {
+    fontSize: 36,
     fontFamily: FONTS.bold,
-    color: COLORS.teal,
-    marginBottom: 4},
-  titleEn: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    marginBottom: SPACING.sm},
-  subtitle: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    color: COLORS.textSecondary},
-
-  // Features Card
-  featuresCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    marginBottom: SPACING.xl,
-    ...SHADOWS.md},
-  featuresTitle: {
-    fontSize: 14,
-    fontFamily: FONTS.semiBold,
     color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  tagline: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: SPACING.md},
-  featuresContainer: {
+  },
+  featuresRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around'},
+    justifyContent: 'space-around',
+    paddingHorizontal: SPACING.md,
+  },
   featureItem: {
     alignItems: 'center',
-    width: '22%'},
+  },
   featureIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.xs},
-  featureText: {
-    fontSize: 11,
-    fontFamily: FONTS.semiBold,
-    textAlign: 'center'},
-
-  // Buttons
-  buttonsContainer: {
-    gap: SPACING.md,
-    marginBottom: SPACING.lg,
-    paddingHorizontal: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
-  primaryButton: {
+  featureText: {
+    fontSize: 12,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textSecondary,
+  },
+  buttonSection: {
+    paddingHorizontal: SPACING.md,
+  },
+  startButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.teal,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
     borderRadius: RADIUS.full,
     gap: SPACING.sm,
-    minWidth: 200,
-    ...SHADOWS.md,
+    ...SHADOWS.lg,
   },
-  primaryButtonText: {
-    fontSize: 18,
+  startButtonText: {
+    fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.white,
   },
-  secondaryButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: RADIUS.full,
-    borderWidth: 2,
-    borderColor: COLORS.teal,
-    minWidth: 200,
-  },
-  secondaryButtonText: {
-    fontSize: 18,
-    fontFamily: FONTS.semiBold,
-    color: COLORS.teal,
-  },
-
-  // Footer
   footer: {
-    alignItems: 'center'},
-  footerDivider: {
-    flexDirection: 'row',
-    alignItems: 'center'},
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.divider},
+    alignItems: 'center',
+    paddingBottom: SPACING.lg,
+  },
   footerText: {
-    fontSize: 13,
-    fontFamily: FONTS.regular,
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
     color: COLORS.textMuted,
-    marginHorizontal: SPACING.md}});
+  },
+});
