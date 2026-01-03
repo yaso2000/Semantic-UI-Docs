@@ -2170,6 +2170,140 @@ async def stripe_webhook(request):
 async def root():
     return {"message": "Ask Yazo API", "version": "1.0", "domain": "askyazo.com"}
 
+# ==================== RESOURCES ENDPOINTS ====================
+
+@api_router.get("/resources")
+async def get_resources(category: Optional[str] = None, active_only: bool = True):
+    """جلب جميع الموارد - متاح للجميع"""
+    query = {}
+    if category and category != "all":
+        query["category"] = category
+    if active_only:
+        query["is_active"] = True
+    
+    resources = await db.resources.find(query).sort("created_at", -1).to_list(100)
+    
+    # تنسيق البيانات للعرض
+    result = []
+    for r in resources:
+        result.append({
+            "id": r["_id"],
+            "title": r.get("title", ""),
+            "description": r.get("description", ""),
+            "category": r.get("category", ""),
+            "content_type": r.get("content_type", "article"),
+            "content": r.get("content", ""),
+            "external_url": r.get("external_url", ""),
+            "internal_route": r.get("internal_route", ""),
+            "duration": r.get("duration", ""),
+            "icon": r.get("icon", "document-text"),
+            "is_active": r.get("is_active", True),
+            "created_at": r.get("created_at"),
+        })
+    
+    return result
+
+@api_router.get("/resources/{resource_id}")
+async def get_resource(resource_id: str):
+    """جلب مورد واحد بالتفاصيل الكاملة"""
+    resource = await db.resources.find_one({"_id": resource_id})
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    return {
+        "id": resource["_id"],
+        "title": resource.get("title", ""),
+        "description": resource.get("description", ""),
+        "category": resource.get("category", ""),
+        "content_type": resource.get("content_type", "article"),
+        "content": resource.get("content", ""),
+        "external_url": resource.get("external_url", ""),
+        "internal_route": resource.get("internal_route", ""),
+        "duration": resource.get("duration", ""),
+        "icon": resource.get("icon", "document-text"),
+        "is_active": resource.get("is_active", True),
+        "created_at": resource.get("created_at"),
+        "updated_at": resource.get("updated_at"),
+    }
+
+@api_router.post("/admin/resources")
+async def create_resource(resource: ResourceCreate, admin: dict = Depends(get_admin_user)):
+    """إنشاء مورد جديد - للأدمن فقط"""
+    resource_id = str(uuid.uuid4())
+    now = datetime.utcnow()
+    
+    resource_dict = {
+        "_id": resource_id,
+        "title": resource.title,
+        "description": resource.description,
+        "category": resource.category,
+        "content_type": resource.content_type,
+        "content": resource.content,
+        "external_url": resource.external_url,
+        "internal_route": resource.internal_route,
+        "duration": resource.duration,
+        "icon": resource.icon,
+        "is_active": resource.is_active,
+        "created_by": admin["_id"],
+        "created_at": now,
+        "updated_at": now,
+    }
+    
+    await db.resources.insert_one(resource_dict)
+    
+    return {"message": "تم إنشاء المورد بنجاح", "id": resource_id}
+
+@api_router.put("/admin/resources/{resource_id}")
+async def update_resource(resource_id: str, resource: ResourceUpdate, admin: dict = Depends(get_admin_user)):
+    """تحديث مورد - للأدمن فقط"""
+    existing = await db.resources.find_one({"_id": resource_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    update_data = {k: v for k, v in resource.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.resources.update_one(
+        {"_id": resource_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "تم تحديث المورد بنجاح"}
+
+@api_router.delete("/admin/resources/{resource_id}")
+async def delete_resource(resource_id: str, admin: dict = Depends(get_admin_user)):
+    """حذف مورد - للأدمن فقط"""
+    result = await db.resources.delete_one({"_id": resource_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    return {"message": "تم حذف المورد بنجاح"}
+
+@api_router.get("/admin/resources")
+async def get_all_resources_admin(admin: dict = Depends(get_admin_user)):
+    """جلب جميع الموارد للأدمن (بما فيها غير النشطة)"""
+    resources = await db.resources.find({}).sort("created_at", -1).to_list(100)
+    
+    result = []
+    for r in resources:
+        result.append({
+            "id": r["_id"],
+            "title": r.get("title", ""),
+            "description": r.get("description", ""),
+            "category": r.get("category", ""),
+            "content_type": r.get("content_type", "article"),
+            "content": r.get("content", ""),
+            "external_url": r.get("external_url", ""),
+            "internal_route": r.get("internal_route", ""),
+            "duration": r.get("duration", ""),
+            "icon": r.get("icon", "document-text"),
+            "is_active": r.get("is_active", True),
+            "created_at": r.get("created_at"),
+            "updated_at": r.get("updated_at"),
+        })
+    
+    return result
+
 # Include router
 app.include_router(api_router)
 
