@@ -179,13 +179,13 @@ export default function BookingsScreen() {
             ))
           )}
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // ============ واجهة المتدرب ============
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.clientHeader}>
         <View style={styles.clientHeaderTop}>
