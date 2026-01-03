@@ -284,7 +284,7 @@ export default function ChatScreen() {
 
   if (selectedContact) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.chatHeader}>
           <TouchableOpacity 
