@@ -53,6 +53,7 @@ export default function CoachesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -158,7 +159,7 @@ export default function CoachesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>المدربين</Text>
         <Text style={styles.headerSubtitle}>اختر مدربك المناسب</Text>
@@ -180,7 +181,7 @@ export default function CoachesScreen() {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
