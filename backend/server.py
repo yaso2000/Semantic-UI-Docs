@@ -353,6 +353,83 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         created_at=current_user["created_at"]
     )
 
+# ==================== Google Auth ENDPOINTS ====================
+
+EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+
+@api_router.post("/auth/google", response_model=GoogleTokenResponse)
+async def google_auth(session_request: GoogleSessionRequest):
+    """Exchange Emergent session_id for user data and create/login user"""
+    try:
+        # Get user data from Emergent Auth
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                EMERGENT_AUTH_URL,
+                headers={"X-Session-ID": session_request.session_id}
+            )
+            
+            if response.status_code != 200:
+                raise HTTPException(status_code=401, detail="Invalid session ID")
+            
+            google_data = response.json()
+        
+        # Check if user exists by email
+        existing_user = await db.users.find_one({"email": google_data["email"]})
+        
+        if existing_user:
+            # User exists - login
+            user_id = existing_user["_id"]
+            user_dict = existing_user
+        else:
+            # New user - register
+            user_id = str(uuid.uuid4())
+            user_dict = {
+                "_id": user_id,
+                "email": google_data["email"],
+                "full_name": google_data.get("name", google_data["email"].split("@")[0]),
+                "picture": google_data.get("picture"),
+                "role": "client",  # Default role for new Google users
+                "auth_provider": "google",
+                "google_id": google_data.get("id"),
+                "created_at": datetime.now(timezone.utc)
+            }
+            await db.users.insert_one(user_dict)
+        
+        # Store session in database
+        session_token = google_data.get("session_token", str(uuid.uuid4()))
+        await db.user_sessions.insert_one({
+            "_id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "session_token": session_token,
+            "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+            "created_at": datetime.now(timezone.utc)
+        })
+        
+        # Create JWT token for app use
+        access_token = create_access_token(data={"sub": user_id})
+        
+        user_response = GoogleUserResponse(
+            id=user_id,
+            email=user_dict["email"],
+            full_name=user_dict.get("full_name", user_dict["email"].split("@")[0]),
+            role=user_dict.get("role", "client"),
+            picture=user_dict.get("picture"),
+            created_at=user_dict.get("created_at", datetime.now(timezone.utc))
+        )
+        
+        return GoogleTokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            user=user_response
+        )
+        
+    except httpx.RequestError as e:
+        logger.error(f"Error contacting Emergent Auth: {e}")
+        raise HTTPException(status_code=500, detail="Authentication service unavailable")
+    except Exception as e:
+        logger.error(f"Google auth error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ==================== CALCULATOR ENDPOINTS ====================
 
 @api_router.post("/calculators/save")
