@@ -284,16 +284,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
     marginTop: SPACING.lg,
   },
-  logoContainer: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: `${COLORS.teal}10`,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logo: {
+    width: 90,
+    height: 90,
     marginBottom: SPACING.md,
-    borderWidth: 2,
-    borderColor: `${COLORS.teal}30`,
   },
   title: {
     fontSize: 28,
