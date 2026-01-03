@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
-import { COLORS, FONTS } from '../src/constants/theme';
+import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../src/constants/theme';
 
 interface Resource {
   id: string;
@@ -22,6 +22,7 @@ interface Resource {
   icon: string;
   color: string;
   duration?: string;
+  route?: string;
 }
 
 const CATEGORIES = [
@@ -33,14 +34,14 @@ const CATEGORIES = [
 ];
 
 const RESOURCES: Resource[] = [
-  { id: '1', title: '10 عادات صباحية للنجاح', description: 'اكتشف العادات الصباحية التي يمارسها الناجحون', category: 'productivity', type: 'article', icon: 'document-text', color: '#4CAF50', duration: '5 دقائق' },
-  { id: '2', title: 'تقنيات التأمل للمبتدئين', description: 'دليل شامل لتعلم التأمل في 10 دقائق يومياً', category: 'mindset', type: 'video', icon: 'play-circle', color: '#2196F3', duration: '15 دقيقة' },
-  { id: '3', title: 'فن التواصل الفعال', description: 'تعلم مهارات التواصل لبناء علاقات أقوى', category: 'relationships', type: 'article', icon: 'document-text', color: '#E91E63', duration: '8 دقائق' },
-  { id: '4', title: 'جلسة استرخاء صوتية', description: 'جلسة موجهة للتخلص من التوتر', category: 'wellness', type: 'audio', icon: 'headset', color: '#9C27B0', duration: '20 دقيقة' },
-  { id: '5', title: 'دليل تحديد الأهداف الذكية', description: 'تعلم وضع أهداف SMART وتحقيقها', category: 'productivity', type: 'pdf', icon: 'document', color: '#FF9800', duration: 'PDF' },
-  { id: '6', title: 'عجلة الحياة: فهم التوازن', description: 'شرح تفصيلي لأداة عجلة الحياة', category: 'mindset', type: 'video', icon: 'play-circle', color: '#00BCD4', duration: '12 دقيقة' },
-  { id: '7', title: 'تحسين جودة النوم', description: 'نصائح علمية لنوم أفضل', category: 'wellness', type: 'article', icon: 'document-text', color: '#673AB7', duration: '6 دقائق' },
-  { id: '8', title: 'إدارة الوقت بفعالية', description: 'تقنيات لزيادة إنتاجيتك اليومية', category: 'productivity', type: 'video', icon: 'play-circle', color: '#FF5722', duration: '18 دقيقة' },
+  { id: '1', title: '10 عادات صباحية للنجاح', description: 'اكتشف العادات الصباحية التي يمارسها الناجحون', category: 'productivity', type: 'article', icon: 'document-text', color: COLORS.sage, duration: '5 دقائق', route: '/habit-tracker' },
+  { id: '2', title: 'تقنيات التأمل للمبتدئين', description: 'دليل شامل لتعلم التأمل في 10 دقائق يومياً', category: 'mindset', type: 'video', icon: 'play-circle', color: COLORS.teal, duration: '15 دقيقة', route: '/calculators/meditation-timer' },
+  { id: '3', title: 'فن التواصل الفعال', description: 'تعلم مهارات التواصل لبناء علاقات أقوى', category: 'relationships', type: 'article', icon: 'document-text', color: COLORS.spiritual, duration: '8 دقائق' },
+  { id: '4', title: 'جلسة استرخاء صوتية', description: 'جلسة موجهة للتخلص من التوتر', category: 'wellness', type: 'audio', icon: 'headset', color: COLORS.gold, duration: '20 دقيقة', route: '/calculators/breathing-exercise' },
+  { id: '5', title: 'دليل تحديد الأهداف الذكية', description: 'تعلم وضع أهداف SMART وتحقيقها', category: 'productivity', type: 'pdf', icon: 'document', color: COLORS.goldDark, duration: 'PDF' },
+  { id: '6', title: 'عجلة الحياة: فهم التوازن', description: 'شرح تفصيلي لأداة عجلة الحياة', category: 'mindset', type: 'video', icon: 'play-circle', color: COLORS.tealLight, duration: '12 دقيقة', route: '/calculators/wheel-of-life' },
+  { id: '7', title: 'تحسين جودة النوم', description: 'نصائح علمية لنوم أفضل', category: 'wellness', type: 'article', icon: 'document-text', color: COLORS.sageDark, duration: '6 دقائق' },
+  { id: '8', title: 'دفتر الامتنان اليومي', description: 'تقنيات لزيادة الامتنان والسعادة', category: 'mindset', type: 'video', icon: 'play-circle', color: COLORS.sage, duration: '10 دقائق', route: '/calculators/gratitude-journal' },
 ];
 
 export default function ResourcesScreen() {
@@ -49,6 +50,7 @@ export default function ResourcesScreen() {
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   const filteredResources = selectedCategory === 'all' ? RESOURCES : RESOURCES.filter(r => r.category === selectedCategory);
+  
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'video': return 'videocam';
@@ -58,65 +60,109 @@ export default function ResourcesScreen() {
     }
   };
 
+  const handleResourcePress = (resource: Resource) => {
+    if (resource.route) {
+      router.push(resource.route as any);
+    }
+  };
+
   if (!fontsLoaded) return null;
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color={COLORS.gold} />
+          <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>مكتبة الموارد</Text>
       </View>
 
+      {/* Intro Section */}
       <View style={styles.intro}>
         <View style={styles.introIcon}>
-          <Ionicons name="library" size={32} color={COLORS.gold} />
+          <Ionicons name="library" size={32} color={COLORS.teal} />
         </View>
         <Text style={styles.introText}>
           مجموعة من المقالات والفيديوهات والأدوات المفيدة لرحلتك
         </Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll} contentContainerStyle={styles.categoriesContent}>
+      {/* Categories */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        style={styles.categoriesScroll} 
+        contentContainerStyle={styles.categoriesContent}
+      >
         {CATEGORIES.map((cat) => (
           <TouchableOpacity
             key={cat.id}
             style={[styles.categoryBtn, selectedCategory === cat.id && styles.categoryBtnActive]}
             onPress={() => setSelectedCategory(cat.id)}
           >
-            <Ionicons name={cat.icon as any} size={16} color={selectedCategory === cat.id ? COLORS.primary : COLORS.textMuted} />
-            <Text style={[styles.categoryText, selectedCategory === cat.id && styles.categoryTextActive]}>{cat.name}</Text>
+            <Ionicons 
+              name={cat.icon as any} 
+              size={16} 
+              color={selectedCategory === cat.id ? COLORS.white : COLORS.textSecondary} 
+            />
+            <Text style={[styles.categoryText, selectedCategory === cat.id && styles.categoryTextActive]}>
+              {cat.name}
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
+      {/* Resources List */}
       <ScrollView contentContainerStyle={styles.content}>
         {filteredResources.map((resource) => (
-          <TouchableOpacity key={resource.id} style={styles.resourceCard}>
+          <TouchableOpacity 
+            key={resource.id} 
+            style={[styles.resourceCard, !resource.route && styles.resourceCardDisabled]}
+            onPress={() => handleResourcePress(resource)}
+            disabled={!resource.route}
+          >
             <View style={[styles.resourceIcon, { backgroundColor: resource.color }]}>
-              <Ionicons name={resource.icon as any} size={26} color="#fff" />
+              <Ionicons name={resource.icon as any} size={26} color={COLORS.white} />
             </View>
             <View style={styles.resourceInfo}>
               <View style={styles.resourceHeader}>
                 <Text style={styles.resourceTitle}>{resource.title}</Text>
                 <View style={styles.typeBadge}>
-                  <Ionicons name={getTypeIcon(resource.type)} size={12} color={COLORS.textMuted} />
+                  <Ionicons name={getTypeIcon(resource.type)} size={12} color={COLORS.textSecondary} />
                 </View>
               </View>
               <Text style={styles.resourceDesc} numberOfLines={2}>{resource.description}</Text>
               <View style={styles.resourceMeta}>
-                <Ionicons name="time-outline" size={14} color={COLORS.gold} />
-                <Text style={styles.resourceDuration}>{resource.duration}</Text>
+                {resource.route ? (
+                  <View style={styles.availableBadge}>
+                    <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
+                    <Text style={styles.availableText}>متاح</Text>
+                  </View>
+                ) : (
+                  <View style={styles.comingSoonBadge}>
+                    <Ionicons name="time-outline" size={14} color={COLORS.gold} />
+                    <Text style={styles.comingSoonText}>قريباً</Text>
+                  </View>
+                )}
+                <View style={styles.durationBadge}>
+                  <Ionicons name="time-outline" size={14} color={COLORS.teal} />
+                  <Text style={styles.resourceDuration}>{resource.duration}</Text>
+                </View>
               </View>
             </View>
+            {resource.route && (
+              <Ionicons name="chevron-back" size={20} color={COLORS.textMuted} />
+            )}
           </TouchableOpacity>
         ))}
 
+        {/* More Coming Section */}
         <View style={styles.moreSection}>
           <View style={styles.moreIcon}>
-            <Ionicons name="rocket" size={40} color={COLORS.gold} />
+            <Ionicons name="rocket" size={40} color={COLORS.teal} />
           </View>
           <Text style={styles.moreTitle}>المزيد قريباً!</Text>
           <Text style={styles.moreText}>نعمل على إضافة المزيد من المحتوى القيم</Text>
@@ -127,58 +173,222 @@ export default function ResourcesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
   
   header: {
-    flexDirection: 'row', alignItems: 'center', padding: 20,
-    backgroundColor: COLORS.secondary, borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.teal,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary,
-    justifyContent: 'center', alignItems: 'center', marginLeft: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: SPACING.md,
   },
-  headerTitle: { flex: 1, fontSize: 20, fontFamily: FONTS.bold, color: COLORS.gold, textAlign: 'right' },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+    textAlign: 'right',
+  },
 
   intro: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.secondary, padding: 16, gap: 12,
-    borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    padding: SPACING.md,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   introIcon: {
-    width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    justifyContent: 'center', alignItems: 'center',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.beige,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  introText: { flex: 1, fontSize: 14, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'right', lineHeight: 22 },
+  introText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'right',
+    lineHeight: 22,
+  },
 
-  categoriesScroll: { backgroundColor: COLORS.secondary, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  categoriesContent: { padding: 12, gap: 8 },
+  categoriesScroll: {
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  categoriesContent: {
+    padding: SPACING.sm,
+    gap: 8,
+  },
   categoryBtn: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14,
-    borderRadius: 20, backgroundColor: COLORS.primary, gap: 6, borderWidth: 1, borderColor: COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.beige,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  categoryBtnActive: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  categoryText: { fontSize: 13, fontFamily: FONTS.semiBold, color: COLORS.textMuted },
-  categoryTextActive: { color: COLORS.primary },
+  categoryBtnActive: {
+    backgroundColor: COLORS.teal,
+    borderColor: COLORS.teal,
+  },
+  categoryText: {
+    fontSize: 13,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textSecondary,
+  },
+  categoryTextActive: {
+    color: COLORS.white,
+  },
 
-  content: { padding: 16, paddingBottom: 40 },
+  content: {
+    padding: SPACING.md,
+    paddingBottom: 40,
+  },
 
   resourceCard: {
-    flexDirection: 'row', backgroundColor: COLORS.secondary, borderRadius: 14, padding: 14, marginBottom: 10,
-    borderWidth: 1, borderColor: COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: 10,
+    ...SHADOWS.md,
   },
-  resourceIcon: { width: 56, height: 56, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginLeft: 14 },
-  resourceInfo: { flex: 1 },
-  resourceHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  resourceTitle: { flex: 1, fontSize: 15, fontFamily: FONTS.bold, color: COLORS.text, textAlign: 'right', lineHeight: 22 },
-  typeBadge: { padding: 4, borderRadius: 6, backgroundColor: COLORS.primary, marginRight: 8 },
-  resourceDesc: { fontSize: 13, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'right', marginTop: 4, lineHeight: 20 },
-  resourceMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 8, gap: 4 },
-  resourceDuration: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.gold },
+  resourceCardDisabled: {
+    opacity: 0.7,
+  },
+  resourceIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: RADIUS.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: SPACING.md,
+  },
+  resourceInfo: {
+    flex: 1,
+  },
+  resourceHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  resourceTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    textAlign: 'right',
+    lineHeight: 22,
+  },
+  typeBadge: {
+    padding: 4,
+    borderRadius: 6,
+    backgroundColor: COLORS.beige,
+    marginRight: 8,
+  },
+  resourceDesc: {
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'right',
+    marginTop: 4,
+    lineHeight: 20,
+  },
+  resourceMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+    gap: 12,
+  },
+  durationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  resourceDuration: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: COLORS.teal,
+  },
+  availableBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.successLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  availableText: {
+    fontSize: 11,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.success,
+  },
+  comingSoonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.warningLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  comingSoonText: {
+    fontSize: 11,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.goldDark,
+  },
 
-  moreSection: { alignItems: 'center', padding: 32, marginTop: 16 },
-  moreIcon: {
-    width: 70, height: 70, borderRadius: 35, backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 16,
+  moreSection: {
+    alignItems: 'center',
+    padding: SPACING.xl,
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    ...SHADOWS.sm,
   },
-  moreTitle: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.gold },
-  moreText: { fontSize: 14, fontFamily: FONTS.regular, color: COLORS.textMuted, textAlign: 'center', marginTop: 8 },
+  moreIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: COLORS.beige,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  moreTitle: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.teal,
+  },
+  moreText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 8,
+  },
 });
