@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -15,6 +14,7 @@ import {
   Image,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import AsyncStorage from '@react-native-async-storage/async-storage';
