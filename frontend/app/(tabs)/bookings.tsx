@@ -45,6 +45,7 @@ export default function BookingsScreen() {
   const [activeTab, setActiveTab] = useState<'packages' | 'bookings'>('packages');
   const [userRole, setUserRole] = useState<string>('client');
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
