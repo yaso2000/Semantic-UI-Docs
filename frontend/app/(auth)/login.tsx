@@ -149,11 +149,12 @@ export default function LoginScreen() {
         >
         {/* Logo Section */}
         <View style={styles.logoSection}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="leaf" size={48} color={COLORS.teal} />
-          </View>
+          <Image 
+            source={require('../../assets/images/logo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>اسأل يازو</Text>
-          <Text style={styles.titleEn}>Ask Yazo</Text>
           <Text style={styles.subtitle}>رحلتك نحو حياة متوازنة</Text>
         </View>
 
