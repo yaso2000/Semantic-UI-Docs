@@ -319,26 +319,16 @@ const styles = StyleSheet.create({
   logoSection: {
     alignItems: 'center',
     marginBottom: SPACING.xl},
-  logoContainer: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: `${COLORS.teal}10`,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logo: {
+    width: 100,
+    height: 100,
     marginBottom: SPACING.md,
-    borderWidth: 2,
-    borderColor: `${COLORS.teal}30`},
+  },
   title: {
     fontSize: 32,
     fontFamily: FONTS.bold,
     color: COLORS.teal,
-    marginBottom: 2},
-  titleEn: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    marginBottom: SPACING.sm},
+    marginBottom: SPACING.xs},
   subtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
