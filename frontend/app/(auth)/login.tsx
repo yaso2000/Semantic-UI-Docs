@@ -233,6 +233,30 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
+          {/* Divider */}
+          <View style={styles.orDivider}>
+            <View style={styles.orDividerLine} />
+            <Text style={styles.orDividerText}>أو</Text>
+            <View style={styles.orDividerLine} />
+          </View>
+
+          {/* Google Login Button */}
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={handleGoogleLogin}
+            disabled={googleLoading}
+            activeOpacity={0.8}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={COLORS.text} />
+            ) : (
+              <View style={styles.buttonContent}>
+                <Ionicons name="logo-google" size={20} color="#DB4437" />
+                <Text style={styles.googleButtonText}>تسجيل الدخول بـ Google</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => router.push('/(auth)/register')}
