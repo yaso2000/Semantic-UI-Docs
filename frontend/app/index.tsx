@@ -92,15 +92,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: SPACING['3xl'],
   },
-  logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: `${COLORS.teal}15`,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logo: {
+    width: 150,
+    height: 150,
     marginBottom: SPACING.lg,
-    ...SHADOWS.md,
   },
   appName: {
     fontSize: 36,
