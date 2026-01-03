@@ -191,6 +191,23 @@ export default function ChatScreen() {
   };
 
   const renderAvatar = (contact: Contact, size: number = 50) => {
+    // إذا كان الأدمن (يازو)، نظهر الشعار
+    if (contact.role === 'admin') {
+      return (
+        <View style={[styles.avatarPlaceholder, { 
+          width: size, 
+          height: size, 
+          borderRadius: size / 2,
+          backgroundColor: `${COLORS.teal}15`
+        }]}>
+          <Image 
+            source={require('../../assets/images/logo.png')}
+            style={{ width: size * 0.8, height: size * 0.8 }}
+            resizeMode="contain"
+          />
+        </View>
+      );
+    }
     if (contact.profile_image) {
       return (
         <Image 
