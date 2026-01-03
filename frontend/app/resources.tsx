@@ -102,6 +102,7 @@ export default function ResourcesScreen() {
   const [resources, setResources] = useState<Resource[]>(DEFAULT_RESOURCES);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   useEffect(() => {
@@ -157,12 +158,6 @@ export default function ResourcesScreen() {
       return;
     }
     
-    // إذا كان هناك مسار داخلي
-    if (resource.internal_route) {
-      router.push(resource.internal_route as any);
-      return;
-    }
-    
     // إذا كان هناك محتوى نصي، انتقل لصفحة العرض
     if (resource.content) {
       router.push(`/resource-content/${resource.id}` as any);
@@ -170,7 +165,7 @@ export default function ResourcesScreen() {
   };
 
   const hasLink = (resource: Resource) => {
-    return resource.external_url || resource.internal_route || resource.content;
+    return resource.external_url || resource.content;
   };
 
   if (!fontsLoaded) return null;
