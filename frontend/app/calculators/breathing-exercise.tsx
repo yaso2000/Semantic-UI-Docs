@@ -8,285 +8,340 @@ import {
   Animated,
   Easing,
   Dimensions,
+  StatusBar,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import { useRouter } from 'expo-router';
+import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../../src/constants/theme';
 
 const { width } = Dimensions.get('window');
 
 const breathingPatterns = [
-  { id: 'box', name: 'تنفس الصندوق', inhale: 4, hold1: 4, exhale: 4, hold2: 4, color: '#2196F3' },
-  { id: 'relax', name: 'تنفس الاسترخاء', inhale: 4, hold1: 7, exhale: 8, hold2: 0, color: '#4CAF50' },
-  { id: 'energy', name: 'تنفس الطاقة', inhale: 6, hold1: 0, exhale: 2, hold2: 0, color: '#FF9800' },
-  { id: 'calm', name: 'تنفس الهدوء', inhale: 5, hold1: 2, exhale: 7, hold2: 0, color: '#9C27B0' },
+  { id: 'box', name: 'تنفس الصندوق', description: 'للتركيز والهدوء', inhale: 4, hold1: 4, exhale: 4, hold2: 4, color: COLORS.teal },
+  { id: 'relax', name: 'تنفس الاسترخاء', description: '4-7-8 للنوم العميق', inhale: 4, hold1: 7, exhale: 8, hold2: 0, color: COLORS.sage },
+  { id: 'energy', name: 'تنفس الطاقة', description: 'لزيادة النشاط', inhale: 6, hold1: 0, exhale: 2, hold2: 0, color: COLORS.gold },
+  { id: 'calm', name: 'تنفس الهدوء', description: 'للتخلص من التوتر', inhale: 5, hold1: 2, exhale: 7, hold2: 0, color: COLORS.spiritual },
 ];
 
 export default function BreathingExerciseScreen() {
   const router = useRouter();
   const [selectedPattern, setSelectedPattern] = useState(breathingPatterns[0]);
   const [isRunning, setIsRunning] = useState(false);
-  const [phase, setPhase] = useState('ready'); // ready, inhale, hold1, exhale, hold2
+  const [phase, setPhase] = useState('ready');
   const [cycleCount, setCycleCount] = useState(0);
   const [countdown, setCountdown] = useState(0);
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const isRunningRef = useRef(false);
   
-  const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
-
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const runCycle = async () => {
-      // Inhale
-      setPhase('inhale');
-      setCountdown(selectedPattern.inhale);
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: selectedPattern.inhale * 1000,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-      await wait(selectedPattern.inhale * 1000);
-
-      if (selectedPattern.hold1 > 0) {
-        setPhase('hold1');
-        setCountdown(selectedPattern.hold1);
-        await wait(selectedPattern.hold1 * 1000);
-      }
-
-      // Exhale
-      setPhase('exhale');
-      setCountdown(selectedPattern.exhale);
-      Animated.timing(scaleAnim, {
-        toValue: 0.5,
-        duration: selectedPattern.exhale * 1000,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-      await wait(selectedPattern.exhale * 1000);
-
-      if (selectedPattern.hold2 > 0) {
-        setPhase('hold2');
-        setCountdown(selectedPattern.hold2);
-        await wait(selectedPattern.hold2 * 1000);
-      }
-
-      setCycleCount(prev => prev + 1);
-    };
-
-    const runExercise = async () => {
-      while (isRunning) {
-        await runCycle();
-      }
-    };
-
-    runExercise();
-  }, [isRunning, selectedPattern]);
-
-  useEffect(() => {
-    if (!isRunning || countdown <= 0) return;
-    
-    const timer = setInterval(() => {
-      setCountdown(prev => Math.max(0, prev - 1));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isRunning, phase]);
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+  const runCycle = async () => {
+    if (!isRunningRef.current) return;
+
+    // Inhale
+    setPhase('inhale');
+    setCountdown(selectedPattern.inhale);
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: selectedPattern.inhale * 1000,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+    
+    for (let i = selectedPattern.inhale; i > 0 && isRunningRef.current; i--) {
+      setCountdown(i);
+      await wait(1000);
+    }
+
+    if (!isRunningRef.current) return;
+
+    if (selectedPattern.hold1 > 0) {
+      setPhase('hold1');
+      for (let i = selectedPattern.hold1; i > 0 && isRunningRef.current; i--) {
+        setCountdown(i);
+        await wait(1000);
+      }
+    }
+
+    if (!isRunningRef.current) return;
+
+    // Exhale
+    setPhase('exhale');
+    setCountdown(selectedPattern.exhale);
+    Animated.timing(scaleAnim, {
+      toValue: 0.5,
+      duration: selectedPattern.exhale * 1000,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+
+    for (let i = selectedPattern.exhale; i > 0 && isRunningRef.current; i--) {
+      setCountdown(i);
+      await wait(1000);
+    }
+
+    if (!isRunningRef.current) return;
+
+    if (selectedPattern.hold2 > 0) {
+      setPhase('hold2');
+      for (let i = selectedPattern.hold2; i > 0 && isRunningRef.current; i--) {
+        setCountdown(i);
+        await wait(1000);
+      }
+    }
+
+    if (isRunningRef.current) {
+      setCycleCount(prev => prev + 1);
+      runCycle();
+    }
+  };
+
   const startExercise = () => {
+    isRunningRef.current = true;
     setIsRunning(true);
     setCycleCount(0);
-    Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 20000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
+    runCycle();
   };
 
   const stopExercise = () => {
+    isRunningRef.current = false;
     setIsRunning(false);
     setPhase('ready');
-    rotateAnim.stopAnimation();
+    setCountdown(0);
     scaleAnim.setValue(0.5);
   };
 
   const getPhaseText = () => {
     switch (phase) {
-      case 'inhale': return 'شهيق';
-      case 'hold1': return 'احبس';
-      case 'exhale': return 'زفير';
-      case 'hold2': return 'احبس';
-      default: return 'استعد';
+      case 'inhale': return 'شهيق 🌬️';
+      case 'hold1': return 'احبس ⏸️';
+      case 'exhale': return 'زفير 💨';
+      case 'hold2': return 'احبس ⏸️';
+      default: return 'استعد 🧘';
     }
   };
 
-  const rotate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  const getPhaseInstruction = () => {
+    switch (phase) {
+      case 'inhale': return 'خذ نفساً عميقاً';
+      case 'hold1': return 'احبس الهواء';
+      case 'exhale': return 'أخرج الهواء ببطء';
+      case 'hold2': return 'انتظر قليلاً';
+      default: return 'اضغط ابدأ للبدء';
+    }
+  };
 
   if (!fontsLoaded) return null;
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.navigationHeader}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-forward" size={24} color="#333" />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
         </TouchableOpacity>
-        <Text style={styles.navTitle}>تمارين التنفس</Text>
+        <Text style={styles.headerTitle}>تمارين التنفس</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={styles.content}>
-        {!isRunning ? (
-          <>
-            <View style={styles.header}>
-              <Ionicons name="fitness" size={50} color={selectedPattern.color} />
-              <Text style={styles.title}>تمارين التنفس الموجهة</Text>
-              <Text style={styles.subtitle}>اختر نمط التنفس المناسب لك</Text>
+      {!isRunning ? (
+        <ScrollView contentContainerStyle={styles.content}>
+          {/* Intro */}
+          <View style={styles.introSection}>
+            <View style={[styles.introIcon, { backgroundColor: `${selectedPattern.color}20` }]}>
+              <Ionicons name="fitness" size={40} color={selectedPattern.color} />
             </View>
+            <Text style={styles.introTitle}>تمارين التنفس الموجهة</Text>
+            <Text style={styles.introText}>اختر نمط التنفس المناسب لحالتك</Text>
+          </View>
 
-            <View style={styles.patternsContainer}>
-              {breathingPatterns.map((pattern) => (
-                <TouchableOpacity
-                  key={pattern.id}
-                  style={[
-                    styles.patternCard,
-                    selectedPattern.id === pattern.id && { borderColor: pattern.color, backgroundColor: pattern.color + '10' },
-                  ]}
-                  onPress={() => setSelectedPattern(pattern)}
-                >
-                  <View style={[styles.patternIcon, { backgroundColor: pattern.color }]}>
-                    <Ionicons name="leaf" size={24} color="#fff" />
-                  </View>
+          {/* Patterns */}
+          <View style={styles.patternsContainer}>
+            {breathingPatterns.map((pattern) => (
+              <TouchableOpacity
+                key={pattern.id}
+                style={[
+                  styles.patternCard,
+                  selectedPattern.id === pattern.id && { borderColor: pattern.color, backgroundColor: `${pattern.color}10` },
+                ]}
+                onPress={() => setSelectedPattern(pattern)}
+              >
+                <View style={[styles.patternIcon, { backgroundColor: pattern.color }]}>
+                  <Ionicons name="leaf" size={22} color={COLORS.white} />
+                </View>
+                <View style={styles.patternInfo}>
                   <Text style={[styles.patternName, selectedPattern.id === pattern.id && { color: pattern.color }]}>
                     {pattern.name}
                   </Text>
+                  <Text style={styles.patternDesc}>{pattern.description}</Text>
                   <View style={styles.patternDetails}>
-                    <Text style={styles.patternDetail}>شهيق: {pattern.inhale}ث</Text>
-                    {pattern.hold1 > 0 && <Text style={styles.patternDetail}>حبس: {pattern.hold1}ث</Text>}
-                    <Text style={styles.patternDetail}>زفير: {pattern.exhale}ث</Text>
-                    {pattern.hold2 > 0 && <Text style={styles.patternDetail}>حبس: {pattern.hold2}ث</Text>}
+                    <Text style={styles.patternDetail}>شهيق {pattern.inhale}ث</Text>
+                    {pattern.hold1 > 0 && <Text style={styles.patternDetail}>• حبس {pattern.hold1}ث</Text>}
+                    <Text style={styles.patternDetail}>• زفير {pattern.exhale}ث</Text>
+                    {pattern.hold2 > 0 && <Text style={styles.patternDetail}>• حبس {pattern.hold2}ث</Text>}
                   </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={[styles.startButton, { backgroundColor: selectedPattern.color }]}
-              onPress={startExercise}
-            >
-              <Ionicons name="play" size={24} color="#fff" />
-              <Text style={styles.startButtonText}>ابدأ التمرين</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <View style={styles.exerciseContainer}>
-            <Text style={styles.cycleText}>الدورة: {cycleCount + 1}</Text>
-            
-            <View style={styles.breathingVisual}>
-              <Animated.View style={[styles.outerCircle, { transform: [{ rotate }] }]}>
-                {[0, 1, 2, 3].map((i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.cornerDot,
-                      {
-                        backgroundColor: selectedPattern.color,
-                        top: i < 2 ? 0 : undefined,
-                        bottom: i >= 2 ? 0 : undefined,
-                        left: i % 2 === 0 ? 0 : undefined,
-                        right: i % 2 === 1 ? 0 : undefined,
-                      },
-                    ]}
-                  />
-                ))}
-              </Animated.View>
-              
-              <Animated.View
-                style={[
-                  styles.breathCircle,
-                  {
-                    backgroundColor: selectedPattern.color,
-                    transform: [{ scale: scaleAnim }],
-                  },
-                ]}
-              >
-                <Text style={styles.phaseText}>{getPhaseText()}</Text>
-                <Text style={styles.countdownText}>{countdown}</Text>
-              </Animated.View>
-            </View>
-
-            <View style={styles.phaseIndicators}>
-              <View style={[styles.phaseIndicator, phase === 'inhale' && styles.phaseActive]}>
-                <Text style={[styles.phaseIndicatorText, phase === 'inhale' && styles.phaseActiveText]}>شهيق</Text>
-              </View>
-              {selectedPattern.hold1 > 0 && (
-                <View style={[styles.phaseIndicator, phase === 'hold1' && styles.phaseActive]}>
-                  <Text style={[styles.phaseIndicatorText, phase === 'hold1' && styles.phaseActiveText]}>حبس</Text>
                 </View>
-              )}
-              <View style={[styles.phaseIndicator, phase === 'exhale' && styles.phaseActive]}>
-                <Text style={[styles.phaseIndicatorText, phase === 'exhale' && styles.phaseActiveText]}>زفير</Text>
-              </View>
-              {selectedPattern.hold2 > 0 && (
-                <View style={[styles.phaseIndicator, phase === 'hold2' && styles.phaseActive]}>
-                  <Text style={[styles.phaseIndicatorText, phase === 'hold2' && styles.phaseActiveText]}>حبس</Text>
-                </View>
-              )}
-            </View>
-
-            <TouchableOpacity style={styles.stopButton} onPress={stopExercise}>
-              <Ionicons name="stop" size={24} color="#fff" />
-              <Text style={styles.stopButtonText}>إيقاف</Text>
-            </TouchableOpacity>
+                {selectedPattern.id === pattern.id && (
+                  <Ionicons name="checkmark-circle" size={24} color={pattern.color} />
+                )}
+              </TouchableOpacity>
+            ))}
           </View>
-        )}
-      </View>
+
+          {/* Start Button */}
+          <TouchableOpacity
+            style={[styles.startButton, { backgroundColor: selectedPattern.color }]}
+            onPress={startExercise}
+          >
+            <Ionicons name="play" size={24} color={COLORS.white} />
+            <Text style={styles.startButtonText}>ابدأ التمرين</Text>
+          </TouchableOpacity>
+
+          {/* Tips */}
+          <View style={styles.tipsSection}>
+            <Text style={styles.tipsTitle}>نصائح للتنفس الصحيح</Text>
+            <Text style={styles.tipItem}>🧘 اجلس في وضع مريح</Text>
+            <Text style={styles.tipItem}>👃 تنفس من الأنف</Text>
+            <Text style={styles.tipItem}>🫁 استخدم البطن وليس الصدر</Text>
+            <Text style={styles.tipItem}>😌 أغمض عينيك للتركيز</Text>
+          </View>
+        </ScrollView>
+      ) : (
+        <View style={styles.exerciseContainer}>
+          {/* Cycle Counter */}
+          <View style={styles.cycleCounter}>
+            <Text style={styles.cycleLabel}>الدورة</Text>
+            <Text style={[styles.cycleNumber, { color: selectedPattern.color }]}>{cycleCount + 1}</Text>
+          </View>
+
+          {/* Breathing Visual */}
+          <View style={styles.breathingVisual}>
+            <View style={[styles.outerRing, { borderColor: `${selectedPattern.color}30` }]} />
+            <View style={[styles.middleRing, { borderColor: `${selectedPattern.color}20` }]} />
+            
+            <Animated.View
+              style={[
+                styles.breathCircle,
+                {
+                  backgroundColor: selectedPattern.color,
+                  transform: [{ scale: scaleAnim }],
+                },
+              ]}
+            >
+              <Text style={styles.countdownText}>{countdown}</Text>
+              <Text style={styles.phaseText}>{getPhaseText()}</Text>
+            </Animated.View>
+          </View>
+
+          {/* Instruction */}
+          <Text style={styles.instructionText}>{getPhaseInstruction()}</Text>
+
+          {/* Phase Indicators */}
+          <View style={styles.phaseIndicators}>
+            <View style={[styles.phaseIndicator, phase === 'inhale' && { backgroundColor: selectedPattern.color }]}>
+              <Text style={[styles.phaseIndicatorText, phase === 'inhale' && styles.phaseActiveText]}>شهيق</Text>
+            </View>
+            {selectedPattern.hold1 > 0 && (
+              <View style={[styles.phaseIndicator, phase === 'hold1' && { backgroundColor: selectedPattern.color }]}>
+                <Text style={[styles.phaseIndicatorText, phase === 'hold1' && styles.phaseActiveText]}>حبس</Text>
+              </View>
+            )}
+            <View style={[styles.phaseIndicator, phase === 'exhale' && { backgroundColor: selectedPattern.color }]}>
+              <Text style={[styles.phaseIndicatorText, phase === 'exhale' && styles.phaseActiveText]}>زفير</Text>
+            </View>
+            {selectedPattern.hold2 > 0 && (
+              <View style={[styles.phaseIndicator, phase === 'hold2' && { backgroundColor: selectedPattern.color }]}>
+                <Text style={[styles.phaseIndicatorText, phase === 'hold2' && styles.phaseActiveText]}>حبس</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Stop Button */}
+          <TouchableOpacity style={styles.stopButton} onPress={stopExercise}>
+            <Ionicons name="stop" size={24} color={COLORS.white} />
+            <Text style={styles.stopButtonText}>إيقاف</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  navigationHeader: {
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    padding: SPACING.md,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.teal,
   },
-  backButton: {
+  backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  navTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333' },
-  content: { flex: 1, padding: 20 },
-  header: { alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 24, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 12 },
-  subtitle: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 4 },
-  patternsContainer: { gap: 12 },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+
+  content: {
+    padding: SPACING.md,
+    paddingBottom: 40,
+  },
+
+  introSection: {
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  introIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  introTitle: {
+    fontSize: 22,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+  },
+  introText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+
+  patternsContainer: {
+    gap: SPACING.sm,
+  },
   patternCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
     borderWidth: 2,
     borderColor: 'transparent',
+    ...SHADOWS.sm,
   },
   patternIcon: {
     width: 48,
@@ -294,66 +349,178 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: SPACING.md,
   },
-  patternName: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333', flex: 1, textAlign: 'right' },
-  patternDetails: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  patternDetail: { fontSize: 11, fontFamily: 'Cairo_400Regular', color: '#666', backgroundColor: '#f5f5f5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  patternInfo: {
+    flex: 1,
+  },
+  patternName: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    textAlign: 'right',
+  },
+  patternDesc: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'right',
+  },
+  patternDetails: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    gap: 4,
+    marginTop: 6,
+  },
+  patternDetail: {
+    fontSize: 11,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+  },
+
   startButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 18,
-    borderRadius: 16,
-    gap: 10,
-    marginTop: 24,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    marginTop: SPACING.lg,
+    gap: SPACING.sm,
+    ...SHADOWS.md,
   },
-  startButtonText: { fontSize: 20, fontFamily: 'Cairo_700Bold', color: '#fff' },
-  exerciseContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  cycleText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#666', marginBottom: 20 },
-  breathingVisual: { alignItems: 'center', justifyContent: 'center', marginBottom: 40 },
-  outerCircle: {
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    borderWidth: 3,
-    borderColor: '#e0e0e0',
-    position: 'absolute',
+  startButtonText: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
   },
-  cornerDot: {
-    position: 'absolute',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+
+  tipsSection: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginTop: SPACING.lg,
+    ...SHADOWS.sm,
   },
-  breathCircle: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+  tipsTitle: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.teal,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
+  tipItem: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'right',
+    paddingVertical: 4,
+  },
+
+  // Exercise Screen
+  exerciseContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.lg,
+  },
+  cycleCounter: {
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  cycleLabel: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+  },
+  cycleNumber: {
+    fontSize: 32,
+    fontFamily: FONTS.bold,
+  },
+
+  breathingVisual: {
+    width: width * 0.7,
+    height: width * 0.7,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: SPACING.lg,
   },
-  phaseText: { fontSize: 28, fontFamily: 'Cairo_700Bold', color: '#fff' },
-  countdownText: { fontSize: 48, fontFamily: 'Cairo_700Bold', color: '#fff' },
-  phaseIndicators: { flexDirection: 'row', gap: 12, marginBottom: 40 },
+  outerRing: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: width * 0.35,
+    borderWidth: 2,
+  },
+  middleRing: {
+    position: 'absolute',
+    width: '80%',
+    height: '80%',
+    borderRadius: width * 0.28,
+    borderWidth: 2,
+  },
+  breathCircle: {
+    width: '60%',
+    height: '60%',
+    borderRadius: width * 0.21,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.lg,
+  },
+  countdownText: {
+    fontSize: 56,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+  phaseText: {
+    fontSize: 18,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.white,
+    marginTop: 4,
+  },
+
+  instructionText: {
+    fontSize: 18,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+  },
+
+  phaseIndicators: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.xl,
+  },
   phaseIndicator: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#e0e0e0',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.beige,
   },
-  phaseActive: { backgroundColor: '#2196F3' },
-  phaseIndicatorText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666' },
-  phaseActiveText: { color: '#fff', fontFamily: 'Cairo_700Bold' },
+  phaseIndicatorText: {
+    fontSize: 13,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textSecondary,
+  },
+  phaseActiveText: {
+    color: COLORS.white,
+  },
+
   stopButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F44336',
-    paddingHorizontal: 40,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
+    backgroundColor: COLORS.error,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.lg,
+    gap: SPACING.sm,
+    ...SHADOWS.md,
   },
-  stopButtonText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#fff' },
+  stopButtonText: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
 });
