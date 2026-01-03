@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Alert,
   Platform,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +19,7 @@ import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../src/constants/the
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   
   const [fontsLoaded] = useFonts({
     Alexandria_400Regular,
