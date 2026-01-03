@@ -190,7 +190,7 @@ export default function ProfileScreen() {
           <Text style={styles.versionText}>الإصدار 1.0.0</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
