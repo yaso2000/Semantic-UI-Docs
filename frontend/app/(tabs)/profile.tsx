@@ -80,7 +80,15 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={48} color={COLORS.teal} />
+            {user?.role === 'admin' ? (
+              <Image 
+                source={require('../../assets/images/logo.png')} 
+                style={styles.avatarImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Ionicons name="person" size={48} color={COLORS.teal} />
+            )}
           </View>
           <Text style={styles.userName}>{user?.full_name || 'المستخدم'}</Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
