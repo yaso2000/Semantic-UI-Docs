@@ -83,29 +83,34 @@ function ClientHome({ user, router }: { user: any; router: any }) {
         </View>
       </View>
 
-      {/* الركائز الأربع */}
-      <Text style={styles.sectionTitle}>الركائز الأربعة</Text>
-      <View style={styles.pillarsContainer}>
-        {pillars.map((pillar, index) => (
-          <TouchableOpacity
-            key={pillar.id}
-            style={styles.pillarCard}
-            onPress={() => router.push(pillar.route as any)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.pillarIconContainer, { backgroundColor: `${pillar.color}15` }]}>
-              <Ionicons name={pillar.icon as any} size={26} color={pillar.color} />
-            </View>
-            <View style={styles.pillarContent}>
-              <Text style={styles.pillarNumber}>الركيزة {index + 1}</Text>
-              <Text style={styles.pillarTitle}>{pillar.title}</Text>
-              <Text style={styles.pillarTitleEn}>{pillar.titleEn}</Text>
-              <Text style={styles.pillarDescription}>{pillar.description}</Text>
-            </View>
-            <Ionicons name="chevron-back" size={20} color={pillar.color} />
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* بطاقة الركائز الأربعة */}
+      <TouchableOpacity 
+        style={styles.pillarsMainCard}
+        onPress={() => router.push('/(tabs)/calculators' as any)}
+        activeOpacity={0.85}
+      >
+        <View style={styles.pillarsMainContent}>
+          <Text style={styles.pillarsMainTitle}>الركائز الأربعة</Text>
+          <Text style={styles.pillarsMainSubtitle}>اكتشف أدوات التوازن الشامل</Text>
+        </View>
+        <View style={styles.pillarsIconsRow}>
+          <View style={[styles.pillarMiniIcon, { backgroundColor: `${COLORS.physical}15` }]}>
+            <Ionicons name="fitness" size={22} color={COLORS.physical} />
+          </View>
+          <View style={[styles.pillarMiniIcon, { backgroundColor: `${COLORS.mental}15` }]}>
+            <Ionicons name="happy" size={22} color={COLORS.mental} />
+          </View>
+          <View style={[styles.pillarMiniIcon, { backgroundColor: `${COLORS.social}15` }]}>
+            <Ionicons name="people" size={22} color={COLORS.social} />
+          </View>
+          <View style={[styles.pillarMiniIcon, { backgroundColor: `${COLORS.spiritual}15` }]}>
+            <Ionicons name="sparkles" size={22} color={COLORS.spiritual} />
+          </View>
+        </View>
+        <View style={styles.pillarsArrow}>
+          <Ionicons name="arrow-back-circle" size={28} color={COLORS.teal} />
+        </View>
+      </TouchableOpacity>
 
       {/* أدوات سريعة */}
       <Text style={styles.sectionTitle}>أدوات سريعة</Text>
