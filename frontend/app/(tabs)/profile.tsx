@@ -245,6 +245,11 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderWidth: 2,
     borderColor: `${COLORS.teal}30`,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
   },
   userName: {
     fontSize: 22,
