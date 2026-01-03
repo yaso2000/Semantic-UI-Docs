@@ -308,6 +308,7 @@ export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   
   const [fontsLoaded] = useFonts({ 
     Alexandria_400Regular, 
@@ -332,7 +333,7 @@ export default function HomeScreen() {
 
   if (!fontsLoaded || loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <ActivityIndicator size="large" color={COLORS.teal} />
       </View>
@@ -340,7 +341,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
@@ -352,7 +353,7 @@ export default function HomeScreen() {
           <ClientHome user={user} router={router} />
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
