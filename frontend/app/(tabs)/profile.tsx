@@ -70,7 +70,7 @@ export default function ProfileScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView 
         contentContainerStyle={styles.content}
