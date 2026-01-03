@@ -61,6 +61,7 @@ export default function SubscriptionScreen() {
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   const [fontsLoaded] = useFonts({ 
     Alexandria_400Regular, 
@@ -179,7 +180,7 @@ export default function SubscriptionScreen() {
   const isActive = currentSubscription?.status === 'active';
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.gold} />
       <ScrollView>
         <View style={styles.header}>
@@ -285,7 +286,7 @@ export default function SubscriptionScreen() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
