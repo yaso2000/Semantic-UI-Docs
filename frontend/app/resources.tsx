@@ -294,7 +294,7 @@ export default function ResourcesScreen() {
           </View>
         </ScrollView>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
