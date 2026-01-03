@@ -99,9 +99,11 @@ export default function RegisterScreen() {
 
         {/* Logo Section */}
         <View style={styles.logoSection}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="person-add" size={42} color={COLORS.teal} />
-          </View>
+          <Image 
+            source={require('../../assets/images/logo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>إنشاء حساب</Text>
           <Text style={styles.subtitle}>انضم لعائلة اسأل يازو</Text>
         </View>
