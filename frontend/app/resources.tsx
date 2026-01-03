@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
@@ -25,7 +25,6 @@ interface Resource {
   content_type: string;
   content?: string;
   external_url?: string;
-  internal_route?: string;
   duration?: string;
   icon: string;
   is_active: boolean;
@@ -39,13 +38,63 @@ const CATEGORIES = [
   { id: 'relationships', name: 'العلاقات', icon: 'people' },
 ];
 
-// الموارد الافتراضية (تظهر إذا لم تكن هناك بيانات من السيرفر)
+// الموارد الافتراضية - مقالات وفيديوهات فقط (بدون روابط للحاسبات)
 const DEFAULT_RESOURCES: Resource[] = [
-  { id: '1', title: '10 عادات صباحية للنجاح', description: 'اكتشف العادات الصباحية التي يمارسها الناجحون', category: 'productivity', content_type: 'article', icon: 'document-text', duration: '5 دقائق', internal_route: '/habit-tracker', is_active: true },
-  { id: '2', title: 'تقنيات التأمل للمبتدئين', description: 'دليل شامل لتعلم التأمل في 10 دقائق يومياً', category: 'mindset', content_type: 'video', icon: 'play-circle', duration: '15 دقيقة', internal_route: '/calculators/meditation-timer', is_active: true },
-  { id: '3', title: 'جلسة استرخاء صوتية', description: 'جلسة موجهة للتخلص من التوتر', category: 'wellness', content_type: 'audio', icon: 'headset', duration: '20 دقيقة', internal_route: '/calculators/breathing-exercise', is_active: true },
-  { id: '4', title: 'عجلة الحياة: فهم التوازن', description: 'شرح تفصيلي لأداة عجلة الحياة', category: 'mindset', content_type: 'video', icon: 'play-circle', duration: '12 دقيقة', internal_route: '/calculators/wheel-of-life', is_active: true },
-  { id: '5', title: 'دفتر الامتنان اليومي', description: 'تقنيات لزيادة الامتنان والسعادة', category: 'mindset', content_type: 'video', icon: 'play-circle', duration: '10 دقائق', internal_route: '/calculators/gratitude-journal', is_active: true },
+  { 
+    id: '1', 
+    title: '10 عادات صباحية للنجاح', 
+    description: 'اكتشف العادات الصباحية التي يمارسها الناجحون يومياً لتحقيق أهدافهم', 
+    category: 'productivity', 
+    content_type: 'article', 
+    icon: 'document-text', 
+    duration: '5 دقائق',
+    content: 'هذا مقال تجريبي عن العادات الصباحية...',
+    is_active: true 
+  },
+  { 
+    id: '2', 
+    title: 'تقنيات التأمل للمبتدئين', 
+    description: 'دليل شامل لتعلم التأمل في 10 دقائق يومياً وتحسين صحتك النفسية', 
+    category: 'mindset', 
+    content_type: 'video', 
+    icon: 'play-circle', 
+    duration: '15 دقيقة', 
+    external_url: 'https://www.youtube.com/watch?v=example',
+    is_active: true 
+  },
+  { 
+    id: '3', 
+    title: 'أهمية النوم الصحي', 
+    description: 'كيف يؤثر النوم على صحتك الجسدية والنفسية وطرق تحسينه', 
+    category: 'wellness', 
+    content_type: 'article', 
+    icon: 'document-text', 
+    duration: '7 دقائق',
+    content: 'النوم هو أحد أهم العوامل للصحة...',
+    is_active: true 
+  },
+  { 
+    id: '4', 
+    title: 'بناء علاقات إيجابية', 
+    description: 'نصائح عملية لتحسين علاقاتك الاجتماعية والأسرية', 
+    category: 'relationships', 
+    content_type: 'video', 
+    icon: 'play-circle', 
+    duration: '12 دقيقة', 
+    external_url: 'https://www.youtube.com/watch?v=example2',
+    is_active: true 
+  },
+  { 
+    id: '5', 
+    title: 'إدارة الوقت بفعالية', 
+    description: 'تعلم كيف تنظم وقتك وتزيد إنتاجيتك اليومية', 
+    category: 'productivity', 
+    content_type: 'article', 
+    icon: 'document-text', 
+    duration: '6 دقائق',
+    content: 'إدارة الوقت هي مهارة أساسية...',
+    is_active: true 
+  },
 ];
 
 export default function ResourcesScreen() {
