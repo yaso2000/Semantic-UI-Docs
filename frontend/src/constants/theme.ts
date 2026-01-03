@@ -101,10 +101,12 @@ export const COLORS = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const FONTS = {
+  light: 'Alexandria_300Light',
   regular: 'Alexandria_400Regular',
   medium: 'Alexandria_500Medium',
   semiBold: 'Alexandria_600SemiBold',
   bold: 'Alexandria_700Bold',
+  extraBold: 'Alexandria_800ExtraBold',
 };
 
 export const FONT_SIZES = {
