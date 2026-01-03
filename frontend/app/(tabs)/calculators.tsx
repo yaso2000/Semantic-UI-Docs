@@ -57,6 +57,7 @@ const pillars = [
 export default function CalculatorsScreen() {
   const router = useRouter();
   const [expandedPillar, setExpandedPillar] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
   
   const [fontsLoaded] = useFonts({
     Alexandria_400Regular,
@@ -73,7 +74,7 @@ export default function CalculatorsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
