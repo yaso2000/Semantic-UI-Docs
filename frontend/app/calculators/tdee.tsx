@@ -227,4 +227,7 @@ const styles = StyleSheet.create({
   resultCard: { flex: 1, minWidth: '45%', backgroundColor: '#fff', borderRadius: 16, padding: 20, alignItems: 'center', elevation: 2 },
   resultLabel: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#666', marginTop: 8 },
   resultValue: { fontSize: 32, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 4 },
-  resultUnit: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#999', marginTop: 2 }});
+  resultUnit: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#999', marginTop: 2 },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8, width: '100%' },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
