@@ -61,17 +61,23 @@ export default function BookingsScreen() {
       const role = user?.role || 'client';
       setUserRole(role);
       
+      console.log('Loading data for role:', role);
+      console.log('API_URL:', API_URL);
+      
       if (role === 'client') {
+        console.log('Fetching packages...');
         const packagesRes = await fetch(`${API_URL}/api/packages`);
+        console.log('Packages response status:', packagesRes.status);
         const packagesData = await packagesRes.json();
-        setPackages(packagesData);
+        console.log('Packages data:', packagesData);
+        setPackages(Array.isArray(packagesData) ? packagesData : []);
         
         if (token) {
           const bookingsRes = await fetch(`${API_URL}/api/bookings/my-bookings`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const bookingsData = await bookingsRes.json();
-          setMyBookings(bookingsData);
+          setMyBookings(Array.isArray(bookingsData) ? bookingsData : []);
         }
       } else {
         if (token) {
