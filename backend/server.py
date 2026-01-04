@@ -874,7 +874,11 @@ async def create_session(session_data: SessionCreate, coach_user: dict = Depends
 @api_router.get("/sessions/my-sessions")
 async def get_coach_sessions(coach_user: dict = Depends(get_coach_user)):
     """Get all sessions for the coach"""
-    sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).sort("session_date", -1).to_list(1000)
+    # للأدمن: عرض جميع الجلسات
+    if coach_user.get("role") == "admin":
+        sessions = await db.sessions.find().sort("session_date", -1).to_list(1000)
+    else:
+        sessions = await db.sessions.find({"coach_id": coach_user["_id"]}).sort("session_date", -1).to_list(1000)
     
     result = []
     for session in sessions:
