@@ -317,7 +317,9 @@ export default function MyProfileScreen() {
           <Ionicons name="arrow-forward" size={24} color={COLORS.teal} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ملفي الشخصي</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity style={styles.pdfBtn} onPress={generatePDF}>
+          <Ionicons name="download-outline" size={22} color={COLORS.teal} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
