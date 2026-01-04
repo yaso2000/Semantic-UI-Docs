@@ -12,7 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
 import Svg, { Polygon, Circle, Line, Text as SvgText } from 'react-native-svg';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 const { width } = Dimensions.get('window');
@@ -38,6 +39,7 @@ export default function WheelOfLifeScreen() {
     Object.fromEntries(lifeAreas.map(a => [a.id, 5]))
   );
   const [showResults, setShowResults] = useState(false);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -251,6 +253,31 @@ export default function WheelOfLifeScreen() {
             >
               <Text style={styles.resetButtonText}>إعادة التقييم</Text>
             </TouchableOpacity>
+            
+            {/* زر حفظ النتيجة */}
+            <TouchableOpacity 
+              style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+              onPress={() => saveResult({
+                calculator_name: 'عجلة الحياة',
+                calculator_type: 'wheel-of-life',
+                pillar: 'social',
+                inputs: { ratings },
+                result_value: parseFloat(getAverageScore()),
+                result_text: `متوسط التوازن: ${getAverageScore()}/10`
+              })}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                  <Text style={styles.saveButtonText}>
+                    {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -316,4 +343,7 @@ const styles = StyleSheet.create({
   adviceTitle: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#7B1FA2', marginBottom: 8 },
   adviceText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', lineHeight: 24, textAlign: 'right' },
   resetButton: { backgroundColor: '#9C27B0', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12 },
-  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' }});
+  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 16, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
