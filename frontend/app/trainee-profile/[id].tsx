@@ -495,6 +495,18 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: COLORS.text,
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  pdfBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: `${COLORS.teal}10`,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   chatBtn: {
     width: 40,
     height: 40,
