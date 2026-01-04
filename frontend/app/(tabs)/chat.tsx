@@ -358,10 +358,7 @@ export default function ChatScreen() {
         <View style={styles.chatHeader}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => {
-              setSelectedContact(null);
-              loadContacts();
-            }}
+            onPress={handleBack}
           >
             <Ionicons name="arrow-forward" size={22} color={COLORS.teal} />
           </TouchableOpacity>
