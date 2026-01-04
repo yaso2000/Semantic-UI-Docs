@@ -8,11 +8,13 @@ import {
   ScrollView,
   
   KeyboardAvoidingView,
-  Platform} from 'react-native';
+  Platform,
+  ActivityIndicator} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
 
 export default function TDEECalculator() {
   const insets = useSafeAreaInsets();
@@ -23,6 +25,7 @@ export default function TDEECalculator() {
   const [height, setHeight] = useState('');
   const [activity, setActivity] = useState('1.2');
   const [result, setResult] = useState<any>(null);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
