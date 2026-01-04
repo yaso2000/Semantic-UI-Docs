@@ -474,6 +474,178 @@ async def save_calculator_history(calc_data: CalculatorHistory, current_user: di
     await db.calculator_history.insert_one(calc_dict)
     return {"message": "Calculator history saved", "id": calc_dict["_id"]}
 
+# ==================== USER RESULTS ENDPOINTS (حفظ نتائج المتدرب) ====================
+
+async def check_user_has_subscription(user_id: str) -> bool:
+    """التحقق من أن المتدرب لديه اشتراك/حجز مدفوع"""
+    booking = await db.bookings.find_one({
+        "user_id": user_id,
+        "status": {"$in": ["confirmed", "active", "completed"]}
+    })
+    return booking is not None
+
+@api_router.post("/user-results/save")
+async def save_user_result(result_data: SaveResultRequest, current_user: dict = Depends(get_current_user)):
+    """حفظ نتيجة حاسبة - متاح فقط للمشتركين"""
+    user_id = current_user["_id"]
+    
+    # التحقق من الاشتراك
+    has_subscription = await check_user_has_subscription(user_id)
+    if not has_subscription and current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=403, 
+            detail="هذه الميزة متاحة للمشتركين فقط. قم بحجز باقة للاستفادة من حفظ النتائج."
+        )
+    
+    result_dict = {
+        "_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "calculator_name": result_data.calculator_name,
+        "calculator_type": result_data.calculator_type,
+        "pillar": result_data.pillar,
+        "inputs": result_data.inputs,
+        "result_value": result_data.result_value,
+        "result_text": result_data.result_text,
+        "saved_at": datetime.now(timezone.utc)
+    }
+    
+    await db.user_results.insert_one(result_dict)
+    return {"message": "تم حفظ النتيجة بنجاح", "id": result_dict["_id"]}
+
+@api_router.get("/user-results/my-results")
+async def get_my_results(current_user: dict = Depends(get_current_user)):
+    """الحصول على نتائج المتدرب الحالي"""
+    results = await db.user_results.find({"user_id": current_user["_id"]}).sort("saved_at", -1).to_list(1000)
+    
+    # تنظيم النتائج حسب الركيزة
+    organized = {
+        "physical": [],
+        "mental": [],
+        "social": [],
+        "spiritual": []
+    }
+    
+    for r in results:
+        r["id"] = r.pop("_id")
+        pillar = r.get("pillar", "physical")
+        if pillar in organized:
+            organized[pillar].append(r)
+    
+    return organized
+
+@api_router.get("/user-results/trainee/{trainee_id}")
+async def get_trainee_results(trainee_id: str, current_user: dict = Depends(get_current_user)):
+    """الحصول على نتائج متدرب معين - متاح للمدرب فقط"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="غير مصرح")
+    
+    results = await db.user_results.find({"user_id": trainee_id}).sort("saved_at", -1).to_list(1000)
+    
+    organized = {
+        "physical": [],
+        "mental": [],
+        "social": [],
+        "spiritual": []
+    }
+    
+    for r in results:
+        r["id"] = r.pop("_id")
+        pillar = r.get("pillar", "physical")
+        if pillar in organized:
+            organized[pillar].append(r)
+    
+    return organized
+
+@api_router.delete("/user-results/{result_id}")
+async def delete_user_result(result_id: str, current_user: dict = Depends(get_current_user)):
+    """حذف نتيجة محفوظة"""
+    result = await db.user_results.find_one({"_id": result_id})
+    if not result:
+        raise HTTPException(status_code=404, detail="النتيجة غير موجودة")
+    
+    if result["user_id"] != current_user["_id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="غير مصرح")
+    
+    await db.user_results.delete_one({"_id": result_id})
+    return {"message": "تم حذف النتيجة"}
+
+@api_router.get("/user-profile/{user_id}")
+async def get_user_profile_data(user_id: str, current_user: dict = Depends(get_current_user)):
+    """الحصول على الملف الشخصي الكامل للمتدرب"""
+    # التحقق من الصلاحيات
+    if current_user["_id"] != user_id and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="غير مصرح")
+    
+    # بيانات المستخدم
+    user = await db.users.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود")
+    
+    # النتائج المحفوظة
+    results = await db.user_results.find({"user_id": user_id}).sort("saved_at", -1).to_list(1000)
+    for r in results:
+        r["id"] = r.pop("_id")
+    
+    # استبيان القبول
+    intake = await db.intake_questionnaire.find_one({"user_id": user_id})
+    if intake:
+        intake["id"] = intake.pop("_id")
+    
+    # متتبع العادات
+    habits = await db.habit_tracker.find({"user_id": user_id}).sort("date", -1).to_list(100)
+    for h in habits:
+        h["id"] = h.pop("_id")
+    
+    # الحجوزات
+    bookings = await db.bookings.find({"user_id": user_id}).to_list(100)
+    for b in bookings:
+        b["id"] = b.pop("_id")
+    
+    return {
+        "user_id": user_id,
+        "full_name": user.get("full_name", ""),
+        "email": user.get("email", ""),
+        "created_at": user.get("created_at"),
+        "saved_results": results,
+        "intake_questionnaire": intake,
+        "habit_tracker": habits,
+        "bookings": bookings
+    }
+
+@api_router.get("/user-profile/check-subscription")
+async def check_subscription_status(current_user: dict = Depends(get_current_user)):
+    """التحقق من حالة اشتراك المتدرب"""
+    has_subscription = await check_user_has_subscription(current_user["_id"])
+    return {"has_subscription": has_subscription}
+
+@api_router.get("/coach/trainees-profiles")
+async def get_all_trainees_profiles(current_user: dict = Depends(get_current_user)):
+    """الحصول على قائمة المتدربين مع ملخص بياناتهم - للمدرب فقط"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="غير مصرح")
+    
+    # الحصول على جميع المتدربين الذين لديهم حجوزات
+    bookings = await db.bookings.find({"status": {"$in": ["confirmed", "active", "completed"]}}).to_list(1000)
+    trainee_ids = list(set([b["user_id"] for b in bookings]))
+    
+    trainees_data = []
+    for trainee_id in trainee_ids:
+        user = await db.users.find_one({"_id": trainee_id})
+        if user:
+            results_count = await db.user_results.count_documents({"user_id": trainee_id})
+            has_intake = await db.intake_questionnaire.count_documents({"user_id": trainee_id}) > 0
+            
+            trainees_data.append({
+                "user_id": trainee_id,
+                "full_name": user.get("full_name", ""),
+                "email": user.get("email", ""),
+                "results_count": results_count,
+                "has_intake": has_intake,
+                "created_at": user.get("created_at")
+            })
+    
+    return trainees_data
+
 @api_router.get("/calculators/history/{calculator_type}")
 async def get_calculator_history(calculator_type: str, current_user: dict = Depends(get_current_user)):
     history = await db.calculator_history.find({
