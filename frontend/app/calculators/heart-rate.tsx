@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 export default function HeartRateCalculator() {
@@ -13,6 +14,7 @@ export default function HeartRateCalculator() {
   const [age, setAge] = useState('');
   const [restingHR, setRestingHR] = useState('');
   const [result, setResult] = useState<any>(null);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   const calculateHeartRate = () => {
@@ -88,6 +90,31 @@ export default function HeartRateCalculator() {
                   <Text style={styles.zoneRange}>{zone.min} - {zone.max} BPM</Text>
                 </View>
               ))}
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'معدل نبض القلب',
+                  calculator_type: 'heart-rate',
+                  pillar: 'physical',
+                  inputs: { age: parseFloat(age), restingHR: parseFloat(restingHR) },
+                  result_value: result.maxHR,
+                  result_text: `الحد الأقصى: ${result.maxHR} BPM`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -120,4 +147,7 @@ const styles = StyleSheet.create({
   zoneHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   zoneName: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333' },
   zonePercent: { fontSize: 14, fontFamily: 'Cairo_700Bold' },
-  zoneRange: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#666', textAlign: 'right' }});
+  zoneRange: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#666', textAlign: 'right' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
