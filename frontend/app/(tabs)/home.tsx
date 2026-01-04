@@ -117,10 +117,19 @@ function ClientHome({ user, router }: { user: any; router: any }) {
       <View style={styles.toolsRow}>
         <TouchableOpacity 
           style={styles.toolCard}
-          onPress={() => router.push('/habit-tracker' as any)}
+          onPress={() => router.push('/my-profile' as any)}
         >
           <View style={[styles.toolIcon, { backgroundColor: `${COLORS.teal}10` }]}>
-            <Ionicons name="checkmark-done" size={22} color={COLORS.teal} />
+            <Ionicons name="person-circle" size={22} color={COLORS.teal} />
+          </View>
+          <Text style={styles.toolText}>ملفي الشخصي</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.toolCard}
+          onPress={() => router.push('/habit-tracker' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.sage}20` }]}>
+            <Ionicons name="checkmark-done" size={22} color={COLORS.sageDark} />
           </View>
           <Text style={styles.toolText}>متتبع العادات</Text>
         </TouchableOpacity>
@@ -128,20 +137,26 @@ function ClientHome({ user, router }: { user: any; router: any }) {
           style={styles.toolCard}
           onPress={() => router.push('/intake-questionnaire' as any)}
         >
-          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.sage}20` }]}>
-            <Ionicons name="clipboard" size={22} color={COLORS.sageDark} />
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.gold}15` }]}>
+            <Ionicons name="clipboard" size={22} color={COLORS.goldDark} />
           </View>
           <Text style={styles.toolText}>استبيان القبول</Text>
         </TouchableOpacity>
+      </View>
+      
+      {/* أدوات إضافية */}
+      <View style={styles.toolsRow}>
         <TouchableOpacity 
           style={styles.toolCard}
           onPress={() => router.push('/resources' as any)}
         >
-          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.gold}15` }]}>
-            <Ionicons name="library" size={22} color={COLORS.goldDark} />
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.physical}15` }]}>
+            <Ionicons name="library" size={22} color={COLORS.physical} />
           </View>
           <Text style={styles.toolText}>المكتبة</Text>
         </TouchableOpacity>
+        <View style={[styles.toolCard, { opacity: 0 }]} />
+        <View style={[styles.toolCard, { opacity: 0 }]} />
       </View>
 
       {/* زر حجز جلسة */}
