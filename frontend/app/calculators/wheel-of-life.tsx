@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
 import Svg, { Polygon, Circle, Line, Text as SvgText } from 'react-native-svg';
+import { SaveResultButton } from '../../src/components/SaveResultButton';
+
 
 const { width } = Dimensions.get('window');
 const chartSize = width - 80;

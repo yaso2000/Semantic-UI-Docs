@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, subDays } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { SaveResultButton } from '../../src/components/SaveResultButton';
+
 
 interface GratitudeEntry {
   date: string;

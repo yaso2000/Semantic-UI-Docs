@@ -14,6 +14,8 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { SaveResultButton } from '../../src/components/SaveResultButton';
+
 
 const moods = [
   { icon: 'happy', label: 'سعيد جداً', color: '#4CAF50', value: 5 },
