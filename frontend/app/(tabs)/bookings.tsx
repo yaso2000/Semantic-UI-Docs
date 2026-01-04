@@ -64,7 +64,7 @@ export default function BookingsScreen() {
       console.log('Loading data for role:', role);
       console.log('API_URL:', API_URL);
       
-      if (role === 'client') {
+      if (role === 'client' || role === 'trainee') {
         console.log('Fetching packages...');
         const packagesRes = await fetch(`${API_URL}/api/packages`);
         console.log('Packages response status:', packagesRes.status);
