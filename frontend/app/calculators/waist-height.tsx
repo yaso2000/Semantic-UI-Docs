@@ -77,6 +77,31 @@ export default function WaistHeightCalculator() {
               </View>
               <Text style={[styles.category, { color: result.color }]}>{result.category}</Text>
               <Text style={styles.advice}>{result.advice}</Text>
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'نسبة الخصر للطول',
+                  calculator_type: 'waist-height',
+                  pillar: 'physical',
+                  inputs: { waist: parseFloat(waist), height: parseFloat(height) },
+                  result_value: parseFloat(result.ratio),
+                  result_text: `النسبة: ${result.ratio}% - ${result.category}`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -104,4 +129,7 @@ const styles = StyleSheet.create({
   circle: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   value: { fontSize: 36, fontFamily: 'Cairo_700Bold', color: '#fff' },
   category: { fontSize: 24, fontFamily: 'Cairo_700Bold' },
-  advice: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'center', marginTop: 8 }});
+  advice: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'center', marginTop: 8 },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
