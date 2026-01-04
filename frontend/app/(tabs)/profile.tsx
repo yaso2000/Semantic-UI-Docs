@@ -158,6 +158,12 @@ export default function ProfileScreen() {
                 onPress={() => router.push('/intake-questionnaire' as any)} 
               />
               <MenuItem 
+                icon="person-circle" 
+                title="ملفي الشخصي" 
+                color={COLORS.physical}
+                onPress={() => router.push('/my-profile' as any)} 
+              />
+              <MenuItem 
                 icon="folder" 
                 title="مكتبة الموارد" 
                 color={COLORS.sageDark}
