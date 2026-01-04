@@ -90,6 +90,36 @@ class CalculatorHistory(BaseModel):
     results: Dict[str, Any]
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
+# ==================== USER RESULTS MODELS ====================
+
+class SavedResult(BaseModel):
+    id: Optional[str] = None
+    user_id: str
+    calculator_name: str
+    calculator_type: str  # bmi, tdee, calories, etc.
+    pillar: str  # physical, mental, social, spiritual
+    inputs: Dict[str, Any]
+    result_value: Any
+    result_text: str
+    saved_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SaveResultRequest(BaseModel):
+    calculator_name: str
+    calculator_type: str
+    pillar: str
+    inputs: Dict[str, Any]
+    result_value: Any
+    result_text: str
+
+class UserProfileData(BaseModel):
+    user_id: str
+    full_name: str
+    email: str
+    saved_results: List[Dict[str, Any]]
+    intake_questionnaire: Optional[Dict[str, Any]]
+    habit_tracker: List[Dict[str, Any]]
+    bookings: List[Dict[str, Any]]
+
 class HourlyPackage(BaseModel):
     id: Optional[str] = None
     name: str
