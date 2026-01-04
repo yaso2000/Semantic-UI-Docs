@@ -110,6 +110,31 @@ export default function MacrosCalculator() {
                 <Text style={styles.macroValue}>{result.fats}جم</Text>
                 <Text style={styles.macroCal}>{result.fatsCal} سعرة</Text>
               </View>
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'المغذيات الكبرى',
+                  calculator_type: 'macros',
+                  pillar: 'physical',
+                  inputs: { calories: parseFloat(calories), goal },
+                  result_value: result.protein,
+                  result_text: `بروتين: ${result.protein}جم - كارب: ${result.carbs}جم - دهون: ${result.fats}جم`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -141,4 +166,7 @@ const styles = StyleSheet.create({
   macroCard: { flex: 1, minWidth: '30%', borderRadius: 16, padding: 20, alignItems: 'center' },
   macroLabel: { fontSize: 14, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 8 },
   macroValue: { fontSize: 28, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 4 },
-  macroCal: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 2 }});
+  macroCal: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 2 },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8, width: '100%' },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
