@@ -14,7 +14,8 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 const moods = [
@@ -40,6 +41,7 @@ export default function MoodTrackerScreen() {
   const [todayEntry, setTodayEntry] = useState<MoodEntry | null>(null);
   const [weekHistory, setWeekHistory] = useState<MoodEntry[]>([]);
   const [saved, setSaved] = useState(false);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -237,6 +239,31 @@ export default function MoodTrackerScreen() {
                 <Text style={styles.averageMax}>/5</Text>
               </View>
             </View>
+            
+            {/* زر حفظ النتيجة للخادم */}
+            <TouchableOpacity 
+              style={[styles.cloudSaveButton, !hasSubscription && styles.cloudSaveButtonDisabled]}
+              onPress={() => saveResult({
+                calculator_name: 'متتبع المزاج',
+                calculator_type: 'mood-tracker',
+                pillar: 'mental',
+                inputs: { weekHistory },
+                result_value: parseFloat(getAverageMood() || '0'),
+                result_text: `متوسط المزاج: ${getAverageMood()}/5`
+              })}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name={hasSubscription ? "cloud-upload" : "lock-closed"} size={18} color="#fff" />
+                  <Text style={styles.cloudSaveButtonText}>
+                    {hasSubscription ? 'حفظ في ملفي الشخصي' : 'للمشتركين فقط'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -325,4 +352,7 @@ const styles = StyleSheet.create({
   averageLabel: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#00838F', marginBottom: 8 },
   averageValue: { flexDirection: 'row', alignItems: 'baseline' },
   averageNumber: { fontSize: 36, fontFamily: 'Cairo_700Bold', color: '#00BCD4' },
-  averageMax: { fontSize: 18, fontFamily: 'Cairo_400Regular', color: '#00838F' }});
+  averageMax: { fontSize: 18, fontFamily: 'Cairo_400Regular', color: '#00838F' },
+  cloudSaveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 16, gap: 8 },
+  cloudSaveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  cloudSaveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
