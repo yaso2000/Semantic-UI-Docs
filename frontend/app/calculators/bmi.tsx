@@ -301,4 +301,20 @@ const styles = StyleSheet.create({
   scaleRange: {
     fontSize: 10,
     fontFamily: 'Cairo_400Regular',
-    color: '#666'}});
+    color: '#666'},
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginTop: 20,
+    gap: 8},
+  saveButtonDisabled: {
+    backgroundColor: '#9E9E9E'},
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold'}});
