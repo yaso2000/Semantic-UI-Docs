@@ -60,7 +60,7 @@ export default function AdminUsers() {
   const renderUser = ({ item }: { item: User }) => (
     <View style={styles.userCard}>
       <View style={styles.avatar}>
-        <Ionicons name="person" size={28} color="#fff" />
+        <Text style={styles.avatarLetter}>{item.full_name?.charAt(0).toUpperCase() || '?'}</Text>
       </View>
       <View style={styles.userInfo}>
         <Text style={styles.userName}>{item.full_name}</Text>
@@ -69,9 +69,20 @@ export default function AdminUsers() {
           انضم في {new Date(item.created_at).toLocaleDateString('ar-SA')}
         </Text>
       </View>
-      <TouchableOpacity style={styles.chatButton}>
-        <Ionicons name="chatbubble" size={20} color="#2196F3" />
-      </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={() => router.push(`/trainee-profile/${item.id}` as any)}
+        >
+          <Ionicons name="analytics" size={18} color="#4CAF50" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.chatButton}
+          onPress={() => router.push(`/(tabs)/chat?recipientId=${item.id}` as any)}
+        >
+          <Ionicons name="chatbubble" size={18} color="#2196F3" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
