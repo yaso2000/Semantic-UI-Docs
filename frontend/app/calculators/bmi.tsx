@@ -142,6 +142,31 @@ export default function BMICalculator() {
                   <Text style={styles.scaleRange}>&gt; 30</Text>
                 </View>
               </View>
+
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'مؤشر كتلة الجسم (BMI)',
+                  calculator_type: 'bmi',
+                  pillar: 'physical',
+                  inputs: { weight: parseFloat(weight), height: parseFloat(height) },
+                  result_value: parseFloat(result.bmi),
+                  result_text: `BMI: ${result.bmi} - ${result.category}`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
