@@ -149,6 +149,31 @@ export default function TDEECalculator() {
                 <Text style={styles.resultValue}>{result.surplus}</Text>
                 <Text style={styles.resultUnit}>سعرة/يوم</Text>
               </View>
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'حاسبة السعرات اليومية (TDEE)',
+                  calculator_type: 'tdee',
+                  pillar: 'physical',
+                  inputs: { gender, age: parseFloat(age), weight: parseFloat(weight), height: parseFloat(height), activity },
+                  result_value: result.tdee,
+                  result_text: `TDEE: ${result.tdee} سعرة/يوم - BMR: ${result.bmr}`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
