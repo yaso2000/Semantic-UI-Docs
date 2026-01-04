@@ -625,8 +625,8 @@ async def get_all_trainees_profiles(current_user: dict = Depends(get_current_use
         raise HTTPException(status_code=403, detail="غير مصرح")
     
     # الحصول على جميع المتدربين الذين لديهم حجوزات
-    bookings = await db.bookings.find({"status": {"$in": ["confirmed", "active", "completed"]}}).to_list(1000)
-    trainee_ids = list(set([b["user_id"] for b in bookings]))
+    bookings = await db.bookings.find({"booking_status": {"$in": ["confirmed", "active", "completed"]}}).to_list(1000)
+    trainee_ids = list(set([b["client_id"] for b in bookings]))
     
     trainees_data = []
     for trainee_id in trainee_ids:
