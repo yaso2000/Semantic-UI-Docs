@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 export default function WaterCalculator() {
@@ -13,6 +14,7 @@ export default function WaterCalculator() {
   const [weight, setWeight] = useState('');
   const [activity, setActivity] = useState('moderate');
   const [result, setResult] = useState<any>(null);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   const calculateWater = () => {
