@@ -15,7 +15,8 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, subDays } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 interface GratitudeEntry {
@@ -33,6 +34,7 @@ export default function GratitudeJournalScreen() {
   const [weekEntries, setWeekEntries] = useState<GratitudeEntry[]>([]);
   const [saved, setSaved] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -211,7 +213,8 @@ export default function GratitudeJournalScreen() {
                 <Text style={styles.emptySubtext}>ابدأ بكتابة ما تشكر عليه اليوم</Text>
               </View>
             ) : (
-              weekEntries.map((entry, index) => (
+              <>
+                {weekEntries.map((entry, index) => (
                 <View key={index} style={styles.historyCard}>
                   <View style={styles.historyHeader}>
                     <Ionicons name="calendar" size={18} color="#FF9800" />
@@ -226,7 +229,33 @@ export default function GratitudeJournalScreen() {
                     </View>
                   ))}
                 </View>
-              ))
+              ))}
+                
+                {/* زر حفظ النتيجة للخادم */}
+                <TouchableOpacity 
+                  style={[styles.cloudSaveButton, !hasSubscription && styles.cloudSaveButtonDisabled]}
+                  onPress={() => saveResult({
+                    calculator_name: 'يوميات الامتنان',
+                    calculator_type: 'gratitude-journal',
+                    pillar: 'spiritual',
+                    inputs: { entries: weekEntries },
+                    result_value: weekEntries.length,
+                    result_text: `${weekEntries.length} أيام من الامتنان`
+                  })}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <>
+                      <Ionicons name={hasSubscription ? "cloud-upload" : "lock-closed"} size={18} color="#fff" />
+                      <Text style={styles.cloudSaveButtonText}>
+                        {hasSubscription ? 'حفظ في ملفي الشخصي' : 'للمشتركين فقط'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
             )}
           </View>
         )}
@@ -339,4 +368,7 @@ const styles = StyleSheet.create({
   historyText: { flex: 1, fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right' },
   emptyHistory: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#999', marginTop: 16 },
-  emptySubtext: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#bbb', marginTop: 8 }});
+  emptySubtext: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#bbb', marginTop: 8 },
+  cloudSaveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 16, gap: 8 },
+  cloudSaveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  cloudSaveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
