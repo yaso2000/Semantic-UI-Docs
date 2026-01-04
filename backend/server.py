@@ -477,10 +477,10 @@ async def save_calculator_history(calc_data: CalculatorHistory, current_user: di
 # ==================== USER RESULTS ENDPOINTS (حفظ نتائج المتدرب) ====================
 
 async def check_user_has_subscription(user_id: str) -> bool:
-    """التحقق من أن المتدرب لديه اشتراك/حجز مدفوع"""
+    """التحقق من أن المتدرب لديه اشتراك/حجز مؤكد"""
     booking = await db.bookings.find_one({
-        "user_id": user_id,
-        "status": {"$in": ["confirmed", "active", "completed"]}
+        "client_id": user_id,
+        "booking_status": {"$in": ["confirmed", "active", "completed"]}
     })
     return booking is not None
 
