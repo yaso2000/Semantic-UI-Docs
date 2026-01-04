@@ -203,6 +203,31 @@ export default function WHO5Screen() {
             <TouchableOpacity style={styles.resetButton} onPress={resetTest}>
               <Text style={styles.resetButtonText}>إعادة الاختبار</Text>
             </TouchableOpacity>
+            
+            {/* زر حفظ النتيجة */}
+            <TouchableOpacity 
+              style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+              onPress={() => saveResult({
+                calculator_name: 'مؤشر الرفاهية (WHO-5)',
+                calculator_type: 'who5',
+                pillar: 'mental',
+                inputs: { answers },
+                result_value: result.percentageScore,
+                result_text: `النتيجة: ${result.percentageScore}% - ${result.level}`
+              })}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                  <Text style={styles.saveButtonText}>
+                    {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -272,4 +297,7 @@ const styles = StyleSheet.create({
   scaleText: { fontSize: 13, fontFamily: 'Cairo_400Regular', color: '#333' },
   noteText: { fontSize: 12, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 12, textAlign: 'right', lineHeight: 20 },
   resetButton: { backgroundColor: '#2196F3', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12 },
-  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' }});
+  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 16, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
