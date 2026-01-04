@@ -206,10 +206,20 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 4},
   chatButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center'},
+  actions: {
+    flexDirection: 'row',
+    gap: 8},
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center'},
   emptyState: {
