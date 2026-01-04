@@ -13,7 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 export default function BodyFatCalculator() {
@@ -27,6 +28,7 @@ export default function BodyFatCalculator() {
   const [waist, setWaist] = useState('');
   const [hip, setHip] = useState('');
   const [result, setResult] = useState<any>(null);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -149,6 +151,31 @@ export default function BodyFatCalculator() {
                 <Text style={styles.value}>{result.bodyFat}%</Text>
               </View>
               <Text style={[styles.category, { color: result.color }]}>{result.category}</Text>
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'حاسبة نسبة الدهون',
+                  calculator_type: 'bodyfat',
+                  pillar: 'physical',
+                  inputs: { gender, age: parseFloat(age), weight: parseFloat(weight), height: parseFloat(height), neck: parseFloat(neck), waist: parseFloat(waist), hip: parseFloat(hip) },
+                  result_value: parseFloat(result.bodyFat),
+                  result_text: `نسبة الدهون: ${result.bodyFat}% - ${result.category}`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -197,4 +224,7 @@ const styles = StyleSheet.create({
   result: { backgroundColor: '#fff', borderRadius: 16, padding: 24, alignItems: 'center', borderWidth: 3 },
   circle: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   value: { fontSize: 36, fontFamily: 'Cairo_700Bold', color: '#fff' },
-  category: { fontSize: 24, fontFamily: 'Cairo_700Bold' }});
+  category: { fontSize: 24, fontFamily: 'Cairo_700Bold' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
