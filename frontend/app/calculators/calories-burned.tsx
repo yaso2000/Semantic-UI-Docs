@@ -89,6 +89,31 @@ export default function CaloriesBurnedCalculator() {
               <Text style={styles.resultValue}>{result.calories}</Text>
               <Text style={styles.resultLabel}>سعرة حرارية</Text>
               <Text style={styles.resultActivity}>{result.activity}</Text>
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'السعرات المحروقة',
+                  calculator_type: 'calories-burned',
+                  pillar: 'physical',
+                  inputs: { weight: parseFloat(weight), activity, duration: parseFloat(duration) },
+                  result_value: result.calories,
+                  result_text: `${result.calories} سعرة - ${result.activity}`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -119,4 +144,7 @@ const styles = StyleSheet.create({
   result: { backgroundColor: '#fff', borderRadius: 16, padding: 32, alignItems: 'center' },
   resultValue: { fontSize: 56, fontFamily: 'Cairo_700Bold', color: '#FF5722', marginTop: 16 },
   resultLabel: { fontSize: 18, fontFamily: 'Cairo_400Regular', color: '#666', marginTop: 8 },
-  resultActivity: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 4 }});
+  resultActivity: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#333', marginTop: 4 },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
