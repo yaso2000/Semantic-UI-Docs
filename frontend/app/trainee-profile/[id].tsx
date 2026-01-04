@@ -118,6 +118,134 @@ export default function TraineeProfileScreen() {
     });
   };
 
+  const generatePDF = async () => {
+    if (!profileData) return;
+
+    const getPillarName = (pillarId: string) => {
+      return PILLARS.find(p => p.id === pillarId)?.name || pillarId;
+    };
+
+    const getPillarColor = (pillarId: string) => {
+      const colors: {[key: string]: string} = {
+        physical: '#4CAF50',
+        mental: '#2196F3',
+        social: '#FF9800',
+        spiritual: '#9C27B0'
+      };
+      return colors[pillarId] || '#666';
+    };
+
+    let resultsHTML = '';
+    Object.keys(organizedResults).forEach(pillarId => {
+      const results = organizedResults[pillarId];
+      if (results.length > 0) {
+        resultsHTML += `
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: ${getPillarColor(pillarId)}; border-bottom: 2px solid ${getPillarColor(pillarId)}; padding-bottom: 8px;">
+              ${getPillarName(pillarId)}
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <thead>
+                <tr style="background-color: #f5f5f5;">
+                  <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">الاختبار</th>
+                  <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">النتيجة</th>
+                  <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${results.map(r => `
+                  <tr>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${r.calculator_name}</td>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${r.result_text}</td>
+                    <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${formatDate(r.saved_at)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    });
+
+    const html = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          * { font-family: 'Arial', sans-serif; }
+          body { padding: 40px; direction: rtl; }
+          .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #00838F; padding-bottom: 20px; }
+          .header h1 { color: #00838F; margin-bottom: 10px; }
+          .header p { color: #666; }
+          .stats { display: flex; justify-content: space-around; margin-bottom: 30px; }
+          .stat-box { text-align: center; padding: 15px; background: #f9f9f9; border-radius: 10px; min-width: 100px; }
+          .stat-number { font-size: 24px; font-weight: bold; color: #00838F; }
+          .stat-label { font-size: 12px; color: #666; }
+          .footer { margin-top: 40px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>📊 تقرير تقدم المتدرب</h1>
+          <p><strong>${profileData.full_name}</strong></p>
+          <p>${profileData.email}</p>
+          <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat-number">${profileData.saved_results?.length || 0}</div>
+            <div class="stat-label">نتيجة محفوظة</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">${organizedResults.physical?.length || 0}</div>
+            <div class="stat-label">جسدي</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">${organizedResults.mental?.length || 0}</div>
+            <div class="stat-label">نفسي</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">${organizedResults.social?.length || 0}</div>
+            <div class="stat-label">اجتماعي</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">${organizedResults.spiritual?.length || 0}</div>
+            <div class="stat-label">روحي</div>
+          </div>
+        </div>
+
+        <h2 style="color: #333; margin-bottom: 20px;">النتائج المحفوظة</h2>
+        
+        ${resultsHTML || '<p style="color: #999; text-align: center;">لا توجد نتائج محفوظة بعد</p>'}
+
+        <div class="footer">
+          <p>تم إنشاء هذا التقرير بواسطة تطبيق يازو للتدريب الشامل</p>
+          <p>www.askyazo.com</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    try {
+      const { uri } = await Print.printToFileAsync({ html });
+      
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `تقرير ${profileData.full_name}`,
+          UTI: 'com.adobe.pdf'
+        });
+      } else {
+        Alert.alert('نجاح', 'تم إنشاء التقرير بنجاح');
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Alert.alert('خطأ', 'حدث خطأ في إنشاء التقرير');
+    }
+  };
+
   const renderProgressChart = (results: SavedResult[]) => {
     if (results.length < 2) return null;
     
