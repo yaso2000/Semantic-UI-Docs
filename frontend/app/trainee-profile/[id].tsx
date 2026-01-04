@@ -299,12 +299,20 @@ export default function TraineeProfileScreen() {
           <Ionicons name="arrow-forward" size={24} color={COLORS.teal} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ملف المتدرب</Text>
-        <TouchableOpacity 
-          style={styles.chatBtn}
-          onPress={() => router.push(`/(tabs)/chat?recipientId=${id}` as any)}
-        >
-          <Ionicons name="chatbubble" size={20} color={COLORS.teal} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.pdfBtn}
+            onPress={generatePDF}
+          >
+            <Ionicons name="download-outline" size={20} color={COLORS.teal} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.chatBtn}
+            onPress={() => router.push(`/(tabs)/chat?recipientId=${id}` as any)}
+          >
+            <Ionicons name="chatbubble" size={20} color={COLORS.teal} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
