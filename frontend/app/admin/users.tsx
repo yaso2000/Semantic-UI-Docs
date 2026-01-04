@@ -182,6 +182,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 16},
+  avatarLetter: {
+    fontSize: 24,
+    fontFamily: 'Cairo_700Bold',
+    color: '#fff'},
   userInfo: {
     flex: 1},
   userName: {
