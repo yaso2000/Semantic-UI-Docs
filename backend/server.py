@@ -1127,7 +1127,7 @@ async def get_available_chat_contacts(current_user: dict = Depends(get_current_u
     """
     contacts = []
     
-    if current_user["role"] == "client":
+    if current_user["role"] in ["client", "trainee"]:
         # المتدرب: يرى يازو (جميع الأدمن)
         admins = await db.users.find({"role": "admin"}).to_list(10)
         
@@ -1162,8 +1162,8 @@ async def get_available_chat_contacts(current_user: dict = Depends(get_current_u
             })
     
     elif current_user["role"] in ["coach", "admin"]:
-        # يازو/المدرب: يرى جميع المتدربين
-        trainees = await db.users.find({"role": "client"}).to_list(100)
+        # يازو/المدرب: يرى جميع المتدربين (client و trainee)
+        trainees = await db.users.find({"role": {"$in": ["client", "trainee"]}}).to_list(100)
         
         for trainee in trainees:
             # Get last message
