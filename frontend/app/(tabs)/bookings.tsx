@@ -96,7 +96,7 @@ export default function BookingsScreen() {
   };
 
   const handleBookPackage = (pkg: Package) => {
-    router.push(`/booking/${pkg.id}` as any);
+    router.push(`/book-package/${pkg.id}` as any);
   };
 
   if (!fontsLoaded || loading) {
