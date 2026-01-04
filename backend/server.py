@@ -23,7 +23,11 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 import certifi
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url, tlsCAFile=certifi.where())
+# Use certifi only for Atlas connections (mongodb+srv)
+if 'mongodb+srv' in mongo_url:
+    client = AsyncIOMotorClient(mongo_url, tlsCAFile=certifi.where())
+else:
+    client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # JWT Configuration
