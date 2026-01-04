@@ -72,6 +72,7 @@ export default function ChatScreen() {
   useEffect(() => {
     const openChatWithRecipient = async () => {
       if (recipientId && !loading) {
+        setCameFromExternal(true); // تم الوصول من صفحة خارجية
         const contact = contacts.find(c => c.user_id === recipientId);
         if (contact) {
           setSelectedContact(contact);
@@ -102,6 +103,18 @@ export default function ChatScreen() {
     };
     openChatWithRecipient();
   }, [recipientId, contacts, loading]);
+
+  // Handle back button
+  const handleBack = () => {
+    if (cameFromExternal) {
+      // إذا أتينا من صفحة خارجية، نرجع للصفحة السابقة
+      router.back();
+    } else {
+      // إذا أتينا من قائمة الشات، نعود للقائمة
+      setSelectedContact(null);
+      loadContacts();
+    }
+  };
 
   useEffect(() => {
     let interval: any;
