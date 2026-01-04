@@ -1287,8 +1287,22 @@ async def get_my_habits(start_date: str, end_date: str, current_user: dict = Dep
 
 @api_router.get("/admin/users")
 async def get_all_users(admin_user: dict = Depends(get_admin_user)):
-    users = await db.users.find({"role": "client"}).to_list(1000)
-    return [{"id": u["_id"], "email": u["email"], "full_name": u["full_name"], "created_at": u["created_at"]} for u in users]
+    users = await db.users.find({"role": {"$in": ["client", "trainee"]}}).to_list(1000)
+    return [{"id": u["_id"], "email": u["email"], "full_name": u["full_name"], "role": u.get("role"), "created_at": u["created_at"]} for u in users]
+
+@api_router.get("/users/{user_id}")
+async def get_user_by_id(user_id: str, current_user: dict = Depends(get_current_user)):
+    """جلب بيانات مستخدم واحد"""
+    user = await db.users.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود")
+    return {
+        "id": user["_id"],
+        "email": user["email"],
+        "full_name": user["full_name"],
+        "role": user.get("role"),
+        "created_at": user.get("created_at")
+    }
 
 @api_router.get("/admin/coaches")
 async def get_all_coaches(admin_user: dict = Depends(get_admin_user)):
