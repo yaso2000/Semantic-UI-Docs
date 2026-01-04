@@ -51,6 +51,7 @@ interface Message {
 export default function ChatScreen() {
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
   const insets = useSafeAreaInsets();
+  const { recipientId } = useLocalSearchParams();
   const [user, setUser] = useState<any>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -64,6 +65,17 @@ export default function ChatScreen() {
   useEffect(() => {
     loadUserAndContacts();
   }, []);
+
+  // Handle recipientId from URL params
+  useEffect(() => {
+    if (recipientId && contacts.length > 0) {
+      const contact = contacts.find(c => c.user_id === recipientId);
+      if (contact) {
+        setSelectedContact(contact);
+        loadMessages(contact.user_id);
+      }
+    }
+  }, [recipientId, contacts]);
 
   useEffect(() => {
     let interval: any;
