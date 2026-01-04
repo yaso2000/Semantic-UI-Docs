@@ -68,14 +68,38 @@ export default function ChatScreen() {
 
   // Handle recipientId from URL params
   useEffect(() => {
-    if (recipientId && contacts.length > 0) {
-      const contact = contacts.find(c => c.user_id === recipientId);
-      if (contact) {
-        setSelectedContact(contact);
-        loadMessages(contact.user_id);
+    const openChatWithRecipient = async () => {
+      if (recipientId && !loading) {
+        const contact = contacts.find(c => c.user_id === recipientId);
+        if (contact) {
+          setSelectedContact(contact);
+          loadMessages(contact.user_id);
+        } else {
+          // إذا لم يكن المتدرب في القائمة، نجلب بياناته من الـ API
+          try {
+            const token = await AsyncStorage.getItem('token');
+            const response = await fetch(`${API_URL}/api/users/${recipientId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+              const userData = await response.json();
+              const newContact: Contact = {
+                user_id: userData.id || recipientId as string,
+                full_name: userData.full_name || 'متدرب',
+                role: userData.role || 'trainee',
+                unread_count: 0
+              };
+              setSelectedContact(newContact);
+              loadMessages(recipientId as string);
+            }
+          } catch (error) {
+            console.error('Error loading recipient:', error);
+          }
+        }
       }
-    }
-  }, [recipientId, contacts]);
+    };
+    openChatWithRecipient();
+  }, [recipientId, contacts, loading]);
 
   useEffect(() => {
     let interval: any;
