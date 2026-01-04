@@ -482,6 +482,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo_700Bold',
     color: '#FF9800',
   },
+  profileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    gap: 6,
+  },
+  profileBtnText: {
+    fontSize: 14,
+    fontFamily: 'Cairo_700Bold',
+    color: '#2196F3',
+  },
 
   bookingDate: {
     fontSize: 11,
