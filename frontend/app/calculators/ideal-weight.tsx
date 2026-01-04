@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 export default function IdealWeightCalculator() {
@@ -13,6 +14,7 @@ export default function IdealWeightCalculator() {
   const [gender, setGender] = useState('male');
   const [height, setHeight] = useState('');
   const [result, setResult] = useState<any>(null);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   const calculateIdealWeight = () => {
@@ -96,6 +98,31 @@ export default function IdealWeightCalculator() {
               <View style={styles.methodCard}>
                 <Text style={styles.methodLabel}>Devine: {result.devine} كجم</Text>
               </View>
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'حاسبة الوزن المثالي',
+                  calculator_type: 'ideal-weight',
+                  pillar: 'physical',
+                  inputs: { gender, height: parseFloat(height) },
+                  result_value: parseFloat(result.average),
+                  result_text: `الوزن المثالي: ${result.average} كجم`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -129,4 +156,7 @@ const styles = StyleSheet.create({
   resultLabel: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#2196F3' },
   resultValue: { fontSize: 32, fontFamily: 'Cairo_700Bold', color: '#2196F3', marginTop: 8 },
   methodCard: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  methodLabel: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right' }});
+  methodLabel: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#666', textAlign: 'right' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
