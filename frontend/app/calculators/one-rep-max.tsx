@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 export default function OneRepMaxCalculator() {
@@ -13,6 +14,7 @@ export default function OneRepMaxCalculator() {
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
   const [result, setResult] = useState<any>(null);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
   const calculateOneRM = () => {
@@ -89,6 +91,31 @@ export default function OneRepMaxCalculator() {
                   <Text style={styles.rowPercent}>{p.percent}%</Text>
                 </View>
               ))}
+              
+              {/* زر حفظ النتيجة */}
+              <TouchableOpacity 
+                style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+                onPress={() => saveResult({
+                  calculator_name: 'الحد الأقصى للتكرار (1RM)',
+                  calculator_type: 'one-rep-max',
+                  pillar: 'physical',
+                  inputs: { weight: parseFloat(weight), reps: parseFloat(reps) },
+                  result_value: result.oneRM,
+                  result_text: `1RM: ${result.oneRM} كجم`
+                })}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                    <Text style={styles.saveButtonText}>
+                      {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -119,4 +146,7 @@ const styles = StyleSheet.create({
   tableTitle: { fontSize: 18, fontFamily: 'Cairo_700Bold', color: '#333', marginBottom: 12, textAlign: 'right' },
   row: { flexDirection: 'row', justifyContent: 'space-between', padding: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   rowPercent: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#673AB7' },
-  rowWeight: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#666' }});
+  rowWeight: { fontSize: 16, fontFamily: 'Cairo_400Regular', color: '#666' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 20, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
