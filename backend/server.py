@@ -771,8 +771,12 @@ async def get_my_bookings(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/coach/my-clients")
 async def get_coach_clients(coach_user: dict = Depends(get_coach_user)):
-    # Get all bookings for this coach
-    bookings = await db.bookings.find({"coach_id": coach_user["_id"]}).sort("created_at", -1).to_list(100)
+    # للأدمن: عرض جميع الحجوزات
+    # للمدرب العادي: عرض حجوزاته فقط
+    if coach_user.get("role") == "admin":
+        bookings = await db.bookings.find().sort("created_at", -1).to_list(100)
+    else:
+        bookings = await db.bookings.find({"coach_id": coach_user["_id"]}).sort("created_at", -1).to_list(100)
     
     # Enrich with client info
     result = []
