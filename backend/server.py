@@ -800,13 +800,21 @@ async def get_coach_clients(coach_user: dict = Depends(get_coach_user)):
 
 @api_router.put("/bookings/{booking_id}/status")
 async def update_booking_status(booking_id: str, data: dict, coach_user: dict = Depends(get_coach_user)):
-    booking = await db.bookings.find_one({"_id": booking_id, "coach_id": coach_user["_id"]})
+    # للأدمن: يمكنه تحديث أي حجز
+    if coach_user.get("role") == "admin":
+        booking = await db.bookings.find_one({"_id": booking_id})
+    else:
+        booking = await db.bookings.find_one({"_id": booking_id, "coach_id": coach_user["_id"]})
+    
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
     update = {}
     if "booking_status" in data:
         update["booking_status"] = data["booking_status"]
+        # عند تأكيد الحجز، نضع الدفع كمكتمل أيضاً
+        if data["booking_status"] == "confirmed":
+            update["payment_status"] = "completed"
     if "payment_status" in data:
         update["payment_status"] = data["payment_status"]
     if "hours_used" in data:
