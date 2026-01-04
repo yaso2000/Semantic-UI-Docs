@@ -11,7 +11,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 const questions = [
@@ -37,6 +38,7 @@ export default function GAD7Screen() {
   const [answers, setAnswers] = useState<number[]>(Array(7).fill(-1));
   const [result, setResult] = useState<any>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -204,6 +206,31 @@ export default function GAD7Screen() {
             <TouchableOpacity style={styles.resetButton} onPress={resetTest}>
               <Text style={styles.resetButtonText}>إعادة الاختبار</Text>
             </TouchableOpacity>
+            
+            {/* زر حفظ النتيجة */}
+            <TouchableOpacity 
+              style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+              onPress={() => saveResult({
+                calculator_name: 'مقياس القلق العام (GAD-7)',
+                calculator_type: 'gad7',
+                pillar: 'mental',
+                inputs: { answers },
+                result_value: result.score,
+                result_text: `النتيجة: ${result.score}/21 - ${result.level}`
+              })}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                  <Text style={styles.saveButtonText}>
+                    {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -272,4 +299,7 @@ const styles = StyleSheet.create({
   scaleColor: { width: 20, height: 20, borderRadius: 10 },
   scaleText: { fontSize: 14, fontFamily: 'Cairo_400Regular', color: '#333' },
   resetButton: { backgroundColor: '#E91E63', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12 },
-  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' }});
+  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 16, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
