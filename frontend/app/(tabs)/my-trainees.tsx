@@ -181,6 +181,13 @@ export default function MyTraineesScreen() {
           </>
         )}
         <TouchableOpacity
+          style={styles.profileBtn}
+          onPress={() => router.push(`/trainee-profile/${item.client_id}` as any)}
+        >
+          <Ionicons name="analytics" size={18} color="#2196F3" />
+          <Text style={styles.profileBtnText}>النتائج</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.chatBtn}
           onPress={() => router.push(`/(tabs)/chat?recipientId=${item.client_id}` as any)}
         >
