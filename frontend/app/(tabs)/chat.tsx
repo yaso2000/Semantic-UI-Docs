@@ -51,6 +51,7 @@ interface Message {
 export default function ChatScreen() {
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { recipientId } = useLocalSearchParams();
   const [user, setUser] = useState<any>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -61,6 +62,7 @@ export default function ChatScreen() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [cameFromExternal, setCameFromExternal] = useState(false);
 
   useEffect(() => {
     loadUserAndContacts();
