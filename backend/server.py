@@ -569,6 +569,12 @@ async def delete_user_result(result_id: str, current_user: dict = Depends(get_cu
     await db.user_results.delete_one({"_id": result_id})
     return {"message": "تم حذف النتيجة"}
 
+@api_router.get("/user-profile/check-subscription")
+async def check_subscription_status(current_user: dict = Depends(get_current_user)):
+    """التحقق من حالة اشتراك المتدرب"""
+    has_subscription = await check_user_has_subscription(current_user["_id"])
+    return {"has_subscription": has_subscription}
+
 @api_router.get("/user-profile/{user_id}")
 async def get_user_profile_data(user_id: str, current_user: dict = Depends(get_current_user)):
     """الحصول على الملف الشخصي الكامل للمتدرب"""
@@ -611,12 +617,6 @@ async def get_user_profile_data(user_id: str, current_user: dict = Depends(get_c
         "habit_tracker": habits,
         "bookings": bookings
     }
-
-@api_router.get("/user-profile/check-subscription")
-async def check_subscription_status(current_user: dict = Depends(get_current_user)):
-    """التحقق من حالة اشتراك المتدرب"""
-    has_subscription = await check_user_has_subscription(current_user["_id"])
-    return {"has_subscription": has_subscription}
 
 @api_router.get("/coach/trainees-profiles")
 async def get_all_trainees_profiles(current_user: dict = Depends(get_current_user)):
