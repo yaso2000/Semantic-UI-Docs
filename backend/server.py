@@ -835,8 +835,12 @@ async def get_all_bookings(admin_user: dict = Depends(get_admin_user)):
 @api_router.post("/sessions/create")
 async def create_session(session_data: SessionCreate, coach_user: dict = Depends(get_coach_user)):
     """Create a new training session"""
-    # Verify booking exists and belongs to coach
-    booking = await db.bookings.find_one({"_id": session_data.booking_id, "coach_id": coach_user["_id"]})
+    # للأدمن: يمكنه إنشاء جلسة لأي حجز
+    if coach_user.get("role") == "admin":
+        booking = await db.bookings.find_one({"_id": session_data.booking_id})
+    else:
+        booking = await db.bookings.find_one({"_id": session_data.booking_id, "coach_id": coach_user["_id"]})
+    
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
