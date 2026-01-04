@@ -11,7 +11,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Cairo_400Regular, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { useRouter } from 'expo-router';
-import { SaveResultButton } from '../../src/components/SaveResultButton';
+import { useSaveResult } from '../../src/hooks/useSaveResult';
+import { ActivityIndicator } from 'react-native';
 
 
 const allValues = [
@@ -42,6 +43,7 @@ export default function CoreValuesScreen() {
   const router = useRouter();
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const { hasSubscription, saving, saveResult } = useSaveResult();
   
   const [fontsLoaded] = useFonts({ Cairo_400Regular, Cairo_700Bold });
 
@@ -191,6 +193,31 @@ export default function CoreValuesScreen() {
             <TouchableOpacity style={styles.resetButton} onPress={resetSelection}>
               <Text style={styles.resetButtonText}>إعادة الاختيار</Text>
             </TouchableOpacity>
+            
+            {/* زر حفظ النتيجة */}
+            <TouchableOpacity 
+              style={[styles.saveButton, !hasSubscription && styles.saveButtonDisabled]}
+              onPress={() => saveResult({
+                calculator_name: 'القيم الأساسية',
+                calculator_type: 'core-values',
+                pillar: 'spiritual',
+                inputs: { selectedValues },
+                result_value: selectedValues.length,
+                result_text: `قيمي: ${getSelectedValuesData().map(v => v.name).join('، ')}`
+              })}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name={hasSubscription ? "bookmark" : "lock-closed"} size={18} color="#fff" />
+                  <Text style={styles.saveButtonText}>
+                    {hasSubscription ? 'حفظ في ملفي' : 'للمشتركين فقط'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -289,4 +316,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 24},
-  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' }});
+  resetButtonText: { fontSize: 16, fontFamily: 'Cairo_700Bold', color: '#fff' },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 25, marginTop: 16, gap: 8 },
+  saveButtonDisabled: { backgroundColor: '#9E9E9E' },
+  saveButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Cairo_700Bold' }});
