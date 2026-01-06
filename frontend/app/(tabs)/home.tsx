@@ -155,7 +155,15 @@ function ClientHome({ user, router }: { user: any; router: any }) {
           </View>
           <Text style={styles.toolText}>المكتبة</Text>
         </TouchableOpacity>
-        <View style={[styles.toolCard, { opacity: 0 }]} />
+        <TouchableOpacity 
+          style={styles.toolCard}
+          onPress={() => router.push('/goals' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.mental}15` }]}>
+            <Ionicons name="flag" size={22} color={COLORS.mental} />
+          </View>
+          <Text style={styles.toolText}>أهدافي</Text>
+        </TouchableOpacity>
         <View style={[styles.toolCard, { opacity: 0 }]} />
       </View>
 
