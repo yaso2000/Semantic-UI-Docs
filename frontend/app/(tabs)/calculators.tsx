@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,24 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
 import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../../src/constants/theme';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+interface Tool {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+  route: string;
+  isCustom?: boolean;
+}
 
 const physicalTools = [
   { id: 'bmi', title: 'مؤشر كتلة الجسم', subtitle: 'BMI', icon: 'body', route: '/calculators/bmi' },
