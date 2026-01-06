@@ -136,11 +136,17 @@ export default function CustomCalculatorScreen() {
       window.addEventListener('message', handleIframeMessage);
       return () => window.removeEventListener('message', handleIframeMessage);
     }
-  }, [calculator, hasSubscription]);
+  }, [calculator, hasSubscription, resultSaved]);
 
   // حفظ النتيجة مباشرة بدون انتظار زر الهيدر
   const saveResultDirectly = async (resultValue: string, resultText: string, inputs: any) => {
     if (!calculator) return;
+    
+    // منع الحفظ المتكرر لنفس النتيجة
+    if (resultSaved) {
+      Alert.alert('تنبيه', 'تم حفظ هذه النتيجة مسبقاً. قم بحساب نتيجة جديدة للحفظ مرة أخرى.');
+      return;
+    }
     
     // السماح للأدمن بالحفظ دائماً، أو التحقق من الاشتراك للمستخدمين العاديين
     const userData = await AsyncStorage.getItem('user');
@@ -180,6 +186,7 @@ export default function CustomCalculatorScreen() {
       });
 
       if (response.ok) {
+        setResultSaved(true); // تعيين حالة الحفظ
         Alert.alert('✅ تم الحفظ', 'تم حفظ النتيجة في ملفك الشخصي بنجاح!');
       } else {
         const errorData = await response.json();
