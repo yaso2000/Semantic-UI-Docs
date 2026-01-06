@@ -59,7 +59,7 @@ const DEFAULT_RESOURCES: Resource[] = [
     content_type: 'video', 
     icon: 'play-circle', 
     duration: '15 دقيقة', 
-    external_url: 'https://www.youtube.com/watch?v=example',
+    external_url: 'https://www.youtube.com/watch?v=inpok4MKVLM',
     is_active: true 
   },
   { 
@@ -81,7 +81,7 @@ const DEFAULT_RESOURCES: Resource[] = [
     content_type: 'video', 
     icon: 'play-circle', 
     duration: '12 دقيقة', 
-    external_url: 'https://www.youtube.com/watch?v=example2',
+    external_url: 'https://www.youtube.com/watch?v=k9WqpQp8VSU',
     is_active: true 
   },
   { 
