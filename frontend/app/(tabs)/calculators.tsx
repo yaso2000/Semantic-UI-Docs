@@ -68,13 +68,6 @@ interface CustomCalculator {
   is_active: boolean;
 }
 
-const pillars = [
-  { id: 'physical', title: 'اللياقة البدنية', subtitle: 'Physical Fitness', icon: 'barbell', color: COLORS.teal, tools: physicalTools },
-  { id: 'nutrition', title: 'الصحة التغذوية', subtitle: 'Nutritional Health', icon: 'nutrition', color: COLORS.sage, tools: nutritionTools },
-  { id: 'mental', title: 'الصحة النفسية', subtitle: 'Mental Wellness', icon: 'happy', color: COLORS.gold, tools: mentalTools },
-  { id: 'spiritual', title: 'الرفاهية الروحية', subtitle: 'Spiritual Well-being', icon: 'sparkles', color: COLORS.spiritual, tools: spiritualTools },
-];
-
 export default function CalculatorsScreen() {
   const router = useRouter();
   const [expandedPillar, setExpandedPillar] = useState<string | null>(null);
