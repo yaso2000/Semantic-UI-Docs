@@ -341,9 +341,20 @@ export default function CustomCalculatorScreen() {
       (function initSaveButton() {
         console.log('Save button script loaded');
         
+        // متغير لتتبع حالة الحفظ
+        var isResultSaved = false;
+        var lastResultValue = null;
+        
         // دالة لإرسال النتيجة
         window.saveResultToApp = function(resultValue, resultText, inputs) {
           console.log('Saving result:', resultValue, resultText);
+          
+          // منع الحفظ المتكرر لنفس النتيجة
+          if (isResultSaved && lastResultValue === resultValue) {
+            alert('⚠️ تم حفظ هذه النتيجة مسبقاً!\\nقم بحساب نتيجة جديدة للحفظ مرة أخرى.');
+            return;
+          }
+          
           try {
             if (window.ReactNativeWebView) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -360,11 +371,44 @@ export default function CustomCalculatorScreen() {
                 inputs: inputs || {}
               }, '*');
             }
-            alert('✅ تم إرسال النتيجة! اضغط على أيقونة الحفظ 💾 في أعلى الشاشة لحفظها.');
+            
+            // تعيين حالة الحفظ
+            isResultSaved = true;
+            lastResultValue = resultValue;
+            
+            // تحديث الزر ليعكس الحفظ
+            var saveBtn = document.querySelector('.app-save-btn');
+            if (saveBtn) {
+              saveBtn.innerHTML = '✅ تم الحفظ بنجاح';
+              saveBtn.style.background = 'linear-gradient(135deg, #00B894 0%, #00A884 100%)';
+              saveBtn.style.cursor = 'default';
+            }
           } catch(e) {
             console.error('Save error:', e);
           }
         };
+        
+        // إعادة تعيين حالة الحفظ عند حساب نتيجة جديدة
+        function resetSaveState() {
+          var currentValue = null;
+          var valueEl = document.getElementById('vo2-value') || document.querySelector('.result-value');
+          if (valueEl) {
+            currentValue = valueEl.textContent.trim();
+          }
+          
+          // إذا تغيرت النتيجة، أعد تعيين حالة الحفظ
+          if (currentValue && currentValue !== lastResultValue) {
+            isResultSaved = false;
+            
+            // إعادة الزر لحالته الأصلية
+            var saveBtn = document.querySelector('.app-save-btn');
+            if (saveBtn && saveBtn.innerHTML.includes('تم الحفظ')) {
+              saveBtn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
+              saveBtn.style.background = 'linear-gradient(135deg, #2A7B7B 0%, #1D5A5A 100%)';
+              saveBtn.style.cursor = 'pointer';
+            }
+          }
+        }
         
         function addSaveButton() {
           console.log('Checking for result element...');
