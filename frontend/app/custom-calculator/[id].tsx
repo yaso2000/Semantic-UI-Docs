@@ -577,22 +577,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  saveBtnDisabled: {
-    opacity: 0.5,
-  },
-
-  saveHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: `${COLORS.teal}15`,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  saveHintText: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-    color: COLORS.teal,
+  saveBtnActive: {
+    backgroundColor: COLORS.success,
   },
 
   webview: {
