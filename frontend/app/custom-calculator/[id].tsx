@@ -489,35 +489,19 @@ export default function CustomCalculatorScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{calculator.title}</Text>
         
-        {/* زر الحفظ في الهيدر */}
-        <TouchableOpacity 
-          style={[styles.saveBtn, !lastResult && styles.saveBtnDisabled]}
-          onPress={saveResult}
-          disabled={saving || !lastResult}
-        >
+        {/* مؤشر الحفظ */}
+        <View style={[styles.saveBtn, saving && styles.saveBtnActive]}>
           {saving ? (
             <ActivityIndicator size="small" color={COLORS.white} />
           ) : (
             <Ionicons 
-              name={lastResult ? "bookmark" : "bookmark-outline"} 
+              name={lastResult ? "checkmark-circle" : "calculator"} 
               size={22} 
               color={COLORS.white} 
             />
           )}
-        </TouchableOpacity>
-      </View>
-
-      {/* معلومات الحفظ */}
-      {lastResult && (
-        <View style={styles.saveHint}>
-          <Ionicons name="information-circle" size={16} color={COLORS.teal} />
-          <Text style={styles.saveHintText}>
-            {hasSubscription 
-              ? 'اضغط على أيقونة الحفظ لحفظ النتيجة' 
-              : 'اشترك لحفظ النتائج في ملفك'}
-          </Text>
         </View>
-      )}
+      </View>
 
       {/* WebView for Calculator */}
       {Platform.OS === 'web' ? (
