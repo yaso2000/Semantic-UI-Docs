@@ -1271,11 +1271,7 @@ async def upload_resource(resource: Resource, admin_user: dict = Depends(get_adm
     await db.resources.insert_one(resource_dict)
     return {"message": "Resource uploaded", "id": resource_dict["_id"]}
 
-@api_router.get("/resources", response_model=List[Resource])
-async def get_resources(category: Optional[str] = None):
-    query = {"category": category} if category else {}
-    resources = await db.resources.find(query).sort("created_at", -1).to_list(1000)
-    return [Resource(**res) for res in resources]
+# تم نقل GET /resources إلى أسفل الملف لتجنب التكرار
 
 @api_router.delete("/resources/{resource_id}")
 async def delete_resource(resource_id: str, admin_user: dict = Depends(get_admin_user)):
