@@ -330,6 +330,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.white,
     ...SHADOWS.sm,
+    position: 'relative',
+  },
+  customToolCard: {
+    borderWidth: 2,
+    borderColor: COLORS.teal,
+    borderStyle: 'dashed',
+  },
+  customBadge: {
+    position: 'absolute',
+    top: -8,
+    left: -8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  customBadgeText: {
+    fontSize: 8,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
   },
   toolIconBg: {
     width: 44,
