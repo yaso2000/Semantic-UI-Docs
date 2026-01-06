@@ -299,9 +299,13 @@ export default function CustomCalculatorScreen() {
   // Script to add save button - works for both Web and Mobile
   const saveButtonScript = `
     <script>
-      (function() {
+      // تنفيذ فوري للسكريبت
+      (function initSaveButton() {
+        console.log('Save button script loaded');
+        
         // دالة لإرسال النتيجة
         window.saveResultToApp = function(resultValue, resultText, inputs) {
+          console.log('Saving result:', resultValue, resultText);
           try {
             if (window.ReactNativeWebView) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -311,7 +315,6 @@ export default function CustomCalculatorScreen() {
                 inputs: inputs || {}
               }));
             } else {
-              // For web - post message to parent
               window.parent.postMessage({
                 type: 'SAVE_RESULT',
                 resultValue: resultValue,
@@ -319,79 +322,111 @@ export default function CustomCalculatorScreen() {
                 inputs: inputs || {}
               }, '*');
             }
+            alert('✅ تم إرسال النتيجة! اضغط على أيقونة الحفظ 💾 في أعلى الشاشة لحفظها.');
           } catch(e) {
             console.error('Save error:', e);
           }
         };
         
-        // إضافة زر الحفظ للنتائج
         function addSaveButton() {
-          const selectors = ['#result', '.result', '.result-box', '[class*="result"]'];
+          console.log('Checking for result element...');
           
-          let resultElement = null;
-          for (const selector of selectors) {
-            const el = document.querySelector(selector);
-            if (el && el.offsetParent !== null && getComputedStyle(el).display !== 'none') {
-              resultElement = el;
-              break;
-            }
+          // قائمة محددات للبحث عن النتيجة
+          var resultEl = document.getElementById('result');
+          if (!resultEl) resultEl = document.querySelector('.result-box');
+          if (!resultEl) resultEl = document.querySelector('.result');
+          if (!resultEl) resultEl = document.querySelector('[class*="result"]');
+          
+          if (!resultEl) {
+            console.log('No result element found');
+            return false;
           }
           
-          if (!resultElement) return;
-          if (document.querySelector('.app-save-btn')) return;
-          
-          let targetContainer = resultElement;
-          if (resultElement.classList.contains('result-value') || resultElement.id === 'vo2-value') {
-            targetContainer = resultElement.closest('.result-box') || resultElement.parentElement || resultElement;
+          // التحقق من أن العنصر مرئي
+          var style = window.getComputedStyle(resultEl);
+          if (style.display === 'none' || style.visibility === 'hidden') {
+            console.log('Result element is hidden');
+            return false;
           }
           
-          const saveBtn = document.createElement('button');
+          // التحقق من عدم وجود زر مسبق
+          if (document.querySelector('.app-save-btn')) {
+            console.log('Save button already exists');
+            return true;
+          }
+          
+          console.log('Adding save button to:', resultEl.id || resultEl.className);
+          
+          // إنشاء الزر
+          var saveBtn = document.createElement('button');
           saveBtn.className = 'app-save-btn';
+          saveBtn.type = 'button';
           saveBtn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
-          saveBtn.style.cssText = 'margin-top:20px;width:100%;padding:14px;background:linear-gradient(135deg, #2A7B7B, #1D5A5A);color:white;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;font-family:Cairo,Alexandria,sans-serif;box-shadow:0 4px 15px rgba(42,123,123,0.3);transition:all 0.3s;';
+          saveBtn.style.cssText = 'display:block;margin:20px auto 10px;width:90%;max-width:350px;padding:16px 24px;background:linear-gradient(135deg, #2A7B7B 0%, #1D5A5A 100%);color:white;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;font-family:Cairo,Alexandria,Tahoma,sans-serif;box-shadow:0 4px 15px rgba(42,123,123,0.4);transition:all 0.3s ease;';
           
-          saveBtn.onclick = function() {
-            const valueEl = document.querySelector('#vo2-value, .result-value, .result-number');
-            const ratingEl = document.querySelector('#vo2-rating, .result-rating, .result-label');
+          saveBtn.onmouseover = function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 20px rgba(42,123,123,0.5)';
+          };
+          saveBtn.onmouseout = function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 15px rgba(42,123,123,0.4)';
+          };
+          
+          saveBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            const value = valueEl ? valueEl.textContent.trim() : targetContainer.textContent.substring(0, 50).trim();
-            const text = ratingEl ? ratingEl.textContent.trim() : 'نتيجة الحاسبة';
+            var valueEl = document.getElementById('vo2-value') || document.querySelector('.result-value') || document.querySelector('.result-number');
+            var ratingEl = document.getElementById('vo2-rating') || document.querySelector('.result-rating') || document.querySelector('.result-label');
             
-            const inputs = {};
-            document.querySelectorAll('input, select').forEach(function(input) {
-              if (input.id || input.name) {
-                inputs[input.id || input.name] = input.value;
+            var value = valueEl ? valueEl.textContent.trim() : '0';
+            var text = ratingEl ? ratingEl.textContent.trim() : 'نتيجة الحاسبة';
+            
+            var inputs = {};
+            var allInputs = document.querySelectorAll('input, select');
+            for (var i = 0; i < allInputs.length; i++) {
+              var inp = allInputs[i];
+              if (inp.id || inp.name) {
+                inputs[inp.id || inp.name] = inp.value;
               }
-            });
+            }
             
             window.saveResultToApp(value, text, inputs);
             
-            saveBtn.innerHTML = '✅ تم إرسال النتيجة للتطبيق!';
-            saveBtn.style.background = 'linear-gradient(135deg, #00B894, #00A884)';
+            this.innerHTML = '✅ تم إرسال النتيجة!';
+            this.style.background = 'linear-gradient(135deg, #00B894 0%, #00A884 100%)';
+            var btn = this;
             setTimeout(function() {
-              saveBtn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
-              saveBtn.style.background = 'linear-gradient(135deg, #2A7B7B, #1D5A5A)';
+              btn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
+              btn.style.background = 'linear-gradient(135deg, #2A7B7B 0%, #1D5A5A 100%)';
             }, 2500);
           };
           
-          targetContainer.appendChild(saveBtn);
+          resultEl.appendChild(saveBtn);
+          console.log('Save button added successfully!');
+          return true;
         }
         
-        const observer = new MutationObserver(function(mutations) {
-          const resultEl = document.querySelector('#result, .result-box');
-          if (resultEl && getComputedStyle(resultEl).display !== 'none') {
-            setTimeout(addSaveButton, 100);
-          }
+        // مراقب للتغييرات
+        var observer = new MutationObserver(function() {
+          addSaveButton();
         });
         
-        observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+        observer.observe(document.body, { 
+          childList: true, 
+          subtree: true, 
+          attributes: true,
+          attributeFilter: ['style', 'class', 'hidden']
+        });
         
-        setInterval(function() {
-          const resultEl = document.querySelector('#result, .result-box');
-          if (resultEl && getComputedStyle(resultEl).display !== 'none') {
-            addSaveButton();
-          }
-        }, 1000);
+        // فحص دوري كل ثانية
+        setInterval(addSaveButton, 1000);
+        
+        // محاولة أولية
+        setTimeout(addSaveButton, 500);
+        setTimeout(addSaveButton, 1500);
+        setTimeout(addSaveButton, 3000);
       })();
     </script>
   `;
