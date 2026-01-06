@@ -154,16 +154,13 @@ export default function ResourcesScreen() {
   };
 
   const handleResourcePress = async (resource: Resource) => {
+    console.log('Resource pressed:', resource.title, resource.external_url);
+    
     // إذا كان فيديو YouTube - افتحه في المشغل الداخلي
     if (resource.external_url && isYouTubeUrl(resource.external_url)) {
-      router.push({
-        pathname: '/video-player/[id]',
-        params: { 
-          id: resource.id,
-          url: resource.external_url,
-          title: resource.title
-        }
-      } as any);
+      const encodedUrl = encodeURIComponent(resource.external_url);
+      const encodedTitle = encodeURIComponent(resource.title);
+      router.push(`/video-player/${resource.id}?url=${encodedUrl}&title=${encodedTitle}` as any);
       return;
     }
     
