@@ -220,7 +220,7 @@ export default function CalculatorsScreen() {
                 <View style={[styles.statIcon, { backgroundColor: pillar.color }]}>
                   <Ionicons name={pillar.icon as any} size={18} color={COLORS.white} />
                 </View>
-                <Text style={[styles.statNumber, { color: pillar.color }]}>{pillar.tools.length}</Text>
+                <Text style={[styles.statNumber, { color: pillar.color }]}>{getPillarTools(pillar.id, pillar.staticTools).length}</Text>
                 <Text style={styles.statLabel}>{pillar.title.split(' ')[0]}</Text>
               </View>
             ))}
