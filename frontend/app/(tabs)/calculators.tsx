@@ -25,7 +25,7 @@ interface Tool {
   isCustom?: boolean;
 }
 
-const physicalTools = [
+const physicalTools: Tool[] = [
   { id: 'bmi', title: 'مؤشر كتلة الجسم', subtitle: 'BMI', icon: 'body', route: '/calculators/bmi' },
   { id: 'bodyfat', title: 'نسبة الدهون', subtitle: 'Body Fat %', icon: 'analytics', route: '/calculators/bodyfat' },
   { id: 'ideal-weight', title: 'الوزن المثالي', subtitle: 'Ideal Weight', icon: 'fitness', route: '/calculators/ideal-weight' },
@@ -36,13 +36,13 @@ const physicalTools = [
   { id: 'heart-rate', title: 'نبض القلب المستهدف', subtitle: 'Target HR', icon: 'heart', route: '/calculators/heart-rate' },
 ];
 
-const nutritionTools = [
+const nutritionTools: Tool[] = [
   { id: 'calorie-goal', title: 'هدف السعرات', subtitle: 'Calorie Goal', icon: 'trending-down', route: '/calculators/calorie-goal' },
   { id: 'macros', title: 'المغذيات الكبرى', subtitle: 'Macros', icon: 'nutrition', route: '/calculators/macros' },
   { id: 'water', title: 'كمية الماء اليومية', subtitle: 'Water Intake', icon: 'water', route: '/calculators/water' },
 ];
 
-const mentalTools = [
+const mentalTools: Tool[] = [
   { id: 'pss10', title: 'مقياس التوتر', subtitle: 'PSS-10', icon: 'flash', route: '/calculators/pss10' },
   { id: 'gad7', title: 'مقياس القلق', subtitle: 'GAD-7', icon: 'pulse', route: '/calculators/gad7' },
   { id: 'swls', title: 'الرضا عن الحياة', subtitle: 'SWLS', icon: 'happy', route: '/calculators/swls' },
@@ -50,7 +50,7 @@ const mentalTools = [
   { id: 'mood-tracker', title: 'متتبع المزاج', subtitle: 'Mood Tracker', icon: 'calendar', route: '/calculators/mood-tracker' },
 ];
 
-const spiritualTools = [
+const spiritualTools: Tool[] = [
   { id: 'meditation-timer', title: 'مؤقت التأمل', subtitle: 'Meditation', icon: 'flower', route: '/calculators/meditation-timer' },
   { id: 'breathing-exercise', title: 'تمارين التنفس', subtitle: 'Breathing', icon: 'fitness', route: '/calculators/breathing-exercise' },
   { id: 'gratitude-journal', title: 'دفتر الامتنان', subtitle: 'Gratitude', icon: 'heart', route: '/calculators/gratitude-journal' },
@@ -58,6 +58,15 @@ const spiritualTools = [
   { id: 'reflection-prompts', title: 'تأملات عميقة', subtitle: 'Reflections', icon: 'bulb', route: '/calculators/reflection-prompts' },
   { id: 'wheel-of-life', title: 'عجلة الحياة', subtitle: 'Wheel of Life', icon: 'pie-chart', route: '/calculators/wheel-of-life' },
 ];
+
+interface CustomCalculator {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  icon: string;
+  is_active: boolean;
+}
 
 const pillars = [
   { id: 'physical', title: 'اللياقة البدنية', subtitle: 'Physical Fitness', icon: 'barbell', color: COLORS.teal, tools: physicalTools },
