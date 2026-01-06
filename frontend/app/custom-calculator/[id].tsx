@@ -141,7 +141,12 @@ export default function CustomCalculatorScreen() {
   const saveResultDirectly = async (resultValue: string, resultText: string, inputs: any) => {
     if (!calculator) return;
     
-    if (!hasSubscription) {
+    // السماح للأدمن بالحفظ دائماً، أو التحقق من الاشتراك للمستخدمين العاديين
+    const userData = await AsyncStorage.getItem('user');
+    const user = userData ? JSON.parse(userData) : null;
+    const isAdmin = user?.role === 'admin' || user?.role === 'coach';
+    
+    if (!hasSubscription && !isAdmin) {
       Alert.alert(
         'ميزة المشتركين',
         'هذه الميزة متاحة للمشتركين فقط. قم بحجز باقة للاستفادة من حفظ النتائج.',
