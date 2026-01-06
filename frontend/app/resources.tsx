@@ -534,6 +534,20 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.semiBold,
     color: COLORS.info,
   },
+  videoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.tealLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  videoText: {
+    fontSize: 11,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.teal,
+  },
   comingSoonBadge: {
     flexDirection: 'row',
     alignItems: 'center',
