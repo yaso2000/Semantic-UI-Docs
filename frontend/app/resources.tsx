@@ -147,8 +147,27 @@ export default function ResourcesScreen() {
     }
   };
 
+  // التحقق من أن الرابط هو YouTube
+  const isYouTubeUrl = (url: string) => {
+    if (!url) return false;
+    return url.includes('youtube.com') || url.includes('youtu.be');
+  };
+
   const handleResourcePress = async (resource: Resource) => {
-    // إذا كان هناك رابط خارجي (مثل يوتيوب)
+    // إذا كان فيديو YouTube - افتحه في المشغل الداخلي
+    if (resource.external_url && isYouTubeUrl(resource.external_url)) {
+      router.push({
+        pathname: '/video-player/[id]',
+        params: { 
+          id: resource.id,
+          url: resource.external_url,
+          title: resource.title
+        }
+      } as any);
+      return;
+    }
+    
+    // إذا كان هناك رابط خارجي آخر (ليس يوتيوب)
     if (resource.external_url) {
       try {
         await Linking.openURL(resource.external_url);
