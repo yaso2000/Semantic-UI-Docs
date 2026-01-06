@@ -1306,6 +1306,134 @@ async def get_my_habits(start_date: str, end_date: str, current_user: dict = Dep
     }).to_list(1000)
     return habits
 
+# ==================== GOALS SYSTEM ====================
+
+@api_router.post("/goals/create")
+async def create_goal(goal_data: GoalCreate, current_user: dict = Depends(get_current_user)):
+    """إنشاء هدف جديد"""
+    goal_id = str(uuid.uuid4())
+    goal_dict = {
+        "_id": goal_id,
+        "user_id": current_user["_id"],
+        "title": goal_data.title,
+        "description": goal_data.description,
+        "pillar": goal_data.pillar,
+        "target_date": goal_data.target_date,
+        "steps": [step.dict() for step in goal_data.steps],
+        "status": "active",
+        "progress": 0,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    await db.goals.insert_one(goal_dict)
+    return {"message": "تم إنشاء الهدف بنجاح", "goal_id": goal_id}
+
+@api_router.get("/goals/my-goals")
+async def get_my_goals(current_user: dict = Depends(get_current_user)):
+    """جلب جميع أهداف المستخدم"""
+    goals = await db.goals.find({"user_id": current_user["_id"]}).sort("created_at", -1).to_list(100)
+    for goal in goals:
+        goal["id"] = goal.pop("_id")
+        # Calculate progress
+        if goal.get("steps"):
+            completed = sum(1 for s in goal["steps"] if s.get("completed"))
+            goal["progress"] = int((completed / len(goal["steps"])) * 100)
+        else:
+            goal["progress"] = 0
+    return goals
+
+@api_router.get("/goals/{goal_id}")
+async def get_goal(goal_id: str, current_user: dict = Depends(get_current_user)):
+    """جلب تفاصيل هدف معين"""
+    goal = await db.goals.find_one({"_id": goal_id, "user_id": current_user["_id"]})
+    if not goal:
+        raise HTTPException(status_code=404, detail="الهدف غير موجود")
+    goal["id"] = goal.pop("_id")
+    return goal
+
+@api_router.put("/goals/{goal_id}")
+async def update_goal(goal_id: str, goal_data: GoalUpdate, current_user: dict = Depends(get_current_user)):
+    """تحديث هدف"""
+    goal = await db.goals.find_one({"_id": goal_id, "user_id": current_user["_id"]})
+    if not goal:
+        raise HTTPException(status_code=404, detail="الهدف غير موجود")
+    
+    update_dict = {"updated_at": datetime.utcnow()}
+    if goal_data.title is not None:
+        update_dict["title"] = goal_data.title
+    if goal_data.description is not None:
+        update_dict["description"] = goal_data.description
+    if goal_data.pillar is not None:
+        update_dict["pillar"] = goal_data.pillar
+    if goal_data.target_date is not None:
+        update_dict["target_date"] = goal_data.target_date
+    if goal_data.status is not None:
+        update_dict["status"] = goal_data.status
+    if goal_data.steps is not None:
+        update_dict["steps"] = [step.dict() for step in goal_data.steps]
+    
+    await db.goals.update_one({"_id": goal_id}, {"$set": update_dict})
+    return {"message": "تم تحديث الهدف بنجاح"}
+
+@api_router.put("/goals/{goal_id}/step/{step_id}")
+async def toggle_goal_step(goal_id: str, step_id: str, current_user: dict = Depends(get_current_user)):
+    """تبديل حالة خطوة في الهدف"""
+    goal = await db.goals.find_one({"_id": goal_id, "user_id": current_user["_id"]})
+    if not goal:
+        raise HTTPException(status_code=404, detail="الهدف غير موجود")
+    
+    steps = goal.get("steps", [])
+    for step in steps:
+        if step.get("id") == step_id:
+            step["completed"] = not step.get("completed", False)
+            step["completed_at"] = datetime.utcnow() if step["completed"] else None
+            break
+    
+    # Calculate progress
+    completed = sum(1 for s in steps if s.get("completed"))
+    progress = int((completed / len(steps)) * 100) if steps else 0
+    
+    # Check if all steps completed
+    status = "completed" if progress == 100 else "active"
+    
+    await db.goals.update_one(
+        {"_id": goal_id}, 
+        {"$set": {"steps": steps, "progress": progress, "status": status, "updated_at": datetime.utcnow()}}
+    )
+    return {"message": "تم تحديث الخطوة", "progress": progress, "status": status}
+
+@api_router.delete("/goals/{goal_id}")
+async def delete_goal(goal_id: str, current_user: dict = Depends(get_current_user)):
+    """حذف هدف"""
+    result = await db.goals.delete_one({"_id": goal_id, "user_id": current_user["_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="الهدف غير موجود")
+    return {"message": "تم حذف الهدف"}
+
+@api_router.get("/goals/stats/summary")
+async def get_goals_stats(current_user: dict = Depends(get_current_user)):
+    """إحصائيات الأهداف"""
+    goals = await db.goals.find({"user_id": current_user["_id"]}).to_list(1000)
+    
+    total = len(goals)
+    active = sum(1 for g in goals if g.get("status") == "active")
+    completed = sum(1 for g in goals if g.get("status") == "completed")
+    
+    by_pillar = {}
+    for pillar in ["physical", "mental", "social", "spiritual"]:
+        pillar_goals = [g for g in goals if g.get("pillar") == pillar]
+        by_pillar[pillar] = {
+            "total": len(pillar_goals),
+            "completed": sum(1 for g in pillar_goals if g.get("status") == "completed")
+        }
+    
+    return {
+        "total": total,
+        "active": active,
+        "completed": completed,
+        "by_pillar": by_pillar
+    }
+
 # ==================== ADMIN ENDPOINTS ====================
 
 @api_router.get("/admin/users")
