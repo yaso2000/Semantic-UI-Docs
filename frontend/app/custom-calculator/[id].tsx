@@ -296,6 +296,106 @@ export default function CustomCalculatorScreen() {
     true;
   `;
 
+  // Script to add save button - works for both Web and Mobile
+  const saveButtonScript = `
+    <script>
+      (function() {
+        // دالة لإرسال النتيجة
+        window.saveResultToApp = function(resultValue, resultText, inputs) {
+          try {
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'SAVE_RESULT',
+                resultValue: resultValue,
+                resultText: resultText,
+                inputs: inputs || {}
+              }));
+            } else {
+              // For web - post message to parent
+              window.parent.postMessage({
+                type: 'SAVE_RESULT',
+                resultValue: resultValue,
+                resultText: resultText,
+                inputs: inputs || {}
+              }, '*');
+            }
+          } catch(e) {
+            console.error('Save error:', e);
+          }
+        };
+        
+        // إضافة زر الحفظ للنتائج
+        function addSaveButton() {
+          const selectors = ['#result', '.result', '.result-box', '[class*="result"]'];
+          
+          let resultElement = null;
+          for (const selector of selectors) {
+            const el = document.querySelector(selector);
+            if (el && el.offsetParent !== null && getComputedStyle(el).display !== 'none') {
+              resultElement = el;
+              break;
+            }
+          }
+          
+          if (!resultElement) return;
+          if (document.querySelector('.app-save-btn')) return;
+          
+          let targetContainer = resultElement;
+          if (resultElement.classList.contains('result-value') || resultElement.id === 'vo2-value') {
+            targetContainer = resultElement.closest('.result-box') || resultElement.parentElement || resultElement;
+          }
+          
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'app-save-btn';
+          saveBtn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
+          saveBtn.style.cssText = 'margin-top:20px;width:100%;padding:14px;background:linear-gradient(135deg, #2A7B7B, #1D5A5A);color:white;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;font-family:Cairo,Alexandria,sans-serif;box-shadow:0 4px 15px rgba(42,123,123,0.3);transition:all 0.3s;';
+          
+          saveBtn.onclick = function() {
+            const valueEl = document.querySelector('#vo2-value, .result-value, .result-number');
+            const ratingEl = document.querySelector('#vo2-rating, .result-rating, .result-label');
+            
+            const value = valueEl ? valueEl.textContent.trim() : targetContainer.textContent.substring(0, 50).trim();
+            const text = ratingEl ? ratingEl.textContent.trim() : 'نتيجة الحاسبة';
+            
+            const inputs = {};
+            document.querySelectorAll('input, select').forEach(function(input) {
+              if (input.id || input.name) {
+                inputs[input.id || input.name] = input.value;
+              }
+            });
+            
+            window.saveResultToApp(value, text, inputs);
+            
+            saveBtn.innerHTML = '✅ تم إرسال النتيجة للتطبيق!';
+            saveBtn.style.background = 'linear-gradient(135deg, #00B894, #00A884)';
+            setTimeout(function() {
+              saveBtn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
+              saveBtn.style.background = 'linear-gradient(135deg, #2A7B7B, #1D5A5A)';
+            }, 2500);
+          };
+          
+          targetContainer.appendChild(saveBtn);
+        }
+        
+        const observer = new MutationObserver(function(mutations) {
+          const resultEl = document.querySelector('#result, .result-box');
+          if (resultEl && getComputedStyle(resultEl).display !== 'none') {
+            setTimeout(addSaveButton, 100);
+          }
+        });
+        
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+        
+        setInterval(function() {
+          const resultEl = document.querySelector('#result, .result-box');
+          if (resultEl && getComputedStyle(resultEl).display !== 'none') {
+            addSaveButton();
+          }
+        }, 1000);
+      })();
+    </script>
+  `;
+
   // Inject fonts and RTL support with save functionality
   const htmlWithStyles = `
     <!DOCTYPE html>
@@ -307,12 +407,13 @@ export default function CustomCalculatorScreen() {
       <style>
         * { font-family: 'Alexandria', sans-serif !important; }
         body { margin: 0; padding: 0; }
-        .app-save-btn:hover { opacity: 0.9; }
+        .app-save-btn:hover { opacity: 0.9; transform: translateY(-2px); }
         .app-save-btn:active { transform: scale(0.98); }
       </style>
     </head>
     <body>
       ${calculator.html_content}
+      ${saveButtonScript}
     </body>
     </html>
   `;
