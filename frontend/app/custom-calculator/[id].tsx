@@ -478,11 +478,7 @@ export default function CustomCalculatorScreen() {
             
             this.innerHTML = '✅ تم إرسال النتيجة!';
             this.style.background = 'linear-gradient(135deg, #00B894 0%, #00A884 100%)';
-            var btn = this;
-            setTimeout(function() {
-              btn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
-              btn.style.background = 'linear-gradient(135deg, #2A7B7B 0%, #1D5A5A 100%)';
-            }, 2500);
+            // لا نعيد الزر لحالته الأصلية - يبقى أخضر حتى يتم حساب نتيجة جديدة
           };
           
           resultEl.appendChild(saveBtn);
@@ -492,6 +488,7 @@ export default function CustomCalculatorScreen() {
         
         // مراقب للتغييرات
         var observer = new MutationObserver(function() {
+          resetSaveState(); // إعادة تعيين حالة الحفظ عند تغيير النتيجة
           addSaveButton();
         });
         
@@ -503,7 +500,10 @@ export default function CustomCalculatorScreen() {
         });
         
         // فحص دوري كل ثانية
-        setInterval(addSaveButton, 1000);
+        setInterval(function() {
+          resetSaveState();
+          addSaveButton();
+        }, 1000);
         
         // محاولة أولية
         setTimeout(addSaveButton, 500);
