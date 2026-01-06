@@ -268,7 +268,12 @@ export default function ResourcesScreen() {
                   </View>
                   <Text style={styles.resourceDesc} numberOfLines={2}>{resource.description}</Text>
                   <View style={styles.resourceMeta}>
-                    {resource.external_url ? (
+                    {resource.external_url && isYouTubeUrl(resource.external_url) ? (
+                      <View style={styles.videoBadge}>
+                        <Ionicons name="play-circle" size={14} color={COLORS.teal} />
+                        <Text style={styles.videoText}>يُعرض داخل التطبيق</Text>
+                      </View>
+                    ) : resource.external_url ? (
                       <View style={styles.externalBadge}>
                         <Ionicons name="open-outline" size={14} color={COLORS.info} />
                         <Text style={styles.externalText}>رابط خارجي</Text>
