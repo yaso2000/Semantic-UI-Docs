@@ -92,7 +92,7 @@ export default function CustomCalculatorScreen() {
     }
   };
 
-  // معالجة الرسائل من WebView
+  // معالجة الرسائل من WebView (للموبايل)
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
@@ -104,9 +104,86 @@ export default function CustomCalculatorScreen() {
           resultText: data.resultText,
           inputs: data.inputs || {}
         });
+        // حفظ النتيجة مباشرة
+        saveResultDirectly(data.resultValue, data.resultText, data.inputs || {});
       }
     } catch (err) {
       console.error('Error parsing WebView message:', err);
+    }
+  };
+
+  // معالجة الرسائل من iframe (للويب)
+  useEffect(() => {
+    const handleIframeMessage = (event: MessageEvent) => {
+      try {
+        if (event.data && event.data.type === 'SAVE_RESULT') {
+          console.log('Received save result from iframe:', event.data);
+          setLastResult({
+            resultValue: event.data.resultValue,
+            resultText: event.data.resultText,
+            inputs: event.data.inputs || {}
+          });
+          // حفظ النتيجة مباشرة
+          saveResultDirectly(event.data.resultValue, event.data.resultText, event.data.inputs || {});
+        }
+      } catch (err) {
+        console.error('Error handling iframe message:', err);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      window.addEventListener('message', handleIframeMessage);
+      return () => window.removeEventListener('message', handleIframeMessage);
+    }
+  }, [calculator, hasSubscription]);
+
+  // حفظ النتيجة مباشرة بدون انتظار زر الهيدر
+  const saveResultDirectly = async (resultValue: string, resultText: string, inputs: any) => {
+    if (!calculator) return;
+    
+    if (!hasSubscription) {
+      Alert.alert(
+        'ميزة المشتركين',
+        'هذه الميزة متاحة للمشتركين فقط. قم بحجز باقة للاستفادة من حفظ النتائج.',
+        [
+          { text: 'إلغاء', style: 'cancel' },
+          { text: 'عرض الباقات', onPress: () => router.push('/(tabs)/bookings' as any) }
+        ]
+      );
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      
+      const response = await fetch(`${API_URL}/api/user-results/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          calculator_name: calculator.title,
+          calculator_type: `custom_${calculator.id}`,
+          pillar: categoryToPillar(calculator.category),
+          inputs: inputs,
+          result_value: resultValue,
+          result_text: resultText
+        })
+      });
+
+      if (response.ok) {
+        Alert.alert('✅ تم الحفظ', 'تم حفظ النتيجة في ملفك الشخصي بنجاح!');
+      } else {
+        const errorData = await response.json();
+        Alert.alert('خطأ', errorData.detail || 'فشل في حفظ النتيجة');
+      }
+    } catch (err) {
+      console.error('Error saving result:', err);
+      Alert.alert('خطأ', 'حدث خطأ في الاتصال');
+    } finally {
+      setSaving(false);
     }
   };
 
