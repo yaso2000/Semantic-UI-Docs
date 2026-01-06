@@ -413,7 +413,7 @@ export default function MyProfileScreen() {
         </ScrollView>
 
         {/* Results List */}
-        {!hasSubscription && !profileData?.saved_results?.length ? (
+        {!hasSubscription && !isAdminOrCoach && !profileData?.saved_results?.length ? (
           <View style={styles.emptyState}>
             <Ionicons name="lock-closed" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyTitle}>حفظ النتائج للمشتركين فقط</Text>
