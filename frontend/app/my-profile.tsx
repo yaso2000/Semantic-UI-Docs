@@ -345,10 +345,10 @@ export default function MyProfileScreen() {
           </View>
           <Text style={styles.userName}>{profileData?.full_name}</Text>
           <Text style={styles.userEmail}>{profileData?.email}</Text>
-          {hasSubscription ? (
+          {hasSubscription || isAdminOrCoach ? (
             <View style={styles.subscribedBadge}>
               <Ionicons name="checkmark-circle" size={16} color={COLORS.teal} />
-              <Text style={styles.subscribedText}>مشترك</Text>
+              <Text style={styles.subscribedText}>{isAdminOrCoach ? 'مسؤول' : 'مشترك'}</Text>
             </View>
           ) : (
             <View style={styles.freeBadge}>
