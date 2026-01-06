@@ -2711,8 +2711,10 @@ async def get_resources(category: Optional[str] = None, active_only: bool = True
     # تنسيق البيانات للعرض
     result = []
     for r in resources:
+        # توليد ID إذا لم يكن موجوداً
+        resource_id = r.get("_id") or r.get("id") or str(uuid.uuid4())
         result.append({
-            "id": r["_id"],
+            "id": str(resource_id),
             "title": r.get("title", ""),
             "description": r.get("description", ""),
             "category": r.get("category", ""),
