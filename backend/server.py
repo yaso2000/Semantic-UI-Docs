@@ -155,6 +155,29 @@ class Message(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     read: bool = False
 
+# ==================== Goals Models ====================
+
+class GoalStep(BaseModel):
+    id: str
+    title: str
+    completed: bool = False
+    completed_at: Optional[datetime] = None
+
+class GoalCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    pillar: str  # physical, mental, social, spiritual
+    target_date: Optional[datetime] = None
+    steps: List[GoalStep] = []
+
+class GoalUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    pillar: Optional[str] = None
+    target_date: Optional[datetime] = None
+    status: Optional[str] = None  # active, completed, cancelled
+    steps: Optional[List[GoalStep]] = None
+
 # ==================== Google Auth Models ====================
 
 class GoogleSessionRequest(BaseModel):
