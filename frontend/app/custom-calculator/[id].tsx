@@ -187,58 +187,6 @@ export default function CustomCalculatorScreen() {
     }
   };
 
-  // حفظ النتيجة
-  const saveResult = async () => {
-    if (!calculator || !lastResult) {
-      Alert.alert('تنبيه', 'لا توجد نتيجة لحفظها. قم بحساب النتيجة أولاً.');
-      return;
-    }
-
-    if (!hasSubscription) {
-      Alert.alert(
-        'ميزة المشتركين',
-        'هذه الميزة متاحة للمشتركين فقط. قم بحجز باقة للاستفادة من حفظ النتائج.',
-        [
-          { text: 'إلغاء', style: 'cancel' },
-          { text: 'عرض الباقات', onPress: () => router.push('/(tabs)/bookings' as any) }
-        ]
-      );
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const token = await AsyncStorage.getItem('token');
-      
-      const response = await fetch(`${API_URL}/api/user-results/save`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          calculator_name: calculator.title,
-          calculator_type: `custom_${calculator.id}`,
-          pillar: categoryToPillar(calculator.category),
-          inputs: lastResult.inputs,
-          result_value: lastResult.resultValue,
-          result_text: lastResult.resultText
-        })
-      });
-
-      if (response.ok) {
-        Alert.alert('تم الحفظ', 'تم حفظ النتيجة في ملفك الشخصي بنجاح ✓');
-      } else {
-        const errorData = await response.json();
-        Alert.alert('خطأ', errorData.detail || 'فشل في حفظ النتيجة');
-      }
-    } catch (err) {
-      Alert.alert('خطأ', 'حدث خطأ في الاتصال');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
