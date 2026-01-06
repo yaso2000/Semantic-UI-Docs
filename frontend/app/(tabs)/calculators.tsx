@@ -177,7 +177,7 @@ export default function CalculatorsScreen() {
                 </View>
               </View>
               <View style={styles.pillarBadge}>
-                <Text style={[styles.pillarBadgeText, { color: pillar.color }]}>{pillar.tools.length}</Text>
+                <Text style={[styles.pillarBadgeText, { color: pillar.color }]}>{getPillarTools(pillar.id, pillar.staticTools).length}</Text>
                 <Ionicons
                   name={expandedPillar === pillar.id ? 'chevron-up' : 'chevron-down'}
                   size={20}
@@ -188,10 +188,10 @@ export default function CalculatorsScreen() {
 
             {expandedPillar === pillar.id && (
               <View style={styles.toolsGrid}>
-                {pillar.tools.map((tool) => (
+                {getPillarTools(pillar.id, pillar.staticTools).map((tool) => (
                   <TouchableOpacity
                     key={tool.id}
-                    style={styles.toolCard}
+                    style={[styles.toolCard, tool.isCustom && styles.customToolCard]}
                     onPress={() => router.push(tool.route as any)}
                   >
                     <View style={[styles.toolIconBg, { backgroundColor: `${pillar.color}20` }]}>
@@ -199,6 +199,11 @@ export default function CalculatorsScreen() {
                     </View>
                     <Text style={styles.toolTitle}>{tool.title}</Text>
                     <Text style={styles.toolSubtitle}>{tool.subtitle}</Text>
+                    {tool.isCustom && (
+                      <View style={[styles.customBadge, { backgroundColor: pillar.color }]}>
+                        <Text style={styles.customBadgeText}>جديد</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
