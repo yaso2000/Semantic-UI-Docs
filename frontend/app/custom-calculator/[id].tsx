@@ -48,6 +48,7 @@ export default function CustomCalculatorScreen() {
   const [saving, setSaving] = useState(false);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [lastResult, setLastResult] = useState<any>(null);
+  const [resultSaved, setResultSaved] = useState(false); // تتبع حالة الحفظ
   const router = useRouter();
   const webViewRef = useRef<WebView>(null);
 
