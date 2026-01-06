@@ -206,49 +206,92 @@ export default function CustomCalculatorScreen() {
         }));
       };
       
-      // إضافة زر الحفظ تلقائياً للنتائج
+      // إضافة زر الحفظ للنتائج
       function addSaveButton() {
-        const resultElements = document.querySelectorAll('.result, #result, [class*="result"]');
-        resultElements.forEach(function(el) {
-          if (!el.querySelector('.app-save-btn')) {
-            // إنشاء زر الحفظ
-            const saveBtn = document.createElement('button');
-            saveBtn.className = 'app-save-btn';
-            saveBtn.innerHTML = '💾 حفظ النتيجة';
-            saveBtn.style.cssText = 'margin-top:15px;width:100%;padding:12px;background:#2A7B7B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;font-family:Alexandria,sans-serif;';
-            saveBtn.onclick = function() {
-              // استخراج النتيجة من العنصر
-              const resultNumber = el.querySelector('.result-number, [class*="result-number"], [class*="value"]');
-              const resultLabel = el.querySelector('.result-label, [class*="label"], [class*="category"]');
-              
-              const value = resultNumber ? resultNumber.textContent : el.textContent.substring(0, 50);
-              const text = resultLabel ? resultLabel.textContent : 'نتيجة الحاسبة';
-              
-              window.saveToApp(value, text, {});
-              
-              // تغيير شكل الزر للتأكيد
-              saveBtn.innerHTML = '✓ تم إرسال النتيجة';
-              saveBtn.style.background = '#00B894';
-              setTimeout(function() {
-                saveBtn.innerHTML = '💾 حفظ النتيجة';
-                saveBtn.style.background = '#2A7B7B';
-              }, 2000);
-            };
-            el.appendChild(saveBtn);
+        // البحث عن عناصر النتيجة المختلفة
+        const selectors = [
+          '#result',
+          '.result',
+          '.result-box',
+          '[class*="result"]',
+          '#vo2-value',
+          '.result-value'
+        ];
+        
+        let resultElement = null;
+        for (const selector of selectors) {
+          const el = document.querySelector(selector);
+          if (el && el.offsetParent !== null) { // التأكد من أن العنصر مرئي
+            resultElement = el;
+            break;
           }
-        });
+        }
+        
+        if (!resultElement) return;
+        
+        // التحقق من وجود زر الحفظ مسبقاً
+        if (document.querySelector('.app-save-btn')) return;
+        
+        // البحث عن أفضل مكان لإضافة الزر
+        let targetContainer = resultElement;
+        if (resultElement.classList.contains('result-value') || resultElement.id === 'vo2-value') {
+          targetContainer = resultElement.closest('.result-box') || resultElement.parentElement || resultElement;
+        }
+        
+        // إنشاء زر الحفظ
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'app-save-btn';
+        saveBtn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
+        saveBtn.style.cssText = 'margin-top:20px;width:100%;padding:14px;background:linear-gradient(135deg, #2A7B7B, #1D5A5A);color:white;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;font-family:Cairo,Alexandria,sans-serif;box-shadow:0 4px 15px rgba(42,123,123,0.3);';
+        
+        saveBtn.onclick = function() {
+          // استخراج النتيجة
+          const valueEl = document.querySelector('#vo2-value, .result-value, .result-number');
+          const ratingEl = document.querySelector('#vo2-rating, .result-rating, .result-label');
+          
+          const value = valueEl ? valueEl.textContent.trim() : targetContainer.textContent.substring(0, 50).trim();
+          const text = ratingEl ? ratingEl.textContent.trim() : 'نتيجة الحاسبة';
+          
+          // جمع المدخلات إن وجدت
+          const inputs = {};
+          document.querySelectorAll('input, select').forEach(function(input) {
+            if (input.id || input.name) {
+              inputs[input.id || input.name] = input.value;
+            }
+          });
+          
+          window.saveToApp(value, text, inputs);
+          
+          // تغيير شكل الزر للتأكيد
+          saveBtn.innerHTML = '✅ تم إرسال النتيجة للتطبيق!';
+          saveBtn.style.background = 'linear-gradient(135deg, #00B894, #00A884)';
+          setTimeout(function() {
+            saveBtn.innerHTML = '💾 حفظ النتيجة في ملفي الشخصي';
+            saveBtn.style.background = 'linear-gradient(135deg, #2A7B7B, #1D5A5A)';
+          }, 2500);
+        };
+        
+        targetContainer.appendChild(saveBtn);
       }
       
       // مراقبة التغييرات في DOM لإضافة زر الحفظ عند ظهور النتيجة
       const observer = new MutationObserver(function(mutations) {
-        addSaveButton();
+        // التحقق من أن النتيجة أصبحت مرئية
+        const resultEl = document.querySelector('#result, .result-box');
+        if (resultEl && resultEl.style.display !== 'none' && resultEl.offsetParent !== null) {
+          setTimeout(addSaveButton, 100);
+        }
       });
       
-      observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
       
-      // محاولة إضافة الزر مباشرة
-      setTimeout(addSaveButton, 1000);
-      setTimeout(addSaveButton, 3000);
+      // محاولة إضافة الزر بشكل دوري
+      setInterval(function() {
+        const resultEl = document.querySelector('#result, .result-box');
+        if (resultEl && resultEl.style.display !== 'none' && resultEl.offsetParent !== null) {
+          addSaveButton();
+        }
+      }, 1000);
     })();
     true;
   `;
