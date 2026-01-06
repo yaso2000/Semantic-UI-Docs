@@ -299,9 +299,9 @@ export default function ResourcesScreen() {
                 </View>
                 {hasLink(resource) && (
                   <Ionicons 
-                    name={resource.external_url ? "open-outline" : "chevron-back"} 
+                    name={resource.external_url && isYouTubeUrl(resource.external_url) ? "play-circle" : resource.external_url ? "open-outline" : "chevron-back"} 
                     size={20} 
-                    color={COLORS.textMuted} 
+                    color={resource.external_url && isYouTubeUrl(resource.external_url) ? COLORS.teal : COLORS.textMuted} 
                   />
                 )}
               </TouchableOpacity>
