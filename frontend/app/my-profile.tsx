@@ -56,6 +56,7 @@ export default function MyProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedPillar, setSelectedPillar] = useState<string | null>(null);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const [isAdminOrCoach, setIsAdminOrCoach] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   
@@ -68,7 +69,20 @@ export default function MyProfileScreen() {
   useEffect(() => {
     loadProfileData();
     checkSubscription();
+    checkUserRole();
   }, []);
+
+  const checkUserRole = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsAdminOrCoach(user.role === 'admin' || user.role === 'coach');
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error);
+    }
+  };
 
   const checkSubscription = async () => {
     try {
