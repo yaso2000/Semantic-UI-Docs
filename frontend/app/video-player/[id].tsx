@@ -65,21 +65,31 @@ export default function VideoPlayerScreen() {
   });
 
   useEffect(() => {
+    console.log('Video player params:', { id, url, paramTitle });
+    
     if (url) {
-      // إذا تم تمرير الرابط مباشرة
+      // إذا تم تمرير الرابط مباشرة - فك تشفير الـ URL
+      const decodedUrl = decodeURIComponent(url as string);
+      const decodedTitle = paramTitle ? decodeURIComponent(paramTitle as string) : 'فيديو';
+      
+      console.log('Decoded URL:', decodedUrl);
+      
       setResource({
         id: id as string || 'direct',
-        title: (paramTitle as string) || 'فيديو',
+        title: decodedTitle,
         description: '',
         category: '',
         content_type: 'video',
-        external_url: url as string,
+        external_url: decodedUrl,
         icon: 'videocam',
       });
       setLoading(false);
     } else if (id) {
       // جلب المورد من API
       loadResource();
+    } else {
+      setError('لم يتم تحديد الفيديو');
+      setLoading(false);
     }
   }, [id, url]);
 
