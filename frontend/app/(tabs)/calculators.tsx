@@ -78,6 +78,8 @@ const pillars = [
 export default function CalculatorsScreen() {
   const router = useRouter();
   const [expandedPillar, setExpandedPillar] = useState<string | null>(null);
+  const [customCalculators, setCustomCalculators] = useState<CustomCalculator[]>([]);
+  const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
   
   const [fontsLoaded] = useFonts({
@@ -85,6 +87,66 @@ export default function CalculatorsScreen() {
     Alexandria_600SemiBold,
     Alexandria_700Bold,
   });
+
+  // جلب الحاسبات المخصصة من API
+  useEffect(() => {
+    loadCustomCalculators();
+  }, []);
+
+  const loadCustomCalculators = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/custom-calculators`);
+      if (response.ok) {
+        const data = await response.json();
+        setCustomCalculators(data.filter((c: CustomCalculator) => c.is_active));
+      }
+    } catch (error) {
+      console.error('Error loading custom calculators:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // تحويل الحاسبات المخصصة إلى أدوات
+  const getCustomToolsByCategory = (category: string): Tool[] => {
+    const categoryMapping: { [key: string]: string } = {
+      'physical': 'physical',
+      'nutritional': 'nutrition',
+      'mental': 'mental',
+      'spiritual': 'spiritual',
+    };
+    
+    return customCalculators
+      .filter(calc => {
+        // physical category في الحاسبات المخصصة تطابق physical في الركائز
+        // nutritional تطابق nutrition
+        if (category === 'nutrition') {
+          return calc.category === 'nutritional';
+        }
+        return calc.category === category;
+      })
+      .map(calc => ({
+        id: `custom-${calc.id}`,
+        title: calc.title,
+        subtitle: calc.description || 'حاسبة مخصصة',
+        icon: calc.icon || 'calculator',
+        route: `/custom-calculator/${calc.id}`,
+        isCustom: true,
+      }));
+  };
+
+  // دمج الأدوات الثابتة مع المخصصة
+  const getPillarTools = (pillarId: string, staticTools: Tool[]): Tool[] => {
+    const customTools = getCustomToolsByCategory(pillarId);
+    return [...staticTools, ...customTools];
+  };
+
+  const pillars = [
+    { id: 'physical', title: 'اللياقة البدنية', subtitle: 'Physical Fitness', icon: 'barbell', color: COLORS.teal, staticTools: physicalTools },
+    { id: 'nutrition', title: 'الصحة التغذوية', subtitle: 'Nutritional Health', icon: 'nutrition', color: COLORS.sage, staticTools: nutritionTools },
+    { id: 'mental', title: 'الصحة النفسية', subtitle: 'Mental Wellness', icon: 'happy', color: COLORS.gold, staticTools: mentalTools },
+    { id: 'spiritual', title: 'الرفاهية الروحية', subtitle: 'Spiritual Well-being', icon: 'sparkles', color: COLORS.spiritual, staticTools: spiritualTools },
+  ];
 
   if (!fontsLoaded) {
     return null;
