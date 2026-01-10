@@ -222,6 +222,53 @@ export default function AdminSelfTrainingPackages() {
     );
   }
 
+  // شاشة تسجيل الدخول المطلوب
+  if (needsLogin) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.teal} />
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>إدارة باقات التدريب الذاتي</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.loginRequired}>
+          <Ionicons name="lock-closed" size={64} color={COLORS.teal} />
+          <Text style={styles.loginTitle}>تسجيل الدخول مطلوب</Text>
+          <Text style={styles.loginSubtitle}>يرجى تسجيل الدخول كأدمن للوصول لهذه الصفحة</Text>
+          <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/login' as any)}>
+            <Text style={styles.loginBtnText}>تسجيل الدخول</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // شاشة الخطأ
+  if (error) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.teal} />
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>إدارة باقات التدريب الذاتي</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.loginRequired}>
+          <Ionicons name="alert-circle" size={64} color={COLORS.error} />
+          <Text style={styles.loginTitle}>{error}</Text>
+          <TouchableOpacity style={styles.loginBtn} onPress={loadData}>
+            <Text style={styles.loginBtnText}>إعادة المحاولة</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.teal} />
