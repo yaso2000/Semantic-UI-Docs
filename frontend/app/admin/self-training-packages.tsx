@@ -513,6 +513,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.background,
   },
+  loginRequired: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  loginTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    marginTop: SPACING.md,
+    textAlign: 'center',
+  },
+  loginSubtitle: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.sm,
+    textAlign: 'center',
+  },
+  loginBtn: {
+    backgroundColor: COLORS.teal,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginTop: SPACING.lg,
+  },
+  loginBtnText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
 
   header: {
     flexDirection: 'row',
