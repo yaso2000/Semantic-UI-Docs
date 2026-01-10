@@ -558,13 +558,12 @@ const styles = StyleSheet.create({
   },
   packagesRow: {
     flexDirection: 'row',
-    flexWrap: 'nowrap',
-    justifyContent: 'center',
-    gap: SPACING.xs,
-    paddingHorizontal: SPACING.xs,
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
   packageCard: {
-    width: (width - 40) / 3,
+    width: 140,
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.md,
     padding: SPACING.sm,
@@ -572,7 +571,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.border,
     position: 'relative',
-    minHeight: 160,
+    minHeight: 180,
     ...SHADOWS.sm,
   },
   packageCardSelected: {
