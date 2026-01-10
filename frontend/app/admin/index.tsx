@@ -168,6 +168,28 @@ export default function AdminDashboard() {
           </TouchableOpacity>
         </View>
 
+        {/* قسم التدريب الذاتي */}
+        <View style={styles.menuSection}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="rocket" size={20} color="#9C27B0" />
+            <Text style={[styles.sectionTitle, { color: '#9C27B0' }]}>التدريب الذاتي</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/admin/self-training-packages' as any)}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#F3E5F5' }]}>
+              <Ionicons name="cube" size={22} color="#9C27B0" />
+            </View>
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>باقات التدريب الذاتي</Text>
+              <Text style={styles.menuSubtitle}>إدارة باقات الاشتراك والأسعار</Text>
+            </View>
+            <Ionicons name="chevron-back" size={20} color="#999" />
+          </TouchableOpacity>
+        </View>
+
         {/* قسم إدارة المدربين */}
         <View style={styles.menuSection}>
           <View style={styles.sectionHeader}>
