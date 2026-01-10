@@ -41,6 +41,8 @@ export default function AdminSelfTrainingPackages() {
   const [packages, setPackages] = useState<SelfTrainingPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
   
   // Modal states
   const [modalVisible, setModalVisible] = useState(false);
@@ -64,12 +66,12 @@ export default function AdminSelfTrainingPackages() {
 
   const loadData = async () => {
     try {
+      setError(null);
+      setNeedsLogin(false);
       const token = await AsyncStorage.getItem('token');
       
       if (!token) {
-        Alert.alert('خطأ', 'يرجى تسجيل الدخول أولاً', [
-          { text: 'تسجيل الدخول', onPress: () => router.push('/login' as any) }
-        ]);
+        setNeedsLogin(true);
         setLoading(false);
         return;
       }
@@ -83,10 +85,11 @@ export default function AdminSelfTrainingPackages() {
         const packagesData = await packagesRes.json();
         setPackages(packagesData);
       } else if (packagesRes.status === 401 || packagesRes.status === 403) {
-        Alert.alert('خطأ في الصلاحيات', 'ليس لديك صلاحية للوصول لهذه الصفحة', [
-          { text: 'رجوع', onPress: () => router.back() }
-        ]);
+        setNeedsLogin(true);
+        setLoading(false);
         return;
+      } else {
+        setError('فشل في جلب الباقات');
       }
       
       // جلب الإحصائيات
@@ -100,7 +103,7 @@ export default function AdminSelfTrainingPackages() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      Alert.alert('خطأ', 'حدث خطأ في جلب البيانات');
+      setError('حدث خطأ في الاتصال');
     } finally {
       setLoading(false);
     }
