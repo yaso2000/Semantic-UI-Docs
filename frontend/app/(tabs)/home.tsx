@@ -164,7 +164,15 @@ function ClientHome({ user, router }: { user: any; router: any }) {
           </View>
           <Text style={styles.toolText}>أهدافي</Text>
         </TouchableOpacity>
-        <View style={[styles.toolCard, { opacity: 0 }]} />
+        <TouchableOpacity 
+          style={styles.toolCard}
+          onPress={() => router.push('/self-training' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: '#F3E5F5' }]}>
+            <Ionicons name="rocket" size={22} color="#9C27B0" />
+          </View>
+          <Text style={styles.toolText}>التدريب الذاتي</Text>
+        </TouchableOpacity>
       </View>
 
       {/* زر حجز جلسة */}
