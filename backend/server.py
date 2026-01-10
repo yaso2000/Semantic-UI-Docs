@@ -3084,6 +3084,662 @@ async def get_all_custom_calculators_admin(admin: dict = Depends(get_admin_user)
     
     return result
 
+# ==================== SELF TRAINING SYSTEM ENDPOINTS ====================
+
+# --- إدارة باقات التدريب الذاتي (للأدمن) ---
+
+@api_router.get("/admin/self-training/packages")
+async def get_self_training_packages_admin(admin: dict = Depends(get_admin_user)):
+    """جلب جميع باقات التدريب الذاتي للأدمن"""
+    packages = await db.self_training_packages.find({}).sort("duration_months", 1).to_list(100)
+    
+    result = []
+    for pkg in packages:
+        price = pkg.get("price", 0)
+        duration = pkg.get("duration_months", 1)
+        price_per_month = price / duration if duration > 0 else price
+        
+        result.append({
+            "id": pkg["_id"],
+            "name": pkg.get("name", ""),
+            "description": pkg.get("description", ""),
+            "duration_months": duration,
+            "price": price,
+            "price_per_month": round(price_per_month, 2),
+            "discount_percentage": pkg.get("discount_percentage", 0),
+            "features": pkg.get("features", []),
+            "is_active": pkg.get("is_active", True),
+            "is_popular": pkg.get("is_popular", False),
+            "created_at": pkg.get("created_at"),
+            "subscribers_count": await db.self_training_subscriptions.count_documents({"package_id": pkg["_id"]})
+        })
+    
+    return result
+
+@api_router.post("/admin/self-training/packages")
+async def create_self_training_package(package: SelfTrainingPackageCreate, admin: dict = Depends(get_admin_user)):
+    """إنشاء باقة تدريب ذاتي جديدة"""
+    package_id = str(uuid.uuid4())
+    
+    # حساب السعر الشهري ونسبة الخصم
+    price_per_month = package.price / package.duration_months if package.duration_months > 0 else package.price
+    
+    # حساب نسبة الخصم مقارنة بالباقة الشهرية
+    monthly_package = await db.self_training_packages.find_one({"duration_months": 1, "is_active": True})
+    discount_percentage = 0
+    if monthly_package and package.duration_months > 1:
+        monthly_price = monthly_package.get("price", 0)
+        if monthly_price > 0:
+            expected_price = monthly_price * package.duration_months
+            if expected_price > package.price:
+                discount_percentage = round(((expected_price - package.price) / expected_price) * 100, 1)
+    
+    package_dict = {
+        "_id": package_id,
+        "name": package.name,
+        "description": package.description,
+        "duration_months": package.duration_months,
+        "price": package.price,
+        "price_per_month": round(price_per_month, 2),
+        "discount_percentage": discount_percentage,
+        "features": package.features,
+        "is_active": package.is_active,
+        "is_popular": package.is_popular,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.self_training_packages.insert_one(package_dict)
+    
+    return {"message": "تم إنشاء الباقة بنجاح", "id": package_id}
+
+@api_router.put("/admin/self-training/packages/{package_id}")
+async def update_self_training_package(package_id: str, package: SelfTrainingPackageUpdate, admin: dict = Depends(get_admin_user)):
+    """تحديث باقة تدريب ذاتي"""
+    existing = await db.self_training_packages.find_one({"_id": package_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="الباقة غير موجودة")
+    
+    update_data = {k: v for k, v in package.dict().items() if v is not None}
+    
+    # إعادة حساب السعر الشهري إذا تغير السعر أو المدة
+    if "price" in update_data or "duration_months" in update_data:
+        price = update_data.get("price", existing.get("price", 0))
+        duration = update_data.get("duration_months", existing.get("duration_months", 1))
+        update_data["price_per_month"] = round(price / duration if duration > 0 else price, 2)
+    
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.self_training_packages.update_one(
+        {"_id": package_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "تم تحديث الباقة بنجاح"}
+
+@api_router.delete("/admin/self-training/packages/{package_id}")
+async def delete_self_training_package(package_id: str, admin: dict = Depends(get_admin_user)):
+    """حذف باقة تدريب ذاتي"""
+    # التحقق من عدم وجود اشتراكات نشطة
+    active_subs = await db.self_training_subscriptions.count_documents({
+        "package_id": package_id,
+        "status": "active"
+    })
+    
+    if active_subs > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"لا يمكن حذف الباقة - يوجد {active_subs} اشتراك نشط"
+        )
+    
+    result = await db.self_training_packages.delete_one({"_id": package_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="الباقة غير موجودة")
+    
+    return {"message": "تم حذف الباقة بنجاح"}
+
+# --- عرض الباقات للمستخدمين ---
+
+@api_router.get("/self-training/packages")
+async def get_self_training_packages():
+    """جلب باقات التدريب الذاتي النشطة للمستخدمين"""
+    packages = await db.self_training_packages.find({"is_active": True}).sort("duration_months", 1).to_list(100)
+    
+    result = []
+    for pkg in packages:
+        result.append({
+            "id": pkg["_id"],
+            "name": pkg.get("name", ""),
+            "description": pkg.get("description", ""),
+            "duration_months": pkg.get("duration_months", 1),
+            "price": pkg.get("price", 0),
+            "price_per_month": pkg.get("price_per_month", 0),
+            "discount_percentage": pkg.get("discount_percentage", 0),
+            "features": pkg.get("features", []),
+            "is_popular": pkg.get("is_popular", False),
+        })
+    
+    return result
+
+# --- إدارة الاشتراكات ---
+
+@api_router.get("/self-training/my-subscription")
+async def get_my_self_training_subscription(current_user: dict = Depends(get_current_user)):
+    """جلب اشتراك المستخدم الحالي في التدريب الذاتي"""
+    subscription = await db.self_training_subscriptions.find_one({
+        "user_id": current_user["_id"],
+        "status": "active"
+    })
+    
+    if not subscription:
+        return {"has_subscription": False}
+    
+    return {
+        "has_subscription": True,
+        "subscription": {
+            "id": subscription["_id"],
+            "package_name": subscription.get("package_name", ""),
+            "start_date": subscription.get("start_date"),
+            "end_date": subscription.get("end_date"),
+            "status": subscription.get("status"),
+            "days_remaining": (subscription.get("end_date") - datetime.utcnow()).days if subscription.get("end_date") else 0
+        }
+    }
+
+@api_router.post("/self-training/subscribe/{package_id}")
+async def subscribe_to_self_training(package_id: str, current_user: dict = Depends(get_current_user)):
+    """الاشتراك في باقة تدريب ذاتي"""
+    # التحقق من الباقة
+    package = await db.self_training_packages.find_one({"_id": package_id, "is_active": True})
+    if not package:
+        raise HTTPException(status_code=404, detail="الباقة غير موجودة")
+    
+    # التحقق من عدم وجود اشتراك نشط
+    existing = await db.self_training_subscriptions.find_one({
+        "user_id": current_user["_id"],
+        "status": "active"
+    })
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="لديك اشتراك نشط بالفعل")
+    
+    # إنشاء الاشتراك
+    subscription_id = str(uuid.uuid4())
+    start_date = datetime.utcnow()
+    end_date = start_date + timedelta(days=package.get("duration_months", 1) * 30)
+    
+    subscription_dict = {
+        "_id": subscription_id,
+        "user_id": current_user["_id"],
+        "package_id": package_id,
+        "package_name": package.get("name", ""),
+        "start_date": start_date,
+        "end_date": end_date,
+        "status": "pending",  # سيتغير إلى active بعد الدفع
+        "payment_status": "pending",
+        "amount_paid": package.get("price", 0),
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.self_training_subscriptions.insert_one(subscription_dict)
+    
+    return {
+        "message": "تم إنشاء الاشتراك - في انتظار الدفع",
+        "subscription_id": subscription_id,
+        "amount": package.get("price", 0)
+    }
+
+@api_router.post("/self-training/confirm-payment/{subscription_id}")
+async def confirm_self_training_payment(subscription_id: str, current_user: dict = Depends(get_current_user)):
+    """تأكيد الدفع وتفعيل الاشتراك"""
+    subscription = await db.self_training_subscriptions.find_one({
+        "_id": subscription_id,
+        "user_id": current_user["_id"]
+    })
+    
+    if not subscription:
+        raise HTTPException(status_code=404, detail="الاشتراك غير موجود")
+    
+    # تحديث الاشتراك
+    await db.self_training_subscriptions.update_one(
+        {"_id": subscription_id},
+        {"$set": {
+            "status": "active",
+            "payment_status": "paid",
+            "start_date": datetime.utcnow(),
+            "end_date": datetime.utcnow() + timedelta(days=30 * (await db.self_training_packages.find_one({"_id": subscription.get("package_id")})).get("duration_months", 1))
+        }}
+    )
+    
+    return {"message": "تم تفعيل الاشتراك بنجاح", "subscription_id": subscription_id}
+
+# --- التقييم الذاتي ---
+
+@api_router.post("/self-training/assessment")
+async def save_self_assessment(assessment_data: Dict[str, Any], current_user: dict = Depends(get_current_user)):
+    """حفظ/تحديث التقييم الذاتي"""
+    # التحقق من وجود اشتراك نشط
+    subscription = await db.self_training_subscriptions.find_one({
+        "user_id": current_user["_id"],
+        "status": "active"
+    })
+    
+    if not subscription:
+        raise HTTPException(status_code=403, detail="يجب الاشتراك أولاً للوصول للتقييم")
+    
+    # البحث عن تقييم موجود أو إنشاء جديد
+    existing_assessment = await db.self_assessments.find_one({
+        "user_id": current_user["_id"],
+        "subscription_id": subscription["_id"]
+    })
+    
+    # حساب BMI و TDEE تلقائياً
+    height_m = assessment_data.get("height_cm", 170) / 100
+    weight = assessment_data.get("weight_kg", 70)
+    age = assessment_data.get("age", 30)
+    gender = assessment_data.get("gender", "male")
+    activity_level = assessment_data.get("activity_level", "moderate")
+    
+    # BMI
+    bmi = round(weight / (height_m ** 2), 1) if height_m > 0 else 0
+    bmi_category = "طبيعي"
+    if bmi < 18.5:
+        bmi_category = "نقص الوزن"
+    elif bmi < 25:
+        bmi_category = "طبيعي"
+    elif bmi < 30:
+        bmi_category = "زيادة الوزن"
+    else:
+        bmi_category = "سمنة"
+    
+    # BMR (Mifflin-St Jeor)
+    if gender == "male":
+        bmr = 10 * weight + 6.25 * (height_m * 100) - 5 * age + 5
+    else:
+        bmr = 10 * weight + 6.25 * (height_m * 100) - 5 * age - 161
+    
+    # TDEE
+    activity_multipliers = {
+        "sedentary": 1.2,
+        "light": 1.375,
+        "moderate": 1.55,
+        "active": 1.725,
+        "very_active": 1.9
+    }
+    tdee = round(bmr * activity_multipliers.get(activity_level, 1.55))
+    
+    # تقدير نسبة الدهون (الصيغة البسيطة)
+    if gender == "male":
+        body_fat_estimate = round(1.20 * bmi + 0.23 * age - 16.2, 1)
+    else:
+        body_fat_estimate = round(1.20 * bmi + 0.23 * age - 5.4, 1)
+    
+    assessment_dict = {
+        "user_id": current_user["_id"],
+        "subscription_id": subscription["_id"],
+        **assessment_data,
+        "bmi": bmi,
+        "bmi_category": bmi_category,
+        "bmr": round(bmr),
+        "tdee": tdee,
+        "body_fat_estimate": body_fat_estimate,
+        "updated_at": datetime.utcnow()
+    }
+    
+    if existing_assessment:
+        await db.self_assessments.update_one(
+            {"_id": existing_assessment["_id"]},
+            {"$set": assessment_dict}
+        )
+        assessment_id = existing_assessment["_id"]
+    else:
+        assessment_id = str(uuid.uuid4())
+        assessment_dict["_id"] = assessment_id
+        assessment_dict["created_at"] = datetime.utcnow()
+        await db.self_assessments.insert_one(assessment_dict)
+    
+    return {
+        "message": "تم حفظ التقييم بنجاح",
+        "assessment_id": assessment_id,
+        "calculated_values": {
+            "bmi": bmi,
+            "bmi_category": bmi_category,
+            "bmr": round(bmr),
+            "tdee": tdee,
+            "body_fat_estimate": body_fat_estimate
+        }
+    }
+
+@api_router.get("/self-training/assessment")
+async def get_self_assessment(current_user: dict = Depends(get_current_user)):
+    """جلب التقييم الذاتي الحالي"""
+    subscription = await db.self_training_subscriptions.find_one({
+        "user_id": current_user["_id"],
+        "status": "active"
+    })
+    
+    if not subscription:
+        return {"has_assessment": False, "reason": "no_subscription"}
+    
+    assessment = await db.self_assessments.find_one({
+        "user_id": current_user["_id"],
+        "subscription_id": subscription["_id"]
+    })
+    
+    if not assessment:
+        return {"has_assessment": False, "reason": "not_started"}
+    
+    # إزالة الـ _id الداخلي
+    assessment["id"] = assessment.pop("_id")
+    
+    return {"has_assessment": True, "assessment": assessment}
+
+@api_router.post("/self-training/complete-assessment")
+async def complete_assessment(current_user: dict = Depends(get_current_user)):
+    """إتمام التقييم وتوليد الخطة"""
+    subscription = await db.self_training_subscriptions.find_one({
+        "user_id": current_user["_id"],
+        "status": "active"
+    })
+    
+    if not subscription:
+        raise HTTPException(status_code=403, detail="يجب الاشتراك أولاً")
+    
+    assessment = await db.self_assessments.find_one({
+        "user_id": current_user["_id"],
+        "subscription_id": subscription["_id"]
+    })
+    
+    if not assessment:
+        raise HTTPException(status_code=400, detail="يجب إكمال التقييم أولاً")
+    
+    # تعليم التقييم كمكتمل
+    await db.self_assessments.update_one(
+        {"_id": assessment["_id"]},
+        {"$set": {"is_complete": True, "completed_at": datetime.utcnow()}}
+    )
+    
+    # توليد الخطة (سيتم تحسينها لاحقاً مع AI)
+    plan_id = str(uuid.uuid4())
+    
+    # خطة تمارين أساسية بناءً على الهدف والمستوى
+    workout_plan = generate_workout_plan(assessment)
+    nutrition_plan = generate_nutrition_plan(assessment)
+    
+    plan_dict = {
+        "_id": plan_id,
+        "user_id": current_user["_id"],
+        "subscription_id": subscription["_id"],
+        "assessment_id": assessment["_id"],
+        "plan_summary": f"خطة مخصصة لـ {assessment.get('primary_goal', 'تحسين اللياقة')}",
+        "goals_summary": f"الهدف: {assessment.get('primary_goal', '')} | المستوى: {assessment.get('fitness_level', '')}",
+        "workout_plan": workout_plan,
+        "nutrition_plan": nutrition_plan,
+        "tips": generate_tips(assessment),
+        "progress_tracking_guide": "تتبع وزنك أسبوعياً، سجل تمارينك، التقط صور للتقدم شهرياً",
+        "pdf_generated": False,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.generated_plans.insert_one(plan_dict)
+    
+    return {
+        "message": "تم إتمام التقييم وتوليد الخطة",
+        "plan_id": plan_id
+    }
+
+@api_router.get("/self-training/my-plan")
+async def get_my_plan(current_user: dict = Depends(get_current_user)):
+    """جلب الخطة المولدة للمستخدم"""
+    subscription = await db.self_training_subscriptions.find_one({
+        "user_id": current_user["_id"],
+        "status": "active"
+    })
+    
+    if not subscription:
+        return {"has_plan": False, "reason": "no_subscription"}
+    
+    plan = await db.generated_plans.find_one({
+        "user_id": current_user["_id"],
+        "subscription_id": subscription["_id"]
+    })
+    
+    if not plan:
+        return {"has_plan": False, "reason": "not_generated"}
+    
+    plan["id"] = plan.pop("_id")
+    
+    return {"has_plan": True, "plan": plan}
+
+# --- دوال مساعدة لتوليد الخطط ---
+
+def generate_workout_plan(assessment: dict) -> dict:
+    """توليد خطة تمارين بناءً على التقييم"""
+    goal = assessment.get("primary_goal", "improve_fitness")
+    level = assessment.get("fitness_level", "beginner")
+    days = assessment.get("workout_days_per_week", 3)
+    location = assessment.get("workout_location", "home")
+    equipment = assessment.get("available_equipment", ["bodyweight"])
+    
+    # قوالب التمارين الأساسية
+    workout_templates = {
+        "weight_loss": {
+            "focus": "حرق الدهون",
+            "cardio_ratio": 0.6,
+            "strength_ratio": 0.4,
+            "rest_days": 2
+        },
+        "muscle_gain": {
+            "focus": "بناء العضلات",
+            "cardio_ratio": 0.2,
+            "strength_ratio": 0.8,
+            "rest_days": 2
+        },
+        "maintain": {
+            "focus": "الحفاظ على اللياقة",
+            "cardio_ratio": 0.4,
+            "strength_ratio": 0.6,
+            "rest_days": 2
+        },
+        "improve_fitness": {
+            "focus": "تحسين اللياقة العامة",
+            "cardio_ratio": 0.5,
+            "strength_ratio": 0.5,
+            "rest_days": 2
+        }
+    }
+    
+    template = workout_templates.get(goal, workout_templates["improve_fitness"])
+    
+    # تمارين حسب الموقع والمعدات
+    exercises = {
+        "cardio": ["المشي السريع", "الجري", "نط الحبل", "الدراجة", "السباحة"],
+        "upper_body": ["تمارين الضغط", "تمارين العضلة ذات الرأسين", "تمارين الكتف", "تمارين الظهر"],
+        "lower_body": ["السكوات", "الطعنات", "تمارين الفخذ", "تمارين السمانة"],
+        "core": ["البلانك", "تمارين البطن", "تمارين الجانبين", "السوبرمان"],
+        "flexibility": ["تمارين الإطالة", "اليوغا", "التمدد الديناميكي"]
+    }
+    
+    # بناء الجدول الأسبوعي
+    week_plan = {}
+    workout_days = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]
+    
+    for i, day in enumerate(workout_days):
+        if i < days:
+            if i % 2 == 0:
+                week_plan[day] = {
+                    "type": "تمارين القوة + كارديو",
+                    "duration": f"{assessment.get('workout_duration_minutes', 45)} دقيقة",
+                    "exercises": [
+                        {"name": "إحماء", "duration": "5 دقائق"},
+                        {"name": exercises["cardio"][0], "duration": "15 دقيقة", "intensity": "متوسطة"},
+                        {"name": exercises["upper_body"][0], "sets": 3, "reps": "12-15"},
+                        {"name": exercises["core"][0], "sets": 3, "duration": "30 ثانية"},
+                        {"name": "تهدئة وإطالة", "duration": "5 دقائق"}
+                    ]
+                }
+            else:
+                week_plan[day] = {
+                    "type": "تمارين الجزء السفلي",
+                    "duration": f"{assessment.get('workout_duration_minutes', 45)} دقيقة",
+                    "exercises": [
+                        {"name": "إحماء", "duration": "5 دقائق"},
+                        {"name": exercises["lower_body"][0], "sets": 3, "reps": "15"},
+                        {"name": exercises["lower_body"][1], "sets": 3, "reps": "12 لكل رجل"},
+                        {"name": exercises["core"][1], "sets": 3, "reps": "20"},
+                        {"name": "تهدئة وإطالة", "duration": "5 دقائق"}
+                    ]
+                }
+        else:
+            week_plan[day] = {"type": "راحة", "activities": ["المشي الخفيف", "الإطالة", "اليوغا"]}
+    
+    return {
+        "goal_focus": template["focus"],
+        "weekly_schedule": week_plan,
+        "recommendations": [
+            "ابدأ بشدة منخفضة وزد تدريجياً",
+            "اشرب الماء قبل وأثناء وبعد التمرين",
+            "احصل على نوم كافٍ (7-8 ساعات)",
+            "استمع لجسمك وخذ راحة إذا شعرت بألم"
+        ]
+    }
+
+def generate_nutrition_plan(assessment: dict) -> dict:
+    """توليد خطة تغذية بناءً على التقييم"""
+    tdee = assessment.get("tdee", 2000)
+    goal = assessment.get("primary_goal", "maintain")
+    dietary_pref = assessment.get("dietary_preference", "regular")
+    meals_per_day = assessment.get("meals_per_day", 3)
+    
+    # تعديل السعرات حسب الهدف
+    calorie_adjustments = {
+        "weight_loss": -500,  # عجز 500 سعرة
+        "muscle_gain": 300,   # فائض 300 سعرة
+        "maintain": 0,
+        "improve_fitness": 0
+    }
+    
+    target_calories = tdee + calorie_adjustments.get(goal, 0)
+    
+    # حساب المغذيات الكبرى
+    if goal == "muscle_gain":
+        protein_ratio = 0.30
+        carb_ratio = 0.45
+        fat_ratio = 0.25
+    elif goal == "weight_loss":
+        protein_ratio = 0.35
+        carb_ratio = 0.35
+        fat_ratio = 0.30
+    else:
+        protein_ratio = 0.25
+        carb_ratio = 0.50
+        fat_ratio = 0.25
+    
+    protein_grams = round((target_calories * protein_ratio) / 4)
+    carb_grams = round((target_calories * carb_ratio) / 4)
+    fat_grams = round((target_calories * fat_ratio) / 9)
+    
+    # نماذج وجبات
+    meal_examples = {
+        "breakfast": [
+            "شوفان مع فواكه وعسل",
+            "بيض مخفوق مع خبز حبوب كاملة",
+            "زبادي يوناني مع مكسرات"
+        ],
+        "lunch": [
+            "صدر دجاج مشوي مع أرز وخضار",
+            "سلطة تونة مع خضار متنوعة",
+            "ستيك لحم مع بطاطا مشوية"
+        ],
+        "dinner": [
+            "سمك مشوي مع سلطة",
+            "شوربة عدس مع خبز",
+            "دجاج مع معكرونة حبوب كاملة"
+        ],
+        "snacks": [
+            "فواكه طازجة",
+            "مكسرات غير مملحة",
+            "زبادي قليل الدسم",
+            "خضار مع حمص"
+        ]
+    }
+    
+    return {
+        "daily_calories": target_calories,
+        "macros": {
+            "protein": {"grams": protein_grams, "calories": protein_grams * 4},
+            "carbs": {"grams": carb_grams, "calories": carb_grams * 4},
+            "fat": {"grams": fat_grams, "calories": fat_grams * 9}
+        },
+        "meals_per_day": meals_per_day,
+        "meal_examples": meal_examples,
+        "water_intake": f"{round(assessment.get('weight_kg', 70) * 0.033, 1)} لتر يومياً",
+        "recommendations": [
+            "تناول الطعام ببطء ومضغه جيداً",
+            "تجنب الأطعمة المصنعة والمعالجة",
+            "اشرب الماء قبل كل وجبة",
+            "لا تتخطى وجبة الإفطار",
+            "حضّر وجباتك مسبقاً للأسبوع"
+        ]
+    }
+
+def generate_tips(assessment: dict) -> list:
+    """توليد نصائح مخصصة"""
+    tips = [
+        "الاستمرارية أهم من الكمال - التزم بالخطة حتى لو بنسبة 80%",
+        "تتبع تقدمك أسبوعياً ولا تركز على التغييرات اليومية",
+        "النوم الجيد أساسي للتعافي وبناء العضلات"
+    ]
+    
+    goal = assessment.get("primary_goal", "")
+    
+    if goal == "weight_loss":
+        tips.extend([
+            "ركز على العجز الحراري المعتدل - لا تجوّع نفسك",
+            "الكارديو مهم لكن لا تهمل تمارين المقاومة",
+            "الصبر مفتاح النجاح - خسارة 0.5-1 كجم أسبوعياً صحية"
+        ])
+    elif goal == "muscle_gain":
+        tips.extend([
+            "البروتين ضروري - وزعه على مدار اليوم",
+            "الراحة والنوم أساسيان لبناء العضلات",
+            "زد الأوزان تدريجياً كل أسبوعين"
+        ])
+    
+    return tips
+
+# --- إحصائيات الأدمن ---
+
+@api_router.get("/admin/self-training/stats")
+async def get_self_training_stats(admin: dict = Depends(get_admin_user)):
+    """إحصائيات نظام التدريب الذاتي"""
+    total_packages = await db.self_training_packages.count_documents({})
+    active_packages = await db.self_training_packages.count_documents({"is_active": True})
+    
+    total_subscriptions = await db.self_training_subscriptions.count_documents({})
+    active_subscriptions = await db.self_training_subscriptions.count_documents({"status": "active"})
+    
+    total_assessments = await db.self_assessments.count_documents({})
+    completed_assessments = await db.self_assessments.count_documents({"is_complete": True})
+    
+    total_plans = await db.generated_plans.count_documents({})
+    
+    # الإيرادات
+    pipeline = [
+        {"$match": {"payment_status": "paid"}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount_paid"}}}
+    ]
+    revenue_result = await db.self_training_subscriptions.aggregate(pipeline).to_list(1)
+    total_revenue = revenue_result[0]["total"] if revenue_result else 0
+    
+    return {
+        "packages": {"total": total_packages, "active": active_packages},
+        "subscriptions": {"total": total_subscriptions, "active": active_subscriptions},
+        "assessments": {"total": total_assessments, "completed": completed_assessments},
+        "plans_generated": total_plans,
+        "total_revenue": total_revenue
+    }
+
 # Include router
 app.include_router(api_router)
 
