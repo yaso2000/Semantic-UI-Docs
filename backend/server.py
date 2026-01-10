@@ -279,6 +279,148 @@ class CustomCalculatorUpdate(BaseModel):
     html_content: Optional[str] = None
     is_active: Optional[bool] = None
 
+# ==================== SELF TRAINING SYSTEM ====================
+
+class SelfTrainingPackage(BaseModel):
+    """باقة التدريب الذاتي"""
+    id: Optional[str] = None
+    name: str  # اسم الباقة (شهري، 3 شهور، سنوي)
+    description: str
+    duration_months: int  # مدة الباقة بالأشهر
+    price: float  # السعر الإجمالي
+    price_per_month: float  # السعر الشهري (للمقارنة)
+    discount_percentage: float = 0  # نسبة الخصم
+    features: List[str] = []  # مميزات الباقة
+    is_active: bool = True
+    is_popular: bool = False  # لتمييز الباقة الأكثر شعبية
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class SelfTrainingPackageCreate(BaseModel):
+    name: str
+    description: str
+    duration_months: int
+    price: float
+    features: List[str] = []
+    is_active: bool = True
+    is_popular: bool = False
+
+class SelfTrainingPackageUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    duration_months: Optional[int] = None
+    price: Optional[float] = None
+    features: Optional[List[str]] = None
+    is_active: Optional[bool] = None
+    is_popular: Optional[bool] = None
+
+class SelfTrainingSubscription(BaseModel):
+    """اشتراك المستخدم في التدريب الذاتي"""
+    id: Optional[str] = None
+    user_id: str
+    package_id: str
+    package_name: str
+    start_date: datetime
+    end_date: datetime
+    status: str = "active"  # active, expired, cancelled
+    payment_status: str = "pending"  # pending, paid, failed
+    payment_id: Optional[str] = None
+    amount_paid: float = 0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class SelfAssessment(BaseModel):
+    """تقييم المستخدم الذاتي"""
+    id: Optional[str] = None
+    user_id: str
+    subscription_id: str
+    
+    # البيانات الأساسية (إجبارية)
+    age: int
+    gender: str  # male, female
+    height_cm: float
+    weight_kg: float
+    
+    # الأهداف
+    primary_goal: str  # weight_loss, muscle_gain, maintain, improve_fitness
+    target_weight: Optional[float] = None
+    timeline_months: int = 3  # المدة المتوقعة لتحقيق الهدف
+    
+    # مستوى النشاط واللياقة
+    activity_level: str  # sedentary, light, moderate, active, very_active
+    fitness_level: str  # beginner, intermediate, advanced
+    workout_days_per_week: int = 3
+    workout_duration_minutes: int = 45
+    preferred_workout_time: str = "morning"  # morning, afternoon, evening
+    
+    # المعدات المتاحة
+    available_equipment: List[str] = []  # home, gym, bodyweight, dumbbells, etc.
+    workout_location: str = "home"  # home, gym, outdoor
+    
+    # التغذية
+    dietary_preference: str = "regular"  # regular, vegetarian, vegan, keto, etc.
+    food_allergies: List[str] = []
+    meals_per_day: int = 3
+    
+    # الصحة
+    health_conditions: List[str] = []  # أي مشاكل صحية
+    injuries: List[str] = []  # إصابات سابقة
+    
+    # نتائج الحاسبات المدمجة
+    bmi: Optional[float] = None
+    bmi_category: Optional[str] = None
+    tdee: Optional[float] = None
+    bmr: Optional[float] = None
+    body_fat_estimate: Optional[float] = None
+    
+    # الاختبارات الاختيارية
+    optional_tests_completed: bool = False
+    pushup_test: Optional[int] = None
+    plank_test_seconds: Optional[int] = None
+    flexibility_test: Optional[str] = None
+    cardio_test: Optional[str] = None
+    
+    # قياسات الجسم (اختيارية)
+    waist_cm: Optional[float] = None
+    hip_cm: Optional[float] = None
+    chest_cm: Optional[float] = None
+    arm_cm: Optional[float] = None
+    thigh_cm: Optional[float] = None
+    
+    # الحالة
+    is_complete: bool = False
+    completed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class GeneratedPlan(BaseModel):
+    """الخطة المولدة للمستخدم"""
+    id: Optional[str] = None
+    user_id: str
+    subscription_id: str
+    assessment_id: str
+    
+    # ملخص الخطة
+    plan_summary: str
+    goals_summary: str
+    
+    # خطة التمارين
+    workout_plan: Dict[str, Any]  # جدول أسبوعي كامل
+    
+    # خطة التغذية
+    nutrition_plan: Dict[str, Any]  # السعرات، المغذيات، الوجبات
+    
+    # نصائح وإرشادات
+    tips: List[str] = []
+    progress_tracking_guide: str = ""
+    
+    # ملف PDF
+    pdf_url: Optional[str] = None
+    pdf_generated: bool = False
+    
+    # الحالة
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
 class HabitTracker(BaseModel):
     user_id: str
     date: str  # YYYY-MM-DD
