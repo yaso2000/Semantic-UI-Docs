@@ -256,7 +256,11 @@ export default function SelfTrainingScreen() {
               </View>
             ) : (
               <>
-                <View style={styles.packagesRow}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.packagesRow}
+                >
                   {packages.map((pkg) => (
                     <TouchableOpacity
                       key={pkg.id}
@@ -275,7 +279,7 @@ export default function SelfTrainingScreen() {
                       
                       {pkg.discount_percentage > 0 && (
                         <View style={styles.discountBadge}>
-                          <Text style={styles.discountText}>خصم {pkg.discount_percentage}%</Text>
+                          <Text style={styles.discountText}>خصم {Math.round(pkg.discount_percentage)}%</Text>
                         </View>
                       )}
                       
@@ -288,7 +292,7 @@ export default function SelfTrainingScreen() {
                       </View>
                       
                       <Text style={styles.packageMonthly}>
-                        {pkg.price_per_month} ر.س/شهر
+                        {Math.round(pkg.price_per_month)} ر.س/شهر
                       </Text>
                       
                       {selectedPackage === pkg.id && (
@@ -298,7 +302,7 @@ export default function SelfTrainingScreen() {
                       )}
                     </TouchableOpacity>
                   ))}
-                </View>
+                </ScrollView>
 
                 {/* Selected Package Features */}
                 {selectedPackage && (
