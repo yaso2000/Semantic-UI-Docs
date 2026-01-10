@@ -66,6 +66,14 @@ export default function AdminSelfTrainingPackages() {
     try {
       const token = await AsyncStorage.getItem('token');
       
+      if (!token) {
+        Alert.alert('خطأ', 'يرجى تسجيل الدخول أولاً', [
+          { text: 'تسجيل الدخول', onPress: () => router.push('/login' as any) }
+        ]);
+        setLoading(false);
+        return;
+      }
+      
       // جلب الباقات
       const packagesRes = await fetch(`${API_URL}/api/admin/self-training/packages`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -74,6 +82,11 @@ export default function AdminSelfTrainingPackages() {
       if (packagesRes.ok) {
         const packagesData = await packagesRes.json();
         setPackages(packagesData);
+      } else if (packagesRes.status === 401 || packagesRes.status === 403) {
+        Alert.alert('خطأ في الصلاحيات', 'ليس لديك صلاحية للوصول لهذه الصفحة', [
+          { text: 'رجوع', onPress: () => router.back() }
+        ]);
+        return;
       }
       
       // جلب الإحصائيات
@@ -87,6 +100,7 @@ export default function AdminSelfTrainingPackages() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
+      Alert.alert('خطأ', 'حدث خطأ في جلب البيانات');
     } finally {
       setLoading(false);
     }
