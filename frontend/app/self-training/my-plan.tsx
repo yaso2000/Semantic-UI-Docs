@@ -309,38 +309,52 @@ export default function MyPlanScreen() {
             {/* Focus Card */}
             <View style={styles.focusCard}>
               <Ionicons name="flame" size={24} color="#FF9800" />
-              <Text style={styles.focusText}>التركيز: {plan?.workout_plan?.focus || 'تحسين اللياقة'}</Text>
+              <Text style={styles.focusText}>التركيز: {plan?.workout_plan?.goal_focus || plan?.workout_plan?.focus || 'تحسين اللياقة'}</Text>
             </View>
 
             {/* Weekly Schedule */}
             <Text style={styles.sectionTitle}>الجدول الأسبوعي</Text>
-            {plan?.workout_plan?.weekly_schedule?.map((day: any, idx: number) => (
-              <View key={idx} style={styles.dayCard}>
-                <View style={styles.dayHeader}>
-                  <View style={styles.dayNumber}>
-                    <Text style={styles.dayNumberText}>{idx + 1}</Text>
+            {plan?.workout_plan?.weekly_schedule && Object.keys(plan.workout_plan.weekly_schedule).length > 0 ? (
+              Object.entries(plan.workout_plan.weekly_schedule).map(([dayName, dayData]: [string, any], idx: number) => (
+                <View key={idx} style={styles.dayCard}>
+                  <View style={styles.dayHeader}>
+                    <View style={styles.dayNumber}>
+                      <Text style={styles.dayNumberText}>{idx + 1}</Text>
+                    </View>
+                    <View style={styles.dayInfo}>
+                      <Text style={styles.dayTitle}>{dayName}</Text>
+                      <Text style={styles.dayType}>{dayData?.type || 'تمارين عامة'}</Text>
+                    </View>
+                    {dayData?.duration && (
+                      <View style={styles.dayDuration}>
+                        <Ionicons name="time-outline" size={16} color={COLORS.textMuted} />
+                        <Text style={styles.dayDurationText}>{dayData.duration}</Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={styles.dayInfo}>
-                    <Text style={styles.dayTitle}>{day.day || `اليوم ${idx + 1}`}</Text>
-                    <Text style={styles.dayType}>{day.type || 'تمارين عامة'}</Text>
-                  </View>
-                  <View style={styles.dayDuration}>
-                    <Ionicons name="time-outline" size={16} color={COLORS.textMuted} />
-                    <Text style={styles.dayDurationText}>{day.duration || 45} د</Text>
-                  </View>
-                </View>
 
-                {day.exercises?.map((exercise: any, exIdx: number) => (
-                  <View key={exIdx} style={styles.exerciseItem}>
-                    <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-                    <Text style={styles.exerciseName}>{exercise.name}</Text>
-                    <Text style={styles.exerciseReps}>
-                      {exercise.sets || 3}×{exercise.reps || 12}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )) || (
+                  {dayData?.exercises?.map((exercise: any, exIdx: number) => (
+                    <View key={exIdx} style={styles.exerciseItem}>
+                      <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                      <Text style={styles.exerciseName}>{exercise.name}</Text>
+                      {exercise.sets && exercise.reps ? (
+                        <Text style={styles.exerciseReps}>
+                          {exercise.sets}×{exercise.reps}
+                        </Text>
+                      ) : exercise.duration ? (
+                        <Text style={styles.exerciseReps}>{exercise.duration}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                  
+                  {dayData?.activities && (
+                    <View style={styles.restActivities}>
+                      <Text style={styles.restText}>أنشطة مقترحة: {dayData.activities.join('، ')}</Text>
+                    </View>
+                  )}
+                </View>
+              ))
+            ) : (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>لم يتم توليد جدول التمارين بعد</Text>
               </View>
