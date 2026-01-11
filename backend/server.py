@@ -3972,8 +3972,7 @@ async def complete_assessment(current_user: dict = Depends(get_current_user)):
     subscription = await db.user_subscriptions.find_one({
         "user_id": current_user["_id"],
         "category": "self_training",
-        "status": "active",
-        "payment_status": "paid"
+        "status": "active"
     })
     
     # إذا لم يوجد، البحث في النظام القديم
@@ -3985,6 +3984,21 @@ async def complete_assessment(current_user: dict = Depends(get_current_user)):
     
     if not subscription:
         raise HTTPException(status_code=403, detail="يجب الاشتراك أولاً")
+    
+    # البحث عن التقييم
+    assessment = await db.self_assessments.find_one({
+        "user_id": current_user["_id"],
+        "subscription_id": subscription["_id"]
+    })
+    
+    # إذا لم يوجد تقييم مرتبط بالاشتراك، ابحث عن أي تقييم للمستخدم
+    if not assessment:
+        assessment = await db.self_assessments.find_one({
+            "user_id": current_user["_id"]
+        }, sort=[("created_at", -1)])
+    
+    if not assessment:
+        raise HTTPException(status_code=400, detail="يجب إكمال التقييم أولاً")
     
     assessment = await db.self_assessments.find_one({
         "user_id": current_user["_id"],
