@@ -3193,6 +3193,398 @@ async def get_all_custom_calculators_admin(admin: dict = Depends(get_admin_user)
     
     return result
 
+# ==================== UNIFIED PACKAGES SYSTEM ENDPOINTS ====================
+
+# --- إدارة الباقات الموحدة (للأدمن) ---
+
+@api_router.get("/admin/packages/all")
+async def get_all_packages_admin(admin: dict = Depends(get_admin_user), category: Optional[str] = None):
+    """جلب جميع الباقات للأدمن مع إمكانية الفلترة حسب الفئة"""
+    query = {}
+    if category:
+        query["category"] = category
+    
+    packages = await db.unified_packages.find(query).sort("display_order", 1).to_list(100)
+    
+    result = []
+    for pkg in packages:
+        result.append({
+            "id": pkg["_id"],
+            "name": pkg.get("name", ""),
+            "description": pkg.get("description", ""),
+            "price": pkg.get("price", 0),
+            "category": pkg.get("category", ""),
+            "is_active": pkg.get("is_active", True),
+            
+            # حقول الحصص الخاصة
+            "sessions_count": pkg.get("sessions_count"),
+            "validity_days": pkg.get("validity_days"),
+            "includes_self_training": pkg.get("includes_self_training", False),
+            
+            # حقول التدريب الذاتي
+            "subscription_type": pkg.get("subscription_type"),
+            "duration_months": pkg.get("duration_months"),
+            "auto_renewal": pkg.get("auto_renewal", False),
+            
+            # حقول إضافية
+            "features": pkg.get("features", []),
+            "discount_percentage": pkg.get("discount_percentage", 0),
+            "is_popular": pkg.get("is_popular", False),
+            "display_order": pkg.get("display_order", 0),
+            
+            "created_at": pkg.get("created_at"),
+            "updated_at": pkg.get("updated_at"),
+        })
+    
+    return result
+
+
+@api_router.post("/admin/packages/create")
+async def create_unified_package(package: UnifiedPackageCreate, admin: dict = Depends(get_admin_user)):
+    """إنشاء باقة جديدة"""
+    # التحقق من الفئة
+    if package.category not in ["private_sessions", "self_training"]:
+        raise HTTPException(status_code=400, detail="فئة الباقة غير صالحة")
+    
+    # التحقق من الحقول المطلوبة حسب الفئة
+    if package.category == "private_sessions":
+        if not package.sessions_count or package.sessions_count <= 0:
+            raise HTTPException(status_code=400, detail="يجب تحديد عدد الحصص")
+    else:  # self_training
+        if not package.subscription_type:
+            raise HTTPException(status_code=400, detail="يجب تحديد نوع الاشتراك")
+        if not package.duration_months or package.duration_months <= 0:
+            raise HTTPException(status_code=400, detail="يجب تحديد مدة الاشتراك")
+    
+    package_id = str(uuid.uuid4())
+    now = datetime.utcnow()
+    
+    package_dict = {
+        "_id": package_id,
+        "name": package.name,
+        "description": package.description,
+        "price": package.price,
+        "category": package.category,
+        "is_active": package.is_active,
+        
+        "sessions_count": package.sessions_count,
+        "validity_days": package.validity_days,
+        "includes_self_training": package.includes_self_training,
+        
+        "subscription_type": package.subscription_type,
+        "duration_months": package.duration_months,
+        "auto_renewal": package.auto_renewal,
+        
+        "features": package.features,
+        "discount_percentage": package.discount_percentage,
+        "is_popular": package.is_popular,
+        "display_order": package.display_order,
+        
+        "created_at": now,
+        "updated_at": now,
+    }
+    
+    await db.unified_packages.insert_one(package_dict)
+    
+    package_dict["id"] = package_dict.pop("_id")
+    return package_dict
+
+
+@api_router.put("/admin/packages/{package_id}")
+async def update_unified_package(package_id: str, package: UnifiedPackageUpdate, admin: dict = Depends(get_admin_user)):
+    """تحديث باقة"""
+    existing = await db.unified_packages.find_one({"_id": package_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="الباقة غير موجودة")
+    
+    update_data = {k: v for k, v in package.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.unified_packages.update_one(
+        {"_id": package_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.unified_packages.find_one({"_id": package_id})
+    updated["id"] = updated.pop("_id")
+    return updated
+
+
+@api_router.delete("/admin/packages/{package_id}")
+async def delete_unified_package(package_id: str, admin: dict = Depends(get_admin_user)):
+    """حذف باقة"""
+    result = await db.unified_packages.delete_one({"_id": package_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="الباقة غير موجودة")
+    return {"message": "تم حذف الباقة بنجاح"}
+
+
+@api_router.get("/admin/packages/stats")
+async def get_packages_stats(admin: dict = Depends(get_admin_user)):
+    """إحصائيات الباقات"""
+    total_packages = await db.unified_packages.count_documents({})
+    active_packages = await db.unified_packages.count_documents({"is_active": True})
+    private_sessions_count = await db.unified_packages.count_documents({"category": "private_sessions"})
+    self_training_count = await db.unified_packages.count_documents({"category": "self_training"})
+    
+    total_subscriptions = await db.user_subscriptions.count_documents({})
+    active_subscriptions = await db.user_subscriptions.count_documents({"status": "active"})
+    
+    return {
+        "total_packages": total_packages,
+        "active_packages": active_packages,
+        "private_sessions_count": private_sessions_count,
+        "self_training_count": self_training_count,
+        "total_subscriptions": total_subscriptions,
+        "active_subscriptions": active_subscriptions,
+    }
+
+
+# --- عرض الباقات للمستخدمين ---
+
+@api_router.get("/packages")
+async def get_packages_for_users(category: Optional[str] = None):
+    """جلب الباقات المتاحة للمستخدمين"""
+    query = {"is_active": True}
+    if category:
+        query["category"] = category
+    
+    packages = await db.unified_packages.find(query).sort("display_order", 1).to_list(100)
+    
+    result = []
+    for pkg in packages:
+        result.append({
+            "id": pkg["_id"],
+            "name": pkg.get("name", ""),
+            "description": pkg.get("description", ""),
+            "price": pkg.get("price", 0),
+            "category": pkg.get("category", ""),
+            
+            "sessions_count": pkg.get("sessions_count"),
+            "validity_days": pkg.get("validity_days"),
+            "includes_self_training": pkg.get("includes_self_training", False),
+            
+            "subscription_type": pkg.get("subscription_type"),
+            "duration_months": pkg.get("duration_months"),
+            "auto_renewal": pkg.get("auto_renewal", False),
+            
+            "features": pkg.get("features", []),
+            "discount_percentage": pkg.get("discount_percentage", 0),
+            "is_popular": pkg.get("is_popular", False),
+        })
+    
+    return result
+
+
+@api_router.get("/packages/{package_id}")
+async def get_package_details(package_id: str):
+    """جلب تفاصيل باقة محددة"""
+    package = await db.unified_packages.find_one({"_id": package_id, "is_active": True})
+    if not package:
+        raise HTTPException(status_code=404, detail="الباقة غير موجودة")
+    
+    package["id"] = package.pop("_id")
+    return package
+
+
+# --- اشتراك المستخدم في باقة ---
+
+@api_router.post("/packages/{package_id}/subscribe")
+async def subscribe_to_package(package_id: str, current_user: dict = Depends(get_current_user)):
+    """الاشتراك في باقة"""
+    # جلب الباقة
+    package = await db.unified_packages.find_one({"_id": package_id, "is_active": True})
+    if not package:
+        raise HTTPException(status_code=404, detail="الباقة غير موجودة أو غير متاحة")
+    
+    # التحقق من عدم وجود اشتراك فعال من نفس الفئة
+    existing_subscription = await db.user_subscriptions.find_one({
+        "user_id": current_user["_id"],
+        "category": package["category"],
+        "status": "active",
+        "end_date": {"$gt": datetime.utcnow()}
+    })
+    
+    if existing_subscription:
+        raise HTTPException(
+            status_code=400, 
+            detail="لديك اشتراك فعال في هذه الفئة. يمكنك الاشتراك مجدداً بعد انتهاء صلاحية الباقة الحالية"
+        )
+    
+    # حساب تاريخ الانتهاء
+    now = datetime.utcnow()
+    if package["category"] == "private_sessions":
+        # الحصص الخاصة - مدة الصلاحية بالأيام
+        validity_days = package.get("validity_days", 90)  # افتراضي 90 يوم
+        end_date = now + timedelta(days=validity_days)
+        sessions_remaining = package.get("sessions_count", 0)
+    else:
+        # التدريب الذاتي - مدة بالأشهر
+        duration_months = package.get("duration_months", 1)
+        end_date = now + timedelta(days=duration_months * 30)
+        sessions_remaining = None
+    
+    subscription_id = str(uuid.uuid4())
+    
+    subscription_dict = {
+        "_id": subscription_id,
+        "user_id": current_user["_id"],
+        "package_id": package_id,
+        "package_name": package["name"],
+        "category": package["category"],
+        
+        "sessions_remaining": sessions_remaining,
+        "sessions_used": 0,
+        
+        "start_date": now,
+        "end_date": end_date,
+        
+        "status": "active",
+        "payment_status": "pending",
+        "payment_id": None,
+        "amount_paid": package["price"],
+        
+        "auto_renewal": package.get("auto_renewal", False),
+        "includes_self_training": package.get("includes_self_training", False),
+        
+        "created_at": now,
+    }
+    
+    await db.user_subscriptions.insert_one(subscription_dict)
+    
+    # إنشاء نية دفع Stripe
+    try:
+        payment_intent = stripe.PaymentIntent.create(
+            amount=int(package["price"] * 100),  # بالهللات
+            currency="sar",
+            metadata={
+                "subscription_id": subscription_id,
+                "user_id": current_user["_id"],
+                "package_id": package_id,
+            }
+        )
+        
+        await db.user_subscriptions.update_one(
+            {"_id": subscription_id},
+            {"$set": {"payment_id": payment_intent.id}}
+        )
+        
+        return {
+            "subscription_id": subscription_id,
+            "client_secret": payment_intent.client_secret,
+            "amount": package["price"],
+            "package_name": package["name"],
+        }
+    except Exception as e:
+        # في حالة الفشل، احذف الاشتراك
+        await db.user_subscriptions.delete_one({"_id": subscription_id})
+        raise HTTPException(status_code=500, detail=f"فشل في إنشاء عملية الدفع: {str(e)}")
+
+
+@api_router.post("/packages/confirm-payment")
+async def confirm_package_payment(payment_data: dict, current_user: dict = Depends(get_current_user)):
+    """تأكيد الدفع وتفعيل الاشتراك"""
+    subscription_id = payment_data.get("subscription_id")
+    payment_intent_id = payment_data.get("payment_intent_id")
+    
+    if not subscription_id or not payment_intent_id:
+        raise HTTPException(status_code=400, detail="بيانات غير كاملة")
+    
+    # التحقق من الاشتراك
+    subscription = await db.user_subscriptions.find_one({
+        "_id": subscription_id,
+        "user_id": current_user["_id"]
+    })
+    
+    if not subscription:
+        raise HTTPException(status_code=404, detail="الاشتراك غير موجود")
+    
+    # التحقق من حالة الدفع في Stripe
+    try:
+        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        
+        if payment_intent.status == "succeeded":
+            await db.user_subscriptions.update_one(
+                {"_id": subscription_id},
+                {"$set": {"payment_status": "paid"}}
+            )
+            return {"message": "تم تأكيد الدفع وتفعيل الاشتراك بنجاح", "status": "success"}
+        else:
+            return {"message": "الدفع لم يكتمل بعد", "status": payment_intent.status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ في التحقق من الدفع: {str(e)}")
+
+
+@api_router.get("/my-subscriptions")
+async def get_my_subscriptions(current_user: dict = Depends(get_current_user)):
+    """جلب اشتراكات المستخدم"""
+    subscriptions = await db.user_subscriptions.find({
+        "user_id": current_user["_id"]
+    }).sort("created_at", -1).to_list(50)
+    
+    result = []
+    for sub in subscriptions:
+        # التحقق من انتهاء الصلاحية
+        if sub.get("status") == "active" and sub.get("end_date") < datetime.utcnow():
+            await db.user_subscriptions.update_one(
+                {"_id": sub["_id"]},
+                {"$set": {"status": "expired"}}
+            )
+            sub["status"] = "expired"
+        
+        result.append({
+            "id": sub["_id"],
+            "package_id": sub.get("package_id"),
+            "package_name": sub.get("package_name"),
+            "category": sub.get("category"),
+            "sessions_remaining": sub.get("sessions_remaining"),
+            "sessions_used": sub.get("sessions_used", 0),
+            "start_date": sub.get("start_date"),
+            "end_date": sub.get("end_date"),
+            "status": sub.get("status"),
+            "payment_status": sub.get("payment_status"),
+            "amount_paid": sub.get("amount_paid"),
+            "includes_self_training": sub.get("includes_self_training", False),
+            "created_at": sub.get("created_at"),
+        })
+    
+    return result
+
+
+@api_router.get("/my-active-subscription")
+async def get_active_subscription(current_user: dict = Depends(get_current_user), category: Optional[str] = None):
+    """جلب الاشتراك الفعال للمستخدم"""
+    query = {
+        "user_id": current_user["_id"],
+        "status": "active",
+        "payment_status": "paid",
+        "end_date": {"$gt": datetime.utcnow()}
+    }
+    
+    if category:
+        query["category"] = category
+    
+    subscription = await db.user_subscriptions.find_one(query)
+    
+    if not subscription:
+        return {"has_subscription": False}
+    
+    return {
+        "has_subscription": True,
+        "subscription": {
+            "id": subscription["_id"],
+            "package_id": subscription.get("package_id"),
+            "package_name": subscription.get("package_name"),
+            "category": subscription.get("category"),
+            "sessions_remaining": subscription.get("sessions_remaining"),
+            "sessions_used": subscription.get("sessions_used", 0),
+            "start_date": subscription.get("start_date"),
+            "end_date": subscription.get("end_date"),
+            "includes_self_training": subscription.get("includes_self_training", False),
+        }
+    }
+
+
 # ==================== SELF TRAINING SYSTEM ENDPOINTS ====================
 
 # --- إدارة باقات التدريب الذاتي (للأدمن) ---
