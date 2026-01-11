@@ -1,0 +1,807 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+  Alert,
+  Share,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold } from '@expo-google-fonts/alexandria';
+import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../../src/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+interface Plan {
+  id: string;
+  workout_plan: {
+    weekly_schedule: any[];
+    focus: string;
+    tips: string[];
+  };
+  nutrition_plan: {
+    daily_calories: number;
+    macros: { protein: number; carbs: number; fats: number };
+    meal_plan: any[];
+    tips: string[];
+  };
+  created_at: string;
+}
+
+export default function MyPlanScreen() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const [hasPlan, setHasPlan] = useState(false);
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [reason, setReason] = useState('');
+  const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
+
+  const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
+
+  useEffect(() => {
+    loadPlan();
+  }, []);
+
+  const loadPlan = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        router.push('/login' as any);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/self-training/my-plan`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setHasPlan(data.has_plan);
+        if (data.has_plan) {
+          setPlan(data.plan);
+        } else {
+          setReason(data.reason);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading plan:', error);
+      Alert.alert('خطأ', 'فشل في تحميل الخطة');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generatePDF = async () => {
+    if (!plan) return;
+
+    setDownloading(true);
+    try {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            * { font-family: 'Arial', sans-serif; }
+            body { padding: 40px; direction: rtl; }
+            h1 { color: #667eea; text-align: center; margin-bottom: 30px; }
+            h2 { color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-top: 30px; }
+            h3 { color: #764ba2; }
+            .section { margin-bottom: 30px; background: #f9f9f9; padding: 20px; border-radius: 10px; }
+            .day { margin: 15px 0; padding: 15px; background: white; border-radius: 8px; border-right: 4px solid #667eea; }
+            .day-title { font-weight: bold; color: #667eea; font-size: 16px; }
+            .exercise { margin: 8px 0; padding: 8px; background: #f0f0f0; border-radius: 5px; }
+            .meal { margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 5px; }
+            .meal-title { font-weight: bold; color: #4CAF50; }
+            .macros { display: flex; justify-content: space-around; margin: 20px 0; }
+            .macro-item { text-align: center; padding: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 10px; min-width: 80px; }
+            .macro-value { font-size: 24px; font-weight: bold; }
+            .tips { list-style-type: none; padding: 0; }
+            .tips li { margin: 10px 0; padding: 10px; background: #fff3e0; border-radius: 5px; border-right: 3px solid #ff9800; }
+            .footer { text-align: center; margin-top: 40px; color: #999; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>🏋️ خطتك الشخصية للتدريب والتغذية</h1>
+          
+          <h2>📊 خطة التمارين</h2>
+          <div class="section">
+            <p><strong>التركيز:</strong> ${plan.workout_plan?.focus || 'تحسين اللياقة'}</p>
+            
+            ${plan.workout_plan?.weekly_schedule?.map((day: any, idx: number) => `
+              <div class="day">
+                <div class="day-title">اليوم ${idx + 1}: ${day.day || `يوم ${idx + 1}`}</div>
+                <p><strong>النوع:</strong> ${day.type || 'تمارين عامة'}</p>
+                <p><strong>المدة:</strong> ${day.duration || '45'} دقيقة</p>
+                ${day.exercises?.map((ex: any) => `
+                  <div class="exercise">
+                    <strong>${ex.name}</strong>: ${ex.sets || 3} مجموعات × ${ex.reps || 12} تكرار
+                  </div>
+                `).join('') || ''}
+              </div>
+            `).join('') || '<p>لم يتم توليد جدول التمارين بعد</p>'}
+            
+            ${plan.workout_plan?.tips?.length > 0 ? `
+              <h3>💡 نصائح للتمارين</h3>
+              <ul class="tips">
+                ${plan.workout_plan.tips.map((tip: string) => `<li>${tip}</li>`).join('')}
+              </ul>
+            ` : ''}
+          </div>
+          
+          <h2>🥗 خطة التغذية</h2>
+          <div class="section">
+            <h3>السعرات والماكروز اليومية</h3>
+            <div class="macros">
+              <div class="macro-item">
+                <div class="macro-value">${plan.nutrition_plan?.daily_calories || 2000}</div>
+                <div>سعرة</div>
+              </div>
+              <div class="macro-item">
+                <div class="macro-value">${plan.nutrition_plan?.macros?.protein || 150}g</div>
+                <div>بروتين</div>
+              </div>
+              <div class="macro-item">
+                <div class="macro-value">${plan.nutrition_plan?.macros?.carbs || 200}g</div>
+                <div>كربوهيدرات</div>
+              </div>
+              <div class="macro-item">
+                <div class="macro-value">${plan.nutrition_plan?.macros?.fats || 60}g</div>
+                <div>دهون</div>
+              </div>
+            </div>
+            
+            ${plan.nutrition_plan?.meal_plan?.map((meal: any) => `
+              <div class="meal">
+                <div class="meal-title">${meal.meal_name || meal.name}</div>
+                <p>${meal.description || ''}</p>
+                <p><strong>السعرات:</strong> ${meal.calories || '---'} سعرة</p>
+              </div>
+            `).join('') || '<p>لم يتم توليد خطة الوجبات بعد</p>'}
+            
+            ${plan.nutrition_plan?.tips?.length > 0 ? `
+              <h3>💡 نصائح غذائية</h3>
+              <ul class="tips">
+                ${plan.nutrition_plan.tips.map((tip: string) => `<li>${tip}</li>`).join('')}
+              </ul>
+            ` : ''}
+          </div>
+          
+          <div class="footer">
+            <p>تم إنشاء هذه الخطة بواسطة تطبيق "اسأل يازو" للتدريب الذاتي</p>
+            <p>تاريخ الإنشاء: ${new Date(plan.created_at).toLocaleDateString('ar-SA')}</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'مشاركة خطتك',
+          UTI: 'com.adobe.pdf'
+        });
+      } else {
+        Alert.alert('تم إنشاء PDF', 'تم حفظ الملف بنجاح');
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Alert.alert('خطأ', 'فشل في إنشاء ملف PDF');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const sharePlan = async () => {
+    try {
+      await Share.share({
+        message: `خطتي للتدريب الذاتي من تطبيق "اسأل يازو"\n\nالسعرات اليومية: ${plan?.nutrition_plan?.daily_calories || 2000} سعرة\nأيام التمرين: ${plan?.workout_plan?.weekly_schedule?.length || 0} أيام\n\nللمزيد، حمّل التطبيق!`,
+        title: 'خطتي الشخصية'
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  if (!fontsLoaded || loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <StatusBar barStyle="light-content" />
+        <ActivityIndicator size="large" color={COLORS.teal} />
+        <Text style={styles.loadingText}>جاري تحميل خطتك...</Text>
+      </View>
+    );
+  }
+
+  if (!hasPlan) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" />
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          style={styles.header}
+        >
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>خطتي</Text>
+          <View style={{ width: 40 }} />
+        </LinearGradient>
+
+        <View style={styles.noPlanContainer}>
+          <Ionicons name="document-text-outline" size={80} color={COLORS.textMuted} />
+          <Text style={styles.noPlanTitle}>
+            {reason === 'no_subscription' ? 'لا يوجد اشتراك' : 'لم يتم إنشاء الخطة بعد'}
+          </Text>
+          <Text style={styles.noPlanText}>
+            {reason === 'no_subscription' 
+              ? 'يرجى الاشتراك في خدمة التدريب الذاتي أولاً'
+              : 'أكمل التقييم الذاتي لإنشاء خطتك المخصصة'
+            }
+          </Text>
+          <TouchableOpacity 
+            style={styles.actionBtn} 
+            onPress={() => router.push(reason === 'no_subscription' ? '/self-training' : '/self-training/assessment' as any)}
+          >
+            <Text style={styles.actionBtnText}>
+              {reason === 'no_subscription' ? 'الاشتراك الآن' : 'بدء التقييم'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Header */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.header}
+      >
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>خطتي الشخصية</Text>
+        <TouchableOpacity style={styles.shareBtn} onPress={sharePlan}>
+          <Ionicons name="share-outline" size={24} color={COLORS.white} />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'workout' && styles.tabActive]}
+          onPress={() => setActiveTab('workout')}
+        >
+          <Ionicons name="barbell" size={20} color={activeTab === 'workout' ? '#667eea' : COLORS.textMuted} />
+          <Text style={[styles.tabText, activeTab === 'workout' && styles.tabTextActive]}>التمارين</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'nutrition' && styles.tabActive]}
+          onPress={() => setActiveTab('nutrition')}
+        >
+          <Ionicons name="nutrition" size={20} color={activeTab === 'nutrition' ? '#667eea' : COLORS.textMuted} />
+          <Text style={[styles.tabText, activeTab === 'nutrition' && styles.tabTextActive]}>التغذية</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content */}
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        {activeTab === 'workout' ? (
+          <View>
+            {/* Focus Card */}
+            <View style={styles.focusCard}>
+              <Ionicons name="flame" size={24} color="#FF9800" />
+              <Text style={styles.focusText}>التركيز: {plan?.workout_plan?.focus || 'تحسين اللياقة'}</Text>
+            </View>
+
+            {/* Weekly Schedule */}
+            <Text style={styles.sectionTitle}>الجدول الأسبوعي</Text>
+            {plan?.workout_plan?.weekly_schedule?.map((day: any, idx: number) => (
+              <View key={idx} style={styles.dayCard}>
+                <View style={styles.dayHeader}>
+                  <View style={styles.dayNumber}>
+                    <Text style={styles.dayNumberText}>{idx + 1}</Text>
+                  </View>
+                  <View style={styles.dayInfo}>
+                    <Text style={styles.dayTitle}>{day.day || `اليوم ${idx + 1}`}</Text>
+                    <Text style={styles.dayType}>{day.type || 'تمارين عامة'}</Text>
+                  </View>
+                  <View style={styles.dayDuration}>
+                    <Ionicons name="time-outline" size={16} color={COLORS.textMuted} />
+                    <Text style={styles.dayDurationText}>{day.duration || 45} د</Text>
+                  </View>
+                </View>
+
+                {day.exercises?.map((exercise: any, exIdx: number) => (
+                  <View key={exIdx} style={styles.exerciseItem}>
+                    <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                    <Text style={styles.exerciseName}>{exercise.name}</Text>
+                    <Text style={styles.exerciseReps}>
+                      {exercise.sets || 3}×{exercise.reps || 12}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )) || (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>لم يتم توليد جدول التمارين بعد</Text>
+              </View>
+            )}
+
+            {/* Tips */}
+            {plan?.workout_plan?.tips?.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>نصائح للتمارين</Text>
+                {plan.workout_plan.tips.map((tip: string, idx: number) => (
+                  <View key={idx} style={styles.tipItem}>
+                    <Ionicons name="bulb" size={18} color="#FF9800" />
+                    <Text style={styles.tipText}>{tip}</Text>
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
+        ) : (
+          <View>
+            {/* Macros Card */}
+            <View style={styles.macrosCard}>
+              <Text style={styles.macrosTitle}>السعرات والماكروز اليومية</Text>
+              <View style={styles.macrosGrid}>
+                <View style={[styles.macroItem, { backgroundColor: '#E3F2FD' }]}>
+                  <Text style={[styles.macroValue, { color: '#2196F3' }]}>
+                    {plan?.nutrition_plan?.daily_calories || 2000}
+                  </Text>
+                  <Text style={styles.macroLabel}>سعرة</Text>
+                </View>
+                <View style={[styles.macroItem, { backgroundColor: '#FCE4EC' }]}>
+                  <Text style={[styles.macroValue, { color: '#E91E63' }]}>
+                    {plan?.nutrition_plan?.macros?.protein || 150}g
+                  </Text>
+                  <Text style={styles.macroLabel}>بروتين</Text>
+                </View>
+                <View style={[styles.macroItem, { backgroundColor: '#FFF3E0' }]}>
+                  <Text style={[styles.macroValue, { color: '#FF9800' }]}>
+                    {plan?.nutrition_plan?.macros?.carbs || 200}g
+                  </Text>
+                  <Text style={styles.macroLabel}>كربوهيدرات</Text>
+                </View>
+                <View style={[styles.macroItem, { backgroundColor: '#E8F5E9' }]}>
+                  <Text style={[styles.macroValue, { color: '#4CAF50' }]}>
+                    {plan?.nutrition_plan?.macros?.fats || 60}g
+                  </Text>
+                  <Text style={styles.macroLabel}>دهون</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Meal Plan */}
+            <Text style={styles.sectionTitle}>خطة الوجبات</Text>
+            {plan?.nutrition_plan?.meal_plan?.map((meal: any, idx: number) => (
+              <View key={idx} style={styles.mealCard}>
+                <View style={styles.mealHeader}>
+                  <View style={styles.mealIcon}>
+                    <Ionicons 
+                      name={idx === 0 ? 'sunny' : idx === 1 ? 'partly-sunny' : idx === 2 ? 'moon' : 'cafe'} 
+                      size={20} 
+                      color="#4CAF50" 
+                    />
+                  </View>
+                  <Text style={styles.mealName}>{meal.meal_name || meal.name}</Text>
+                  <Text style={styles.mealCalories}>{meal.calories || '---'} سعرة</Text>
+                </View>
+                {meal.description && (
+                  <Text style={styles.mealDesc}>{meal.description}</Text>
+                )}
+              </View>
+            )) || (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>لم يتم توليد خطة الوجبات بعد</Text>
+              </View>
+            )}
+
+            {/* Tips */}
+            {plan?.nutrition_plan?.tips?.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>نصائح غذائية</Text>
+                {plan.nutrition_plan.tips.map((tip: string, idx: number) => (
+                  <View key={idx} style={styles.tipItem}>
+                    <Ionicons name="bulb" size={18} color="#4CAF50" />
+                    <Text style={styles.tipText}>{tip}</Text>
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Download Button */}
+      <View style={[styles.downloadContainer, { paddingBottom: insets.bottom + 16 }]}>
+        <TouchableOpacity 
+          style={styles.downloadBtn} 
+          onPress={generatePDF}
+          disabled={downloading}
+        >
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.downloadBtnGradient}
+          >
+            {downloading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <>
+                <Ionicons name="download" size={22} color={COLORS.white} />
+                <Text style={styles.downloadBtnText}>تحميل PDF</Text>
+              </>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+  },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shareBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+
+  noPlanContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  noPlanTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    marginTop: SPACING.md,
+  },
+  noPlanText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+  },
+  actionBtn: {
+    backgroundColor: '#667eea',
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginTop: SPACING.lg,
+  },
+  actionBtnText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    padding: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.background,
+  },
+  tabActive: {
+    backgroundColor: '#F0EDFF',
+  },
+  tabText: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textMuted,
+  },
+  tabTextActive: {
+    color: '#667eea',
+  },
+
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: SPACING.md,
+    paddingBottom: 100,
+  },
+
+  focusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: '#FFF3E0',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginBottom: SPACING.md,
+  },
+  focusText: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: '#E65100',
+  },
+
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.sm,
+    textAlign: 'right',
+  },
+
+  dayCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.sm,
+  },
+  dayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  dayNumber: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#667eea',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dayNumberText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+  dayInfo: {
+    flex: 1,
+    marginHorizontal: SPACING.sm,
+  },
+  dayTitle: {
+    fontSize: 15,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+  },
+  dayType: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+  },
+  dayDuration: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  dayDurationText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+  },
+  exerciseItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  exerciseName: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
+  },
+  exerciseReps: {
+    fontSize: 12,
+    fontFamily: FONTS.semiBold,
+    color: '#667eea',
+    backgroundColor: '#F0EDFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+
+  macrosCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    ...SHADOWS.sm,
+  },
+  macrosTitle: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SPACING.md,
+  },
+  macrosGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  macroItem: {
+    flex: 1,
+    minWidth: '45%',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+  },
+  macroValue: {
+    fontSize: 22,
+    fontFamily: FONTS.bold,
+  },
+  macroLabel: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+
+  mealCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.sm,
+  },
+  mealHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  mealIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mealName: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.text,
+  },
+  mealCalories: {
+    fontSize: 12,
+    fontFamily: FONTS.semiBold,
+    color: '#4CAF50',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  mealDesc: {
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.sm,
+    textAlign: 'right',
+  },
+
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+    backgroundColor: '#FFF8E1',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginBottom: SPACING.sm,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
+    textAlign: 'right',
+  },
+
+  emptyState: {
+    alignItems: 'center',
+    padding: SPACING.xl,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+  },
+  emptyText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+  },
+
+  downloadContainer: {
+    padding: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  downloadBtn: {
+    borderRadius: RADIUS.md,
+    overflow: 'hidden',
+  },
+  downloadBtnGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    padding: SPACING.md,
+  },
+  downloadBtnText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+});
