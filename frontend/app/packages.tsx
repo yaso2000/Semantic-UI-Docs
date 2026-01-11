@@ -72,7 +72,7 @@ export default function PackagesScreen() {
   const loadData = async () => {
     try {
       // جلب الباقات
-      const packagesRes = await fetch(`${API_URL}/api/packages`);
+      const packagesRes = await fetch(`${API_URL}/api/all-packages`);
       if (packagesRes.ok) {
         const packagesData = await packagesRes.json();
         setPackages(packagesData);
