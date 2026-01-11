@@ -753,6 +753,36 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 4,
   },
+  waterCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: '#E3F2FD',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginBottom: SPACING.md,
+  },
+  waterText: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: '#1976D2',
+  },
+  mealExamples: {
+    marginTop: SPACING.sm,
+  },
+  mealExampleItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: 4,
+  },
+  mealExampleText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
+    textAlign: 'right',
+  },
 
   mealCard: {
     backgroundColor: COLORS.white,
