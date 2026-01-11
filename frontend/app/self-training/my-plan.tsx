@@ -88,6 +88,60 @@ export default function MyPlanScreen() {
 
     setDownloading(true);
     try {
+      // تحويل الجدول الأسبوعي إلى HTML
+      let workoutScheduleHtml = '';
+      if (plan.workout_plan?.weekly_schedule) {
+        const schedule = plan.workout_plan.weekly_schedule;
+        Object.entries(schedule).forEach(([dayName, dayData]: [string, any], idx: number) => {
+          const exercises = dayData?.exercises?.map((ex: any) => {
+            if (ex.sets && ex.reps) {
+              return `<div class="exercise"><strong>${ex.name}</strong>: ${ex.sets} مجموعات × ${ex.reps}</div>`;
+            } else if (ex.duration) {
+              return `<div class="exercise"><strong>${ex.name}</strong>: ${ex.duration}</div>`;
+            }
+            return `<div class="exercise"><strong>${ex.name}</strong></div>`;
+          }).join('') || '';
+          
+          const activities = dayData?.activities ? 
+            `<p>أنشطة مقترحة: ${dayData.activities.join('، ')}</p>` : '';
+          
+          workoutScheduleHtml += `
+            <div class="day">
+              <div class="day-title">${dayName}</div>
+              <p><strong>النوع:</strong> ${dayData?.type || 'تمارين عامة'}</p>
+              ${dayData?.duration ? `<p><strong>المدة:</strong> ${dayData.duration}</p>` : ''}
+              ${exercises}
+              ${activities}
+            </div>
+          `;
+        });
+      }
+
+      // تحويل الوجبات إلى HTML
+      let mealsHtml = '';
+      if (plan.nutrition_plan?.meal_examples) {
+        const mealNames: {[key: string]: string} = {
+          'breakfast': 'الإفطار',
+          'lunch': 'الغداء', 
+          'dinner': 'العشاء',
+          'snacks': 'وجبات خفيفة'
+        };
+        
+        Object.entries(plan.nutrition_plan.meal_examples).forEach(([mealType, examples]: [string, any]) => {
+          const examplesList = Array.isArray(examples) ? examples.map((ex: string) => `<li>${ex}</li>`).join('') : '';
+          mealsHtml += `
+            <div class="meal">
+              <div class="meal-title">${mealNames[mealType] || mealType}</div>
+              <ul>${examplesList}</ul>
+            </div>
+          `;
+        });
+      }
+
+      // النصائح
+      const workoutTips = plan.workout_plan?.recommendations?.map((tip: string) => `<li>${tip}</li>`).join('') || '';
+      const nutritionTips = plan.nutrition_plan?.recommendations?.map((tip: string) => `<li>${tip}</li>`).join('') || '';
+
       const htmlContent = `
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
@@ -101,13 +155,15 @@ export default function MyPlanScreen() {
             h3 { color: #764ba2; }
             .section { margin-bottom: 30px; background: #f9f9f9; padding: 20px; border-radius: 10px; }
             .day { margin: 15px 0; padding: 15px; background: white; border-radius: 8px; border-right: 4px solid #667eea; }
-            .day-title { font-weight: bold; color: #667eea; font-size: 16px; }
+            .day-title { font-weight: bold; color: #667eea; font-size: 16px; margin-bottom: 10px; }
             .exercise { margin: 8px 0; padding: 8px; background: #f0f0f0; border-radius: 5px; }
             .meal { margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 5px; }
-            .meal-title { font-weight: bold; color: #4CAF50; }
-            .macros { display: flex; justify-content: space-around; margin: 20px 0; }
+            .meal-title { font-weight: bold; color: #4CAF50; margin-bottom: 8px; }
+            .meal ul { margin: 5px 0; padding-right: 20px; }
+            .macros { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; gap: 10px; }
             .macro-item { text-align: center; padding: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 10px; min-width: 80px; }
             .macro-value { font-size: 24px; font-weight: bold; }
+            .water-info { background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0; }
             .tips { list-style-type: none; padding: 0; }
             .tips li { margin: 10px 0; padding: 10px; background: #fff3e0; border-radius: 5px; border-right: 3px solid #ff9800; }
             .footer { text-align: center; margin-top: 40px; color: #999; font-size: 12px; }
@@ -118,26 +174,13 @@ export default function MyPlanScreen() {
           
           <h2>📊 خطة التمارين</h2>
           <div class="section">
-            <p><strong>التركيز:</strong> ${plan.workout_plan?.focus || 'تحسين اللياقة'}</p>
+            <p><strong>التركيز:</strong> ${plan.workout_plan?.goal_focus || plan.workout_plan?.focus || 'تحسين اللياقة'}</p>
             
-            ${plan.workout_plan?.weekly_schedule?.map((day: any, idx: number) => `
-              <div class="day">
-                <div class="day-title">اليوم ${idx + 1}: ${day.day || `يوم ${idx + 1}`}</div>
-                <p><strong>النوع:</strong> ${day.type || 'تمارين عامة'}</p>
-                <p><strong>المدة:</strong> ${day.duration || '45'} دقيقة</p>
-                ${day.exercises?.map((ex: any) => `
-                  <div class="exercise">
-                    <strong>${ex.name}</strong>: ${ex.sets || 3} مجموعات × ${ex.reps || 12} تكرار
-                  </div>
-                `).join('') || ''}
-              </div>
-            `).join('') || '<p>لم يتم توليد جدول التمارين بعد</p>'}
+            ${workoutScheduleHtml || '<p>لم يتم توليد جدول التمارين بعد</p>'}
             
-            ${plan.workout_plan?.tips?.length > 0 ? `
+            ${workoutTips ? `
               <h3>💡 نصائح للتمارين</h3>
-              <ul class="tips">
-                ${plan.workout_plan.tips.map((tip: string) => `<li>${tip}</li>`).join('')}
-              </ul>
+              <ul class="tips">${workoutTips}</ul>
             ` : ''}
           </div>
           
@@ -150,38 +193,37 @@ export default function MyPlanScreen() {
                 <div>سعرة</div>
               </div>
               <div class="macro-item">
-                <div class="macro-value">${plan.nutrition_plan?.macros?.protein || 150}g</div>
+                <div class="macro-value">${plan.nutrition_plan?.macros?.protein?.grams || plan.nutrition_plan?.macros?.protein || 150}g</div>
                 <div>بروتين</div>
               </div>
               <div class="macro-item">
-                <div class="macro-value">${plan.nutrition_plan?.macros?.carbs || 200}g</div>
+                <div class="macro-value">${plan.nutrition_plan?.macros?.carbs?.grams || plan.nutrition_plan?.macros?.carbs || 200}g</div>
                 <div>كربوهيدرات</div>
               </div>
               <div class="macro-item">
-                <div class="macro-value">${plan.nutrition_plan?.macros?.fats || 60}g</div>
+                <div class="macro-value">${plan.nutrition_plan?.macros?.fat?.grams || plan.nutrition_plan?.macros?.fats || 60}g</div>
                 <div>دهون</div>
               </div>
             </div>
             
-            ${plan.nutrition_plan?.meal_plan?.map((meal: any) => `
-              <div class="meal">
-                <div class="meal-title">${meal.meal_name || meal.name}</div>
-                <p>${meal.description || ''}</p>
-                <p><strong>السعرات:</strong> ${meal.calories || '---'} سعرة</p>
+            ${plan.nutrition_plan?.water_intake ? `
+              <div class="water-info">
+                <strong>💧 كمية الماء المطلوبة:</strong> ${plan.nutrition_plan.water_intake}
               </div>
-            `).join('') || '<p>لم يتم توليد خطة الوجبات بعد</p>'}
+            ` : ''}
             
-            ${plan.nutrition_plan?.tips?.length > 0 ? `
+            <h3>أمثلة على الوجبات</h3>
+            ${mealsHtml || '<p>لم يتم توليد خطة الوجبات بعد</p>'}
+            
+            ${nutritionTips ? `
               <h3>💡 نصائح غذائية</h3>
-              <ul class="tips">
-                ${plan.nutrition_plan.tips.map((tip: string) => `<li>${tip}</li>`).join('')}
-              </ul>
+              <ul class="tips">${nutritionTips}</ul>
             ` : ''}
           </div>
           
           <div class="footer">
             <p>تم إنشاء هذه الخطة بواسطة تطبيق "اسأل يازو" للتدريب الذاتي</p>
-            <p>تاريخ الإنشاء: ${new Date(plan.created_at).toLocaleDateString('ar-SA')}</p>
+            <p>تاريخ الإنشاء: ${plan.created_at ? new Date(plan.created_at).toLocaleDateString('ar-SA') : new Date().toLocaleDateString('ar-SA')}</p>
           </div>
         </body>
         </html>
@@ -200,7 +242,7 @@ export default function MyPlanScreen() {
       }
     } catch (error) {
       console.error('Error generating PDF:', error);
-      Alert.alert('خطأ', 'فشل في إنشاء ملف PDF');
+      Alert.alert('خطأ', 'فشل في إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
     } finally {
       setDownloading(false);
     }
