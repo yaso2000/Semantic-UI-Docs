@@ -328,6 +328,115 @@ class SelfTrainingSubscription(BaseModel):
     amount_paid: float = 0
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+
+# ==================== UNIFIED PACKAGES SYSTEM ====================
+
+class UnifiedPackage(BaseModel):
+    """نموذج الباقة الموحد - يدعم الحصص الخاصة والتدريب الذاتي"""
+    id: Optional[str] = None
+    
+    # الحقول المشتركة
+    name: str  # اسم الباقة
+    description: str  # وصف الباقة
+    price: float  # السعر
+    category: str  # "private_sessions" أو "self_training"
+    is_active: bool = True
+    
+    # حقول الحصص الخاصة (private_sessions)
+    sessions_count: Optional[int] = None  # عدد الحصص
+    validity_days: Optional[int] = None  # مدة الصلاحية بالأيام
+    includes_self_training: bool = False  # هل تتضمن الوصول للتدريب الذاتي
+    
+    # حقول التدريب الذاتي (self_training)
+    subscription_type: Optional[str] = None  # "monthly", "quarterly", "yearly"
+    duration_months: Optional[int] = None  # مدة الاشتراك بالأشهر
+    auto_renewal: bool = False  # التجديد التلقائي
+    
+    # حقول إضافية
+    features: List[str] = []  # قائمة المميزات
+    discount_percentage: float = 0  # نسبة الخصم
+    is_popular: bool = False  # الباقة الأكثر شعبية
+    display_order: int = 0  # ترتيب العرض
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class UnifiedPackageCreate(BaseModel):
+    """إنشاء باقة جديدة"""
+    name: str
+    description: str
+    price: float
+    category: str  # "private_sessions" أو "self_training"
+    is_active: bool = True
+    
+    # حقول الحصص الخاصة
+    sessions_count: Optional[int] = None
+    validity_days: Optional[int] = None
+    includes_self_training: bool = False
+    
+    # حقول التدريب الذاتي
+    subscription_type: Optional[str] = None
+    duration_months: Optional[int] = None
+    auto_renewal: bool = False
+    
+    # حقول إضافية
+    features: List[str] = []
+    discount_percentage: float = 0
+    is_popular: bool = False
+    display_order: int = 0
+
+
+class UnifiedPackageUpdate(BaseModel):
+    """تحديث باقة"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    category: Optional[str] = None
+    is_active: Optional[bool] = None
+    
+    sessions_count: Optional[int] = None
+    validity_days: Optional[int] = None
+    includes_self_training: Optional[bool] = None
+    
+    subscription_type: Optional[str] = None
+    duration_months: Optional[int] = None
+    auto_renewal: Optional[bool] = None
+    
+    features: Optional[List[str]] = None
+    discount_percentage: Optional[float] = None
+    is_popular: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+class UserSubscription(BaseModel):
+    """اشتراك المستخدم في باقة"""
+    id: Optional[str] = None
+    user_id: str
+    package_id: str
+    package_name: str
+    category: str  # "private_sessions" أو "self_training"
+    
+    # للحصص الخاصة
+    sessions_remaining: Optional[int] = None
+    sessions_used: int = 0
+    
+    # التواريخ
+    start_date: datetime
+    end_date: datetime
+    
+    # الحالة
+    status: str = "active"  # active, expired, cancelled
+    payment_status: str = "pending"  # pending, paid, failed
+    payment_id: Optional[str] = None
+    amount_paid: float = 0
+    
+    # معلومات إضافية
+    auto_renewal: bool = False
+    includes_self_training: bool = False
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
 class SelfAssessment(BaseModel):
     """تقييم المستخدم الذاتي"""
     id: Optional[str] = None
