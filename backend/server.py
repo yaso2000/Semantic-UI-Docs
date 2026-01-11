@@ -3968,10 +3968,20 @@ async def get_self_assessment(current_user: dict = Depends(get_current_user)):
 @api_router.post("/self-training/complete-assessment")
 async def complete_assessment(current_user: dict = Depends(get_current_user)):
     """إتمام التقييم وتوليد الخطة"""
-    subscription = await db.self_training_subscriptions.find_one({
+    # البحث في النظام الموحد الجديد أولاً
+    subscription = await db.user_subscriptions.find_one({
         "user_id": current_user["_id"],
-        "status": "active"
+        "category": "self_training",
+        "status": "active",
+        "payment_status": "paid"
     })
+    
+    # إذا لم يوجد، البحث في النظام القديم
+    if not subscription:
+        subscription = await db.self_training_subscriptions.find_one({
+            "user_id": current_user["_id"],
+            "status": "active"
+        })
     
     if not subscription:
         raise HTTPException(status_code=403, detail="يجب الاشتراك أولاً")
