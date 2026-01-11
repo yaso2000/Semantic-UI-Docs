@@ -686,6 +686,18 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
+  restActivities: {
+    backgroundColor: '#E8F5E9',
+    padding: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    marginTop: SPACING.xs,
+  },
+  restText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    color: '#2E7D32',
+    textAlign: 'right',
+  },
 
   macrosCard: {
     backgroundColor: COLORS.white,
