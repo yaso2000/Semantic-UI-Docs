@@ -3334,9 +3334,20 @@ async def save_self_assessment(assessment_data: Dict[str, Any], current_user: di
     })
     
     # حساب BMI و TDEE تلقائياً
-    height_m = assessment_data.get("height_cm", 170) / 100
-    weight = assessment_data.get("weight_kg", 70)
-    age = assessment_data.get("age", 30)
+    height_val = assessment_data.get("height_cm") or assessment_data.get("height", 170)
+    weight_val = assessment_data.get("weight_kg") or assessment_data.get("weight", 70)
+    age_val = assessment_data.get("age", 30)
+    
+    # تحويل للأرقام
+    try:
+        height_m = float(height_val) / 100
+        weight = float(weight_val)
+        age = int(age_val)
+    except (ValueError, TypeError):
+        height_m = 1.70
+        weight = 70
+        age = 30
+    
     gender = assessment_data.get("gender", "male")
     activity_level = assessment_data.get("activity_level", "moderate")
     
