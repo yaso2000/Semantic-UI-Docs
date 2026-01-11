@@ -4032,10 +4032,20 @@ async def complete_assessment(current_user: dict = Depends(get_current_user)):
 @api_router.get("/self-training/my-plan")
 async def get_my_plan(current_user: dict = Depends(get_current_user)):
     """جلب الخطة المولدة للمستخدم"""
-    subscription = await db.self_training_subscriptions.find_one({
+    # البحث في النظام الموحد الجديد أولاً
+    subscription = await db.user_subscriptions.find_one({
         "user_id": current_user["_id"],
-        "status": "active"
+        "category": "self_training",
+        "status": "active",
+        "payment_status": "paid"
     })
+    
+    # إذا لم يوجد، البحث في النظام القديم
+    if not subscription:
+        subscription = await db.self_training_subscriptions.find_one({
+            "user_id": current_user["_id"],
+            "status": "active"
+        })
     
     if not subscription:
         return {"has_plan": False, "reason": "no_subscription"}
@@ -4044,6 +4054,12 @@ async def get_my_plan(current_user: dict = Depends(get_current_user)):
         "user_id": current_user["_id"],
         "subscription_id": subscription["_id"]
     })
+    
+    # إذا لم توجد خطة مرتبطة بالاشتراك، ابحث عن أي خطة للمستخدم
+    if not plan:
+        plan = await db.generated_plans.find_one({
+            "user_id": current_user["_id"]
+        }, sort=[("created_at", -1)])
     
     if not plan:
         return {"has_plan": False, "reason": "not_generated"}
