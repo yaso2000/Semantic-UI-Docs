@@ -4032,12 +4032,11 @@ async def complete_assessment(current_user: dict = Depends(get_current_user)):
 @api_router.get("/self-training/my-plan")
 async def get_my_plan(current_user: dict = Depends(get_current_user)):
     """جلب الخطة المولدة للمستخدم"""
-    # البحث في النظام الموحد الجديد أولاً
+    # البحث في النظام الموحد الجديد أولاً (بدون التحقق من حالة الدفع للعرض التجريبي)
     subscription = await db.user_subscriptions.find_one({
         "user_id": current_user["_id"],
         "category": "self_training",
-        "status": "active",
-        "payment_status": "paid"
+        "status": "active"
     })
     
     # إذا لم يوجد، البحث في النظام القديم
