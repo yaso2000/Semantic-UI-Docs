@@ -61,6 +61,7 @@ export default function PackagesScreen() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [activeSubscriptions, setActiveSubscriptions] = useState<ActiveSubscription[]>([]);
   const [activeTab, setActiveTab] = useState<'private_sessions' | 'self_training'>('private_sessions');
+  const [subscribing, setSubscribing] = useState<string | null>(null);
 
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
