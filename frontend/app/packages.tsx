@@ -133,36 +133,12 @@ export default function PackagesScreen() {
       return;
     }
 
-    setSubscribing(pkg.id);
-    try {
-      const response = await fetch(`${API_URL}/api/all-packages/${pkg.id}/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // هنا يمكن توجيه المستخدم لصفحة الدفع
-        Alert.alert(
-          '✅ تم إنشاء طلب الاشتراك',
-          `المبلغ المطلوب: ${data.amount} ر.س\nسيتم توجيهك لإتمام الدفع`,
-          [
-            { text: 'إلغاء', style: 'cancel' },
-            { text: 'متابعة الدفع', onPress: () => {
-              // TODO: توجيه لصفحة الدفع
-              Alert.alert('قريباً', 'سيتم تفعيل الدفع الإلكتروني قريباً');
-            }}
-          ]
-        );
-      } else {
-        const error = await response.json();
-        Alert.alert('خطأ', error.detail || 'فشل في إنشاء الاشتراك');
-      }
-    } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ في الاتصال');
+    // توجيه المستخدم مباشرة لصفحة الدفع
+    router.push({
+      pathname: '/checkout',
+      params: { packageId: pkg.id }
+    } as any);
+  };
     } finally {
       setSubscribing(null);
     }
