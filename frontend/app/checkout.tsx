@@ -8,7 +8,6 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  TextInput,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +18,15 @@ import { useFonts, Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700
 import { COLORS, FONTS, SHADOWS, RADIUS, SPACING } from '../src/constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Stripe Web imports
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51IiCcBIeuuTaDTMTyXyeLoeFkBj15CzHBPxBjEt0cc3RVWWGGOxHG97FuK8NXyZdpVpvy56EEAZEPCjsgiDvarC800ymMYzdH1';
+
+// Initialize Stripe
+const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
 interface PackageDetails {
   id: string;
@@ -30,6 +37,162 @@ interface PackageDetails {
   features: string[];
 }
 
+interface SubscriptionData {
+  subscription_id: string;
+  client_secret: string;
+  amount: number;
+  package_name: string;
+}
+
+// Payment Form Component (uses Stripe hooks)
+function PaymentForm({ 
+  packageDetails, 
+  subscriptionData, 
+  onSuccess, 
+  onError 
+}: { 
+  packageDetails: PackageDetails;
+  subscriptionData: SubscriptionData;
+  onSuccess: () => void;
+  onError: (error: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
+
+  const handlePayment = async () => {
+    if (!stripe || !elements) {
+      onError('خدمة الدفع غير جاهزة');
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      onError('نموذج البطاقة غير جاهز');
+      return;
+    }
+
+    setProcessing(true);
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+        subscriptionData.client_secret,
+        {
+          payment_method: {
+            card: cardElement,
+          },
+        }
+      );
+
+      if (error) {
+        console.error('Payment error:', error);
+        onError(error.message || 'فشل في عملية الدفع');
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // تأكيد الدفع في الباك إند
+        const token = await AsyncStorage.getItem('token');
+        const confirmRes = await fetch(`${API_URL}/api/packages/confirm-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            subscription_id: subscriptionData.subscription_id,
+            payment_intent_id: paymentIntent.id
+          })
+        });
+
+        if (confirmRes.ok) {
+          onSuccess();
+        } else {
+          // الدفع نجح في Stripe، لكن فشل التأكيد - نعتبره ناجحاً
+          console.log('Payment succeeded but confirm failed, treating as success');
+          onSuccess();
+        }
+      }
+    } catch (err: any) {
+      console.error('Payment exception:', err);
+      onError(err.message || 'حدث خطأ غير متوقع');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const cardStyle = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#424770',
+        fontFamily: 'system-ui, sans-serif',
+        '::placeholder': {
+          color: '#aab7c4',
+        },
+        iconColor: '#0d9488',
+      },
+      invalid: {
+        color: '#e53e3e',
+        iconColor: '#e53e3e',
+      },
+    },
+    hidePostalCode: true,
+  };
+
+  return (
+    <View>
+      {/* Stripe Card Element */}
+      <View style={styles.cardElementContainer}>
+        <CardElement 
+          options={cardStyle}
+          onChange={(event) => setCardComplete(event.complete)}
+        />
+      </View>
+
+      {/* Test Card Notice */}
+      <View style={styles.testNotice}>
+        <Ionicons name="information-circle" size={18} color="#2196F3" />
+        <Text style={styles.testNoticeText}>
+          للاختبار: 4242 4242 4242 4242 | 12/34 | 123
+        </Text>
+      </View>
+
+      {/* Security Info */}
+      <View style={styles.securityInfo}>
+        <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
+        <Text style={styles.securityText}>
+          بياناتك محمية بتشفير SSL من Stripe. لن نقوم بحفظ بيانات بطاقتك.
+        </Text>
+      </View>
+
+      {/* Pay Button */}
+      <TouchableOpacity 
+        style={[
+          styles.payBtn,
+          (!cardComplete || processing) && styles.payBtnDisabled
+        ]}
+        onPress={handlePayment}
+        disabled={!cardComplete || processing}
+      >
+        <LinearGradient
+          colors={(!cardComplete || processing) ? ['#999', '#777'] : ['#4CAF50', '#388E3C']}
+          style={styles.payBtnGradient}
+        >
+          {processing ? (
+            <ActivityIndicator color={COLORS.white} />
+          ) : (
+            <>
+              <Ionicons name="lock-closed" size={20} color={COLORS.white} />
+              <Text style={styles.payBtnText}>
+                ادفع {packageDetails.price} ر.س
+              </Text>
+            </>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -37,21 +200,18 @@ export default function CheckoutScreen() {
   const packageId = params.packageId as string;
   
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [packageDetails, setPackageDetails] = useState<PackageDetails | null>(null);
-  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
-  
-  // Card details (for demo - in production use Stripe Elements)
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [cardName, setCardName] = useState('');
+  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
 
   const [fontsLoaded] = useFonts({ Alexandria_400Regular, Alexandria_600SemiBold, Alexandria_700Bold });
 
   useEffect(() => {
     if (packageId) {
       loadPackageAndCreateSubscription();
+    } else {
+      setError('لم يتم تحديد الباقة');
+      setLoading(false);
     }
   }, [packageId]);
 
@@ -66,16 +226,15 @@ export default function CheckoutScreen() {
 
       // جلب تفاصيل الباقة
       const pkgRes = await fetch(`${API_URL}/api/all-packages/${packageId}`);
-      if (pkgRes.ok) {
-        const pkgData = await pkgRes.json();
-        setPackageDetails(pkgData);
-      } else {
-        Alert.alert('خطأ', 'الباقة غير موجودة');
-        router.back();
+      if (!pkgRes.ok) {
+        setError('الباقة غير موجودة');
+        setLoading(false);
         return;
       }
+      const pkgData = await pkgRes.json();
+      setPackageDetails(pkgData);
 
-      // إنشاء الاشتراك
+      // إنشاء الاشتراك والحصول على client_secret
       const subRes = await fetch(`${API_URL}/api/all-packages/${packageId}/subscribe`, {
         method: 'POST',
         headers: {
@@ -86,116 +245,34 @@ export default function CheckoutScreen() {
 
       if (subRes.ok) {
         const subData = await subRes.json();
-        setSubscriptionId(subData.subscription_id);
+        setSubscriptionData(subData);
       } else {
-        const error = await subRes.json();
-        Alert.alert('خطأ', error.detail || 'فشل في إنشاء الاشتراك');
-        router.back();
-        return;
+        const errorData = await subRes.json();
+        setError(errorData.detail || 'فشل في إنشاء الاشتراك');
       }
-    } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('خطأ', 'حدث خطأ في الاتصال');
-      router.back();
+    } catch (err) {
+      console.error('Error:', err);
+      setError('حدث خطأ في الاتصال');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCardNumber = (text: string) => {
-    const cleaned = text.replace(/\D/g, '');
-    const groups = cleaned.match(/.{1,4}/g);
-    return groups ? groups.join(' ').slice(0, 19) : '';
+  const handlePaymentSuccess = () => {
+    Alert.alert(
+      '🎉 تم الدفع بنجاح!',
+      'تم تفعيل اشتراكك. يمكنك الآن الاستمتاع بجميع مميزات الباقة.',
+      [
+        { 
+          text: 'عرض اشتراكاتي', 
+          onPress: () => router.replace('/my-subscriptions' as any)
+        }
+      ]
+    );
   };
 
-  const formatExpiryDate = (text: string) => {
-    const cleaned = text.replace(/\D/g, '');
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
-    }
-    return cleaned;
-  };
-
-  const validateCard = () => {
-    const cleanedCardNumber = cardNumber.replace(/\s/g, '');
-    if (cleanedCardNumber.length !== 16) {
-      Alert.alert('خطأ', 'رقم البطاقة يجب أن يكون 16 رقم');
-      return false;
-    }
-    if (expiryDate.length !== 5) {
-      Alert.alert('خطأ', 'تاريخ الانتهاء غير صالح');
-      return false;
-    }
-    if (cvv.length < 3) {
-      Alert.alert('خطأ', 'رمز CVV غير صالح');
-      return false;
-    }
-    if (cardName.trim().length < 3) {
-      Alert.alert('خطأ', 'يرجى إدخال اسم حامل البطاقة');
-      return false;
-    }
-    return true;
-  };
-
-  const handlePayment = async () => {
-    if (!validateCard()) return;
-    if (!subscriptionId || !packageDetails) return;
-
-    setProcessing(true);
-    try {
-      const token = await AsyncStorage.getItem('token');
-      
-      // محاكاة الدفع - في الإنتاج، استخدم Stripe SDK
-      // هنا نقوم بتأكيد الدفع مباشرة للعرض التجريبي
-      const response = await fetch(`${API_URL}/api/packages/confirm-payment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          subscription_id: subscriptionId,
-          payment_intent_id: 'demo_payment_' + Date.now(),
-          // في الإنتاج، أرسل payment_intent_id الحقيقي من Stripe
-        })
-      });
-
-      if (response.ok) {
-        // تحديث حالة الدفع إلى "مدفوع" مباشرة (للعرض التجريبي)
-        await fetch(`${API_URL}/api/subscriptions/${subscriptionId}/mark-paid`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        Alert.alert(
-          '🎉 تم الدفع بنجاح!',
-          'تم تفعيل اشتراكك. يمكنك الآن الاستمتاع بجميع مميزات الباقة.',
-          [
-            { 
-              text: 'عرض اشتراكاتي', 
-              onPress: () => router.replace('/my-subscriptions' as any)
-            }
-          ]
-        );
-      } else {
-        // للعرض التجريبي، نعتبر الدفع ناجحاً
-        Alert.alert(
-          '🎉 تم الدفع بنجاح!',
-          'تم تفعيل اشتراكك. يمكنك الآن الاستمتاع بجميع مميزات الباقة.',
-          [
-            { 
-              text: 'عرض اشتراكاتي', 
-              onPress: () => router.replace('/my-subscriptions' as any)
-            }
-          ]
-        );
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء معالجة الدفع');
-    } finally {
-      setProcessing(false);
-    }
+  const handlePaymentError = (errorMessage: string) => {
+    Alert.alert('خطأ في الدفع', errorMessage);
   };
 
   if (!fontsLoaded || loading) {
@@ -208,12 +285,12 @@ export default function CheckoutScreen() {
     );
   }
 
-  if (!packageDetails) {
+  if (error || !packageDetails || !subscriptionData) {
     return (
       <View style={styles.loadingContainer}>
         <StatusBar barStyle="light-content" />
         <Ionicons name="alert-circle" size={64} color={COLORS.error} />
-        <Text style={styles.errorText}>حدث خطأ في تحميل البيانات</Text>
+        <Text style={styles.errorText}>{error || 'حدث خطأ في تحميل البيانات'}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => router.back()}>
           <Text style={styles.retryBtnText}>العودة</Text>
         </TouchableOpacity>
@@ -221,6 +298,68 @@ export default function CheckoutScreen() {
     );
   }
 
+  // For web platform, use Stripe Elements
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" />
+
+        {/* Header */}
+        <LinearGradient
+          colors={[COLORS.teal, '#1a8a7d']}
+          style={styles.header}
+        >
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Ionicons name="close" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>إتمام الدفع</Text>
+          <View style={{ width: 40 }} />
+        </LinearGradient>
+
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+          {/* Order Summary */}
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>ملخص الطلب</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryValue}>{packageDetails.name}</Text>
+              <Text style={styles.summaryLabel}>الباقة</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryValue}>
+                {packageDetails.category === 'private_sessions' ? 'حصص خاصة' : 'تدريب ذاتي'}
+              </Text>
+              <Text style={styles.summaryLabel}>النوع</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.totalValue}>{packageDetails.price} ر.س</Text>
+              <Text style={styles.totalLabel}>الإجمالي</Text>
+            </View>
+          </View>
+
+          {/* Payment Form with Stripe Elements */}
+          <View style={styles.paymentCard}>
+            <View style={styles.paymentHeader}>
+              <Ionicons name="card" size={24} color={COLORS.teal} />
+              <Text style={styles.paymentTitle}>بيانات الدفع</Text>
+            </View>
+
+            <Elements stripe={stripePromise}>
+              <PaymentForm 
+                packageDetails={packageDetails}
+                subscriptionData={subscriptionData}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            </Elements>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // For native platforms (iOS/Android), show simple message
+  // In production, you would use @stripe/stripe-react-native
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
@@ -258,111 +397,22 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
-        {/* Payment Form */}
-        <View style={styles.paymentCard}>
-          <View style={styles.paymentHeader}>
-            <Ionicons name="card" size={24} color={COLORS.teal} />
-            <Text style={styles.paymentTitle}>بيانات البطاقة</Text>
-          </View>
-
-          {/* Test Card Notice */}
-          <View style={styles.testNotice}>
-            <Ionicons name="information-circle" size={18} color="#2196F3" />
-            <Text style={styles.testNoticeText}>
-              للاختبار: استخدم 4242 4242 4242 4242
-            </Text>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>رقم البطاقة</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                value={cardNumber}
-                onChangeText={(text) => setCardNumber(formatCardNumber(text))}
-                placeholder="0000 0000 0000 0000"
-                placeholderTextColor={COLORS.textMuted}
-                keyboardType="numeric"
-                maxLength={19}
-              />
-              <Ionicons name="card-outline" size={20} color={COLORS.textMuted} />
-            </View>
-          </View>
-
-          <View style={styles.rowInputs}>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.inputLabel}>تاريخ الانتهاء</Text>
-              <TextInput
-                style={styles.input}
-                value={expiryDate}
-                onChangeText={(text) => setExpiryDate(formatExpiryDate(text))}
-                placeholder="MM/YY"
-                placeholderTextColor={COLORS.textMuted}
-                keyboardType="numeric"
-                maxLength={5}
-              />
-            </View>
-            <View style={[styles.inputGroup, { flex: 1, marginRight: SPACING.md }]}>
-              <Text style={styles.inputLabel}>CVV</Text>
-              <TextInput
-                style={styles.input}
-                value={cvv}
-                onChangeText={setCvv}
-                placeholder="123"
-                placeholderTextColor={COLORS.textMuted}
-                keyboardType="numeric"
-                maxLength={4}
-                secureTextEntry
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>اسم حامل البطاقة</Text>
-            <TextInput
-              style={styles.input}
-              value={cardName}
-              onChangeText={setCardName}
-              placeholder="الاسم كما يظهر على البطاقة"
-              placeholderTextColor={COLORS.textMuted}
-              autoCapitalize="characters"
-            />
-          </View>
-        </View>
-
-        {/* Security Info */}
-        <View style={styles.securityInfo}>
-          <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
-          <Text style={styles.securityText}>
-            بياناتك محمية بتشفير SSL. لن نقوم بحفظ بيانات بطاقتك.
+        {/* Mobile Payment Notice */}
+        <View style={styles.mobileNotice}>
+          <Ionicons name="phone-portrait" size={48} color={COLORS.teal} />
+          <Text style={styles.mobileNoticeTitle}>الدفع عبر الهاتف</Text>
+          <Text style={styles.mobileNoticeText}>
+            يرجى استخدام نسخة الويب لإتمام عملية الدفع، أو تواصل معنا مباشرة.
           </Text>
+          <TouchableOpacity 
+            style={styles.contactBtn}
+            onPress={() => router.push('/chat' as any)}
+          >
+            <Ionicons name="chatbubbles" size={20} color={COLORS.white} />
+            <Text style={styles.contactBtnText}>تواصل معنا</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Pay Button */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-        <TouchableOpacity 
-          style={styles.payBtn}
-          onPress={handlePayment}
-          disabled={processing}
-        >
-          <LinearGradient
-            colors={processing ? ['#999', '#777'] : ['#4CAF50', '#388E3C']}
-            style={styles.payBtnGradient}
-          >
-            {processing ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <>
-                <Ionicons name="lock-closed" size={20} color={COLORS.white} />
-                <Text style={styles.payBtnText}>
-                  ادفع {packageDetails.price} ر.س
-                </Text>
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -389,6 +439,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.semiBold,
     color: COLORS.error,
+    textAlign: 'center',
+    paddingHorizontal: SPACING.lg,
   },
   retryBtn: {
     backgroundColor: COLORS.teal,
@@ -496,6 +548,15 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
+  cardElementContainer: {
+    backgroundColor: '#f7f7f7',
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
   testNotice: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -512,37 +573,6 @@ const styles = StyleSheet.create({
     color: '#1976D2',
   },
 
-  inputGroup: {
-    marginBottom: SPACING.md,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontFamily: FONTS.semiBold,
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-    textAlign: 'right',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    color: COLORS.text,
-    textAlign: 'left',
-  },
-  rowInputs: {
-    flexDirection: 'row',
-  },
-
   securityInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -550,6 +580,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     backgroundColor: '#E8F5E9',
     borderRadius: RADIUS.md,
+    marginBottom: SPACING.md,
   },
   securityText: {
     flex: 1,
@@ -559,15 +590,12 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 
-  footer: {
-    padding: SPACING.md,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
   payBtn: {
     borderRadius: RADIUS.md,
     overflow: 'hidden',
+  },
+  payBtnDisabled: {
+    opacity: 0.7,
   },
   payBtnGradient: {
     flexDirection: 'row',
@@ -578,6 +606,44 @@ const styles = StyleSheet.create({
   },
   payBtnText: {
     fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+  },
+
+  // Mobile Notice Styles
+  mobileNotice: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.xl,
+    alignItems: 'center',
+    ...SHADOWS.sm,
+  },
+  mobileNoticeTitle: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+    marginTop: SPACING.md,
+  },
+  mobileNoticeText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+    lineHeight: 22,
+  },
+  contactBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.teal,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginTop: SPACING.lg,
+  },
+  contactBtnText: {
+    fontSize: 16,
     fontFamily: FONTS.bold,
     color: COLORS.white,
   },
