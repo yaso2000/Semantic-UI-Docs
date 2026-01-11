@@ -3985,7 +3985,7 @@ async def complete_assessment(current_user: dict = Depends(get_current_user)):
     if not subscription:
         raise HTTPException(status_code=403, detail="يجب الاشتراك أولاً")
     
-    # البحث عن التقييم
+    # البحث عن التقييم - أولاً المرتبط بالاشتراك
     assessment = await db.self_assessments.find_one({
         "user_id": current_user["_id"],
         "subscription_id": subscription["_id"]
@@ -3996,14 +3996,6 @@ async def complete_assessment(current_user: dict = Depends(get_current_user)):
         assessment = await db.self_assessments.find_one({
             "user_id": current_user["_id"]
         }, sort=[("created_at", -1)])
-    
-    if not assessment:
-        raise HTTPException(status_code=400, detail="يجب إكمال التقييم أولاً")
-    
-    assessment = await db.self_assessments.find_one({
-        "user_id": current_user["_id"],
-        "subscription_id": subscription["_id"]
-    })
     
     if not assessment:
         raise HTTPException(status_code=400, detail="يجب إكمال التقييم أولاً")
