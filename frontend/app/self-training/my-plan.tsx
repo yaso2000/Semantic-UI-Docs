@@ -260,8 +260,9 @@ export default function MyPlanScreen() {
 
   const sharePlan = async () => {
     try {
+      const daysCount = plan?.workout_plan?.weekly_schedule ? Object.keys(plan.workout_plan.weekly_schedule).length : 0;
       await Share.share({
-        message: `خطتي للتدريب الذاتي من تطبيق "اسأل يازو"\n\nالسعرات اليومية: ${plan?.nutrition_plan?.daily_calories || 2000} سعرة\nأيام التمرين: ${plan?.workout_plan?.weekly_schedule?.length || 0} أيام\n\nللمزيد، حمّل التطبيق!`,
+        message: `خطتي للتدريب الذاتي من تطبيق "اسأل يازو"\n\nالسعرات اليومية: ${plan?.nutrition_plan?.daily_calories || 2000} سعرة\nأيام التمرين: ${daysCount} أيام\n\nللمزيد، حمّل التطبيق!`,
         title: 'خطتي الشخصية'
       });
     } catch (error) {
