@@ -285,8 +285,8 @@ function YazoHome({ user, router }: { user: any; router: any }) {
             <Ionicons name="pricetags" size={22} color={COLORS.goldDark} />
           </View>
           <View style={styles.adminMenuContent}>
-            <Text style={styles.adminMenuTitle}>الباقات</Text>
-            <Text style={styles.adminMenuSubtitle}>إدارة الأسعار والباقات</Text>
+            <Text style={styles.adminMenuTitle}>إدارة الباقات</Text>
+            <Text style={styles.adminMenuSubtitle}>الحصص الخاصة والتدريب الذاتي</Text>
           </View>
           <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
@@ -331,17 +331,6 @@ function YazoHome({ user, router }: { user: any; router: any }) {
           <View style={styles.adminMenuContent}>
             <Text style={styles.adminMenuTitle}>الحاسبات المخصصة</Text>
             <Text style={styles.adminMenuSubtitle}>إضافة حاسبات HTML</Text>
-          </View>
-          <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.adminMenuItem} onPress={() => router.push('/admin/self-training-packages' as any)}>
-          <View style={[styles.adminMenuIcon, { backgroundColor: '#F3E5F5' }]}>
-            <Ionicons name="rocket" size={22} color="#9C27B0" />
-          </View>
-          <View style={styles.adminMenuContent}>
-            <Text style={styles.adminMenuTitle}>باقات التدريب الذاتي</Text>
-            <Text style={styles.adminMenuSubtitle}>الباقات الشهرية والفصلية والسنوية</Text>
           </View>
           <Ionicons name="chevron-back" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
