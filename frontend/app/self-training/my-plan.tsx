@@ -387,55 +387,73 @@ export default function MyPlanScreen() {
                 </View>
                 <View style={[styles.macroItem, { backgroundColor: '#FCE4EC' }]}>
                   <Text style={[styles.macroValue, { color: '#E91E63' }]}>
-                    {plan?.nutrition_plan?.macros?.protein || 150}g
+                    {plan?.nutrition_plan?.macros?.protein?.grams || plan?.nutrition_plan?.macros?.protein || 150}g
                   </Text>
                   <Text style={styles.macroLabel}>بروتين</Text>
                 </View>
                 <View style={[styles.macroItem, { backgroundColor: '#FFF3E0' }]}>
                   <Text style={[styles.macroValue, { color: '#FF9800' }]}>
-                    {plan?.nutrition_plan?.macros?.carbs || 200}g
+                    {plan?.nutrition_plan?.macros?.carbs?.grams || plan?.nutrition_plan?.macros?.carbs || 200}g
                   </Text>
                   <Text style={styles.macroLabel}>كربوهيدرات</Text>
                 </View>
                 <View style={[styles.macroItem, { backgroundColor: '#E8F5E9' }]}>
                   <Text style={[styles.macroValue, { color: '#4CAF50' }]}>
-                    {plan?.nutrition_plan?.macros?.fats || 60}g
+                    {plan?.nutrition_plan?.macros?.fat?.grams || plan?.nutrition_plan?.macros?.fats || 60}g
                   </Text>
                   <Text style={styles.macroLabel}>دهون</Text>
                 </View>
               </View>
             </View>
 
-            {/* Meal Plan */}
-            <Text style={styles.sectionTitle}>خطة الوجبات</Text>
-            {plan?.nutrition_plan?.meal_plan?.map((meal: any, idx: number) => (
-              <View key={idx} style={styles.mealCard}>
-                <View style={styles.mealHeader}>
-                  <View style={styles.mealIcon}>
-                    <Ionicons 
-                      name={idx === 0 ? 'sunny' : idx === 1 ? 'partly-sunny' : idx === 2 ? 'moon' : 'cafe'} 
-                      size={20} 
-                      color="#4CAF50" 
-                    />
-                  </View>
-                  <Text style={styles.mealName}>{meal.meal_name || meal.name}</Text>
-                  <Text style={styles.mealCalories}>{meal.calories || '---'} سعرة</Text>
-                </View>
-                {meal.description && (
-                  <Text style={styles.mealDesc}>{meal.description}</Text>
-                )}
+            {/* Water Intake */}
+            {plan?.nutrition_plan?.water_intake && (
+              <View style={styles.waterCard}>
+                <Ionicons name="water" size={24} color="#2196F3" />
+                <Text style={styles.waterText}>كمية الماء المطلوبة: {plan.nutrition_plan.water_intake}</Text>
               </View>
-            )) || (
+            )}
+
+            {/* Meal Examples */}
+            <Text style={styles.sectionTitle}>أمثلة على الوجبات</Text>
+            {plan?.nutrition_plan?.meal_examples ? (
+              Object.entries(plan.nutrition_plan.meal_examples).map(([mealType, examples]: [string, any], idx: number) => (
+                <View key={idx} style={styles.mealCard}>
+                  <View style={styles.mealHeader}>
+                    <View style={styles.mealIcon}>
+                      <Ionicons 
+                        name={mealType === 'breakfast' ? 'sunny' : mealType === 'lunch' ? 'partly-sunny' : mealType === 'dinner' ? 'moon' : 'cafe'} 
+                        size={20} 
+                        color="#4CAF50" 
+                      />
+                    </View>
+                    <Text style={styles.mealName}>
+                      {mealType === 'breakfast' ? 'الإفطار' : 
+                       mealType === 'lunch' ? 'الغداء' : 
+                       mealType === 'dinner' ? 'العشاء' : 'وجبات خفيفة'}
+                    </Text>
+                  </View>
+                  <View style={styles.mealExamples}>
+                    {Array.isArray(examples) && examples.map((example: string, exIdx: number) => (
+                      <View key={exIdx} style={styles.mealExampleItem}>
+                        <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                        <Text style={styles.mealExampleText}>{example}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))
+            ) : (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>لم يتم توليد خطة الوجبات بعد</Text>
               </View>
             )}
 
-            {/* Tips */}
-            {plan?.nutrition_plan?.tips?.length > 0 && (
+            {/* Recommendations */}
+            {plan?.nutrition_plan?.recommendations?.length > 0 && (
               <>
                 <Text style={styles.sectionTitle}>نصائح غذائية</Text>
-                {plan.nutrition_plan.tips.map((tip: string, idx: number) => (
+                {plan.nutrition_plan.recommendations.map((tip: string, idx: number) => (
                   <View key={idx} style={styles.tipItem}>
                     <Ionicons name="bulb" size={18} color="#4CAF50" />
                     <Text style={styles.tipText}>{tip}</Text>
