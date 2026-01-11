@@ -3342,7 +3342,7 @@ async def get_packages_stats(admin: dict = Depends(get_admin_user)):
 
 # --- عرض الباقات للمستخدمين ---
 
-@api_router.get("/packages")
+@api_router.get("/all-packages")
 async def get_packages_for_users(category: Optional[str] = None):
     """جلب الباقات المتاحة للمستخدمين"""
     query = {"is_active": True}
@@ -3376,7 +3376,7 @@ async def get_packages_for_users(category: Optional[str] = None):
     return result
 
 
-@api_router.get("/packages/{package_id}")
+@api_router.get("/all-packages/{package_id}")
 async def get_package_details(package_id: str):
     """جلب تفاصيل باقة محددة"""
     package = await db.unified_packages.find_one({"_id": package_id, "is_active": True})
@@ -3389,7 +3389,7 @@ async def get_package_details(package_id: str):
 
 # --- اشتراك المستخدم في باقة ---
 
-@api_router.post("/packages/{package_id}/subscribe")
+@api_router.post("/all-packages/{package_id}/subscribe")
 async def subscribe_to_package(package_id: str, current_user: dict = Depends(get_current_user)):
     """الاشتراك في باقة"""
     # جلب الباقة
