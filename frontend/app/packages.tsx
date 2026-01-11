@@ -135,7 +135,7 @@ export default function PackagesScreen() {
 
     setSubscribing(pkg.id);
     try {
-      const response = await fetch(`${API_URL}/api/packages/${pkg.id}/subscribe`, {
+      const response = await fetch(`${API_URL}/api/all-packages/${pkg.id}/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
