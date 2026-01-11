@@ -3515,6 +3515,25 @@ async def confirm_package_payment(payment_data: dict, current_user: dict = Depen
         raise HTTPException(status_code=500, detail=f"خطأ في التحقق من الدفع: {str(e)}")
 
 
+@api_router.post("/subscriptions/{subscription_id}/mark-paid")
+async def mark_subscription_as_paid(subscription_id: str, current_user: dict = Depends(get_current_user)):
+    """تأكيد الدفع يدوياً (للعرض التجريبي)"""
+    subscription = await db.user_subscriptions.find_one({
+        "_id": subscription_id,
+        "user_id": current_user["_id"]
+    })
+    
+    if not subscription:
+        raise HTTPException(status_code=404, detail="الاشتراك غير موجود")
+    
+    await db.user_subscriptions.update_one(
+        {"_id": subscription_id},
+        {"$set": {"payment_status": "paid", "status": "active"}}
+    )
+    
+    return {"message": "تم تفعيل الاشتراك بنجاح", "status": "success"}
+
+
 @api_router.get("/my-subscriptions")
 async def get_my_subscriptions(current_user: dict = Depends(get_current_user)):
     """جلب اشتراكات المستخدم"""
