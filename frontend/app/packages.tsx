@@ -139,10 +139,6 @@ export default function PackagesScreen() {
       params: { packageId: pkg.id }
     } as any);
   };
-    } finally {
-      setSubscribing(null);
-    }
-  };
 
   const filteredPackages = packages.filter(pkg => pkg.category === activeTab);
 
