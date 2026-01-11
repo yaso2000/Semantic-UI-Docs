@@ -25,17 +25,27 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 interface Plan {
   id: string;
   workout_plan: {
-    weekly_schedule: any[];
-    focus: string;
-    tips: string[];
+    weekly_schedule: {[key: string]: any};
+    goal_focus?: string;
+    focus?: string;
+    recommendations?: string[];
+    tips?: string[];
   };
   nutrition_plan: {
     daily_calories: number;
-    macros: { protein: number; carbs: number; fats: number };
-    meal_plan: any[];
-    tips: string[];
+    macros: { 
+      protein: any; 
+      carbs: any; 
+      fat?: any;
+      fats?: number;
+    };
+    meal_examples?: {[key: string]: string[]};
+    meal_plan?: any[];
+    water_intake?: string;
+    recommendations?: string[];
+    tips?: string[];
   };
-  created_at: string;
+  created_at?: string;
 }
 
 export default function MyPlanScreen() {
