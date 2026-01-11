@@ -148,6 +148,24 @@ function ClientHome({ user, router }: { user: any; router: any }) {
       <View style={styles.toolsRow}>
         <TouchableOpacity 
           style={styles.toolCard}
+          onPress={() => router.push('/packages' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.teal}15` }]}>
+            <Ionicons name="pricetags" size={22} color={COLORS.teal} />
+          </View>
+          <Text style={styles.toolText}>الباقات</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.toolCard}
+          onPress={() => router.push('/my-subscriptions' as any)}
+        >
+          <View style={[styles.toolIcon, { backgroundColor: `${COLORS.spiritual}15` }]}>
+            <Ionicons name="card" size={22} color={COLORS.spiritual} />
+          </View>
+          <Text style={styles.toolText}>اشتراكاتي</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.toolCard}
           onPress={() => router.push('/resources' as any)}
         >
           <View style={[styles.toolIcon, { backgroundColor: `${COLORS.physical}15` }]}>
@@ -155,6 +173,10 @@ function ClientHome({ user, router }: { user: any; router: any }) {
           </View>
           <Text style={styles.toolText}>المكتبة</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* صف إضافي */}
+      <View style={styles.toolsRow}>
         <TouchableOpacity 
           style={styles.toolCard}
           onPress={() => router.push('/goals' as any)}
@@ -173,6 +195,7 @@ function ClientHome({ user, router }: { user: any; router: any }) {
           </View>
           <Text style={styles.toolText}>التدريب الذاتي</Text>
         </TouchableOpacity>
+        <View style={styles.toolCard} />
       </View>
 
       {/* زر حجز جلسة */}
