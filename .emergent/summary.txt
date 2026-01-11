@@ -1,174 +1,177 @@
 <analysis>
-**original_problem_statement**: The initial user request was to enhance the existing application by implementing a new set of features. The user provided a list of five requirements and requested the implementation of the first three:
-1.  Expand the Save Results functionality to automatically include a save button on any new custom calculators created by the admin.
-2.  Improve the resource library by embedding YouTube videos directly within the app instead of using external links.
-3.  Implement a new Goal Setting System for users to define and track their personal goals.
+**original_problem_statement**: The user has provided a new, comprehensive Product Requirements Document (PRD) to completely restructure the application's package and subscription system.
 
-The user explicitly requested to ignore the other two requirements (HealthKit/Google Fit integration and Push Notifications) for now.
+**PRODUCT REQUIREMENTS (New System):**
+- **Goal:** Unify the two separate package systems (Private Coaching Sessions and Self-Training Subscriptions) into a single, flexible system managed from one place.
+- **Data Model:**
+    - A single database collection for all packages.
+    - Each package must have a  field:  or .
+- **Admin Experience:**
+    - A single, unified Manage Packages page in the admin panel.
+    - On this page, the admin can create, view, edit, and delete packages of both categories.
+    - The creation form should dynamically show relevant fields based on the selected category (e.g.,  for private sessions,  for self-training).
+- **User (Trainee) Experience:**
+    - A single Packages page for trainees to view all available offerings.
+    - This page should use tabs to let users switch between Private Sessions and Self-Training categories.
+    - A user who has an active subscription for a package should not be able to purchase it again. The Subscribe button should be disabled or hidden for that specific package until the subscription expires.
+- **Process:** All old packages and management pages should be deleted or deprecated, replaced by this new unified system.
 
 **User's preferred language**: Arabic (العربية). The next agent MUST respond in Arabic.
 
 **what currently exists?**
-The application is a full-stack coaching platform with features for user authentication (including Google Sign-In), a comprehensive suite of calculators, a resource library, and a chat system. Key features completed in previous sessions include the ability for users to save calculator results, view their progress with charts on a profile page, and download their data as a PDF. A robust booking system allows trainees to book packages, which coaches/admins can then manage.
-
-In the most recent session, several critical bugs were fixed, including an issue preventing new users (with role ) from seeing available packages, a backend API routing conflict that broke the subscription check, and multiple issues with the chat system's navigation and contact management. The PDF export feature was also successfully implemented.
+The agent has successfully executed a major pivot, replacing the old, separate package systems with a new unified one as per the user's PRD.
+- **Backend:** A new data model  and a new database collection  have been created in . A new set of APIs (, , etc.) has been built to manage these unified packages.
+- **Admin Frontend:** The old admin pages have been deprecated. A new, single admin page has been created at  for creating, editing, and viewing all packages. The admin dashboard () has been updated to link to this single management page.
+- **User Frontend:** A new user-facing page at  displays all packages, correctly categorized under الحصص الخاصة (Private Sessions) and التدريب الذاتي (Self-Training) tabs. A My Subscriptions page () and a link to it on the user's home screen have also been created.
+- **Payment Flow:** The agent has begun implementing the Stripe payment flow.
 
 **Last working item**:
-    - Last item agent was working: The agent began implementing the Goal Setting System (Requirement #3). It successfully added the necessary Pydantic models and CRUD API endpoints () to the backend in . It also created a new, empty frontend page at  and added a navigation link to it from the main home screen.
+    - Last item agent was working: The agent was implementing the Stripe payment flow after the user reported the Subscribe button was not functional. The agent has:
+        1. Installed the  library.
+        2. Created a new placeholder checkout page at .
+        3. Modified the user-facing packages page () so that clicking اشترك الآن (Subscribe Now) navigates the user to the new  page, passing the selected package's ID and name as route parameters.
     - Status: IN PROGRESS
     - Agent Testing Done: N
-    - Which testing method agent to use? both. The backend API needs testing via curl or a test script. The frontend requires the  to verify the new UI for creating, viewing, and managing goals once it's built.
+    - Which testing method agent to use? Frontend testing agent (to test the full subscription flow from package selection to checkout and success confirmation).
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Admin Package Deletion is Not Working (P2)
-  - Issue 2: External MongoDB Atlas Connection Fails (P3)
+  - Issue 1: Payment flow is not implemented (P0)
 
   Issues Detail:
   - Issue 1: 
-     - Description: A long-standing, recurring bug where the delete button for packages in the admin panel does not function correctly. This prevents admins from managing outdated or incorrect packages.
-     - Attempted fixes: None in this session. This issue was noted in the initial handover but was not prioritized.
-     - Next debug checklist: 
-        1. Log in as admin ().
-        2. Navigate to the package management section.
-        3. Use browser dev tools to inspect the network request when the delete button is clicked.
-        4. Debug the frontend  function and the corresponding backend API endpoint to identify the point of failure.
-     - Why fix this issue and what will be achieved with the fix? This is a core administrative function required for maintaining the packages offered to users.
-     - Status:  NOT STARTED
-     - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? both
+     - Description: Clicking the Subscribe Now button on the  page correctly navigates to , but the checkout page is currently a placeholder. It does not handle payment processing, so the user cannot complete a purchase.
+     - Attempted fixes: The foundational files () and libraries () have been put in place, but the core logic is missing.
+     - Next debug checklist:
+        1. **Backend:** Create a new API endpoint in , such as , which accepts a  and . This endpoint should:
+            - Fetch the package price from the database.
+            - Create a Stripe .
+            - Return the  of the PaymentIntent to the frontend.
+        2. **Frontend ():**
+            - On page load, call the new  endpoint to get the .
+            - Use the  hook and the received  to initialize the payment sheet ().
+            - Present the payment sheet to the user () when they click a Pay button.
+            - Handle the success or failure response from the payment sheet.
+        3. **Backend (Confirmation):** Upon successful payment on the frontend, call another backend endpoint (e.g., ) to create the  record in the database, linking the user to the purchased package.
+        4. **Frontend (Navigation):** After successful confirmation, navigate the user to their My Subscriptions page () to see their new active subscription.
+     - Why fix this issue and what will be achieved with the fix? This is the core monetization feature of the application. Fixing it will allow users to purchase packages.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? Both
      - Blocked on other issue: No
 
-  - Issue 2: 
-     - Description: The application cannot connect to the user's MongoDB Atlas cluster due to a . This is a known issue related to the execution environment's network or SSL/TLS certificate configuration. It is a major blocker for a production deployment.
-     - Attempted fixes: Previous attempts (updating connection string, installing /) failed. The agent correctly reverted to the local MongoDB instance to unblock development.
-     - Next debug checklist: **DO NOT** attempt the same fixes. Continue development using the local MongoDB. This issue should be flagged as an environmental/infrastructure blocker that may require external support to resolve before final deployment.
-     - Why fix this issue and what will be achieved with the fix? Enables the use of a persistent, cloud-based production database, which is essential for the live application.
-     - Status:  BLOCKED
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? backend
-     - Blocked on other issue: Blocked on a potential environment/network limitation.
-
 **In progress Task List**:
-  - Task 1: Complete Goal Setting System (P0)
-
+  - Task 1: Complete the Unified Package & Subscription System (P0)
  Task Detail:
   - Task 1: 
-     - Where to resume: The backend APIs and database models are in place in . The next step is to build the user interface in the newly created file . This involves:
-        1.  Creating a form to add new goals (title, description, pillar, due date).
-        2.  Implementing a list view to display the user's existing goals, fetched from the  endpoint.
-        3.  Adding functionality to mark goals as complete, edit them, or delete them.
-        4.  Ensuring the UI is styled consistently with the rest of the app.
-     - What will be achieved with this? This will complete the user's third requested feature, providing a key tool for user engagement and progress tracking.
+     - Where to resume: Continue the implementation of the Stripe checkout flow as detailed in Issue 1 above, starting with the backend  endpoint.
+     - What will be achieved with this? A fully functional end-to-end flow for users to browse, select, pay for, and own a subscription package.
      - Status:  IN PROGRESS
      - Should Test frontend/backend/both after fix? both
      - Blocked on something: No
 
 **Upcoming and Future Tasks**
  Upcoming Tasks:
-    - **P1: Expand Save Results for Admin Calculators**: Investigate the admin panel's add custom calculator functionality. Modify the process to ensure that any newly created calculator automatically includes the  component and its associated logic, allowing results from these custom calculators to be saved to a user's profile.
-    - **P1: Embed YouTube Videos in Resource Library**: Modify the resource library section. Instead of opening YouTube links externally, use a library like  or a dedicated YouTube player library to embed and play videos directly within the app, improving user experience.
-    - **P2: Full Application Audit**: A comprehensive check of all pages for styling issues, broken links, and consistency, which was part of the original request.
-    - **P2: Complete Admin CMS Functionality**: The edit and delete capabilities for Resources in the admin panel are still pending.
+    - **P1: Prevent Re-subscription to Active Packages:** Implement logic on the  page to check the user's active subscriptions. If a user already has an active package, the Subscribe Now button for that specific package should be disabled.
+    - **P2: Self-Assessment Journey (Re-integration):** Build out the multi-step self-assessment flow on the  page. This page should only be accessible to users with an active  subscription.
+    - **P3: Plan Generation Engine (Backend):** Develop the backend logic to analyze the user's assessment data and generate a personalized training and nutrition plan.
+    - **P4: Plan Delivery (Frontend/Backend):** Complete the  page to display the generated plan and implement the PDF generation and download functionality.
+
+ Future Tasks:
+    - Implement a My Plan link for users with active self-training subscriptions.
+    - Full application audit for styling and consistency.
+    - Address the long-standing MongoDB Atlas connection failure.
 
 **Completed work in this session**
-- **Bug Fix (Package Visibility)**: Resolved a critical bug where new users (role ) could not see packages because the frontend was hardcoded to check for . The check in  was updated to include both roles.
-- **Bug Fix (Subscription Check)**: Fixed the Save Result button being disabled for subscribed users. This involved two steps:
-    - Correcting the backend API route order in  to prevent  from being incorrectly handled by the  route.
-    - Manually confirming a user's booking from  to  in the database to enable the feature for testing.
-- **Bug Fix (Chat Navigation)**:
-    - Fixed an issue where tapping the chat icon for a specific trainee would lead to the generic contact list instead of the direct conversation. The  page was updated to correctly use  to handle the incoming .
-    - Implemented a fallback mechanism in  to fetch user details and create a new contact on-the-fly if the  from the URL does not exist in the user's contact list.
-    - Added a new backend endpoint () to support this.
-    - Fixed the chat's back button logic to use  when a user has been routed from another page, ensuring correct navigation.
-- **Bug Fix (Admin/Coach Functionality)**:
-    - Modified backend APIs (, , ) to remove strict  checks, allowing any user with an 'admin' role to see all trainees and manage all sessions, unifying the admin experience.
-    - Enhanced the  page by adding action buttons (Chat, View Profile) for better user management.
-- **New Feature (PDF Export)**:
-    - Installed  and  packages.
-    - Added a Download PDF feature on the user's profile page () and the coach's view of a trainee's profile (), allowing reports to be generated and shared.
-- **Documentation**: Generated a comprehensive feature report at the user's request, saved as .
-- **Task Completion (Save Result Buttons)**: Successfully rolled out the Save Result button and associated hook to all 19 relevant calculator/tool pages, completing the task from the previous session.
+- **Unified Package System (Refactoring DONE):**
+  - Replaced two separate package systems with a single, unified model () and database collection () in .
+  - Created a full set of new backend APIs (, ) to manage the new system.
+  - Created a single, unified admin page  for all package management.
+  - Created a single, unified user-facing page  with tabs for different package categories.
+  - Updated the admin/coach home page () with a single link to the new package management page.
+- **Subscription Management (Scaffolding DONE):**
+  - Created the My Subscriptions page at .
+  - Added a link to My Subscriptions on the user's home page.
+- **Payment Flow (Started):**
+  - Installed .
+  - Created a placeholder  page.
+  - Implemented the navigation from the packages page to the checkout page.
 
 **Earlier issues found/mentioned but not fixed**
-   - No new issues were found and missed. The agent addressed the user's bug reports systematically. The primary unfixed issues are the long-standing ones noted in the Pending Issues list.
+   - Issue 1: **External MongoDB Atlas Connection Fails**
+     - Status: BLOCKED. The application cannot connect to the user's MongoDB Atlas cluster due to a . Work continues using the local MongoDB instance. This will prevent production deployment.
 
 **Known issue recurrence from previous fork**
-  - Issue recurrence in previous fork: **Admin Package Deletion** bug.
-  - Recurrence count: 7+
-  - Status: NOT STARTED
+  - Issue recurrence in previous fork: Admin Package Deletion (for original, now-deprecated packages).
+  - Recurrence count: 8+
+  - Status: RESOLVED (by deprecating the entire old system).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Full-Stack Feature Development**: Scaffolding a new feature (Goal Setting) from backend models (Pydantic) and APIs (FastAPI) to a new frontend page (React Native/Expo).
-- **Systematic Bug Fixing**: Diagnosing and fixing complex bugs involving interactions between frontend state (user role), backend logic (API queries), and API routing order.
-- **API and Library Integration**: Integrating new libraries (, ) to add PDF generation capabilities.
-- **Expo Router Navigation**: Advanced usage of , including  to handle dynamic routing with parameters and  for correct history navigation.
-- **State Management**: Debugging issues related to client-side state (user object from AsyncStorage) and its mismatch with backend expectations.
+- **Major Code Refactoring:** Deprecating multiple data models, APIs, and frontend pages in favor of a single, unified system.
+- **Unified Data Modeling:** Using a single Pydantic model with a  field to handle different types of entities.
+- **Conditional Rendering (Frontend):** Using tabs ( is implicitly used in the component) to display different categories of data fetched from a single API endpoint.
+- **Payment Gateway Integration (In Progress):** Setting up the foundation for Stripe payments using , including creating dedicated pages and navigation.
 
 **key DB schema**
-  - **goals**:  (NEW)
-  - **calculator_results**: 
-  - **bookings**:  (schema confirmed, fields like  vs  were critical for bug fixes)
-  - **users**:  (schema confirmed,  field was critical for bug fixes)
+  - **unified_packages**:  (NEW)
+  - **user_subscriptions**:  (IMPLIED, to be created)
+  - ~~hourly_packages~~: (DEPRECATED)
+  - ~~self_training_packages~~: (DEPRECATED)
 
 **changes in tech stack**
-  - : Added for PDF generation.
-  - : Added for sharing generated PDFs.
+  - : Added for payment processing.
 
 **All files of reference**
-- : Contains the new Goal APIs and numerous critical bug fixes.
-- : The new page to be developed for the Goal Setting feature.
-- : Was heavily modified to fix navigation and contact handling.
-- : Was modified to fix the package visibility bug.
--  & : Were modified to add the new PDF export feature.
-- : A new documentation file created at the user's request.
+- : **(Immediate focus)** The page where the Stripe payment UI needs to be implemented.
+- : **(Immediate focus)** The file where  and  APIs need to be added.
+- : The main user-facing packages page that initiates the checkout flow.
+- : The new unified admin management page.
+- : The destination page after a successful purchase.
 
 **Areas that need refactoring**:
-- The distinction between user roles ( vs ) has caused multiple bugs. It would be beneficial to standardize this across the entire application (both frontend and backend) to a single role, like , to prevent future issues.
+- The old API endpoints and models for  and  still exist in . They should be commented out or removed to prevent conflicts and clean up the codebase.
 
 **key api endpoints**
--  (GET, POST): List and create goals for the current user. (NEW)
--  (PUT, DELETE): Update and delete a specific goal. (NEW)
--  (GET): Fetches details for a single user. (NEW)
--  (GET): Fixed by reordering routes in .
--  (GET): Verified to be working, but the client-side logic was bugged.
--  (GET): Backend logic updated to include  role.
+-  (GET): Fetches all packages from the  collection. (NEW)
+-  (POST, PUT, DELETE): Manages the creation, update, and deletion of unified packages. (NEW)
+-  (POST): **(To be created)**
+-  (POST): **(To be created)**
+-  (GET): Fetches the current user's subscriptions. (NEW)
 
 **Critical Info for New Agent**
-- **Your immediate priority is to complete the Goal Setting System.** This means building the UI in  to interact with the already-created backend APIs.
-- **Next, you must implement the other two user-approved features:** 1) ensuring admin-created calculators get a Save button, and 2) embedding YouTube videos in the resource library.
-- **A key recurring problem is the  vs  role.** The agent fixed this in several places, but be aware it might exist elsewhere. When adding features related to users, ensure you handle the  role correctly.
-- **DO NOT work on the MongoDB Atlas connection issue.** It is a known environmental blocker. Continue using the local database.
-- **Remember to respond in Arabic (العربية).**
+- **You are implementing a brand-new, unified package system.** The previous systems for hourly packages and self-training packages are now deprecated. All work must be done against the  collection and the new APIs (, ).
+- **Your immediate priority is to complete the Stripe payment flow.** This involves building both the backend endpoints for creating a payment intent and confirming the payment, and the frontend UI in  to handle the payment sheet.
+- **Do not work on the old, deprecated files or APIs.**
+- After the payment flow is working, the next priority is to implement the business logic that prevents a user from re-subscribing to an active package.
+- Remember to always respond in **Arabic (العربية)**.
 
 **documents created in this job**
-  - 
+- None.
 
 **Last 10 User Messages and any pending HUMAN messages** 
- - **Message 501**: (IN PROGRESS) User confirms the plan to implement the first three features (Goal Setting, dynamic Save button, YouTube embed) and ignore the last two.
- - **Message 498**: (ADDRESSED) User provides a new set of 5 feature requirements for the app.
- - **Message 494**: (ADDRESSED) User requests a detailed report of the app's current features.
- - **Message 447**: (ADDRESSED) User requests the ability to download reports as a PDF.
- - **Message 430**: (ADDRESSED) User reports that the back button in the chat screen is not working correctly; it keeps the user on the same screen.
- - **Message 399**: (ADDRESSED) User reports that clicking the chat icon for a specific trainee navigates to the entire chat list, not the specific conversation.
- - **Message 373**: (ADDRESSED) User reports an error when creating a training session for the new user yaser and that the chat icon is not navigating correctly.
- - **Message 346**: (ADDRESSED) User reports two issues: user management is not functional, and a new user yaser who booked a package does not appear in the coach's list of trainees.
- - **Message 305**: (ADDRESSED) User reports that after subscribing, the Save Result button is still disabled.
- - **Message 275 & 258**: (ADDRESSED) User reports that after creating a new account, the newly created package is still not visible. This was a persistent bug that required multiple debug loops to solve.
+ - **Message 244:** (IN PROGRESS) User reports that clicking the Subscribe button does nothing and confirms they want to activate the Stripe payment interface.
+ - **Message 243:** (ADDRESSED) Agent provides a summary of the implemented unified package system and asks for confirmation to proceed with Stripe integration.
+ - **Message 223:** (ADDRESSED) User confirms the agent should proceed with all proposed tasks: adding links, creating My Subscriptions page, and implementing Stripe.
+ - **Message 222:** (ADDRESSED) Agent provides a summary of the unified package pages and asks for the next steps.
+ - **Message 190:** (ADDRESSED) User specifies the requirement that a user cannot buy the same package twice if their current one is active.
+ - **Message 186-189:** (ADDRESSED) Agent confirms the new unified admin page is working.
+ - **Message 155:** (ADDRESSED) User confirms the new plan: a single page for all packages, delete the old ones, and add logic to prevent re-purchasing active packages.
+ - **Message 154:** (ADDRESSED) Agent asks for confirmation on the new unified package system plan.
+ - **Message 152:** (NEW PRD) User provides a detailed PRD for a complete overhaul of the package system, requesting a unified structure.
+ - **Message 151:** (ADDRESSED) Agent summarizes the creation of the self-assessment and my plan pages.
 
 **Project Health Check:**
 - Broken:
-  - **Production Database Connectivity**: Connection to MongoDB Atlas is blocked.
-  - **Admin Package Deletion**: A recurring, non-functional administrative feature.
+  - **Payment Flow:** The core checkout and payment process is non-functional. Users cannot purchase packages.
 - Mocked:
   - None.
 - Untested:
-  - The entire Goal Setting feature (backend and frontend).
-  - The logic for automatically adding a Save button to new admin-created calculators.
-  - The implementation of embedded YouTube videos.
+  - The entire Stripe payment and subscription creation flow.
+  - The self-assessment journey and plan generation.
+  - The logic to disable re-subscription for active packages.
 
 **3rd Party Integrations**
 - Socket.IO
@@ -176,25 +179,25 @@ In the most recent session, several critical bugs were fixed, including an issue
 - expo-image-picker
 - react-native-webview
 - @react-oauth/google
+- expo-print
+- expo-sharing
+- expo-linear-gradient
+- **@stripe/stripe-react-native** (new)
 - httpx (backend)
-- **expo-print** (new)
-- **expo-sharing** (new)
+- Stripe (via API keys)
 
 **Testing status**
-  - Testing agent used after significant changes: YES, the  was used to verify the frontend bug related to package visibility.
+  - Testing agent used after significant changes: YES, the  was used to verify the new unified package pages.
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: []
-  - Known regressions: None.
+  - Known regressions: None, as the old system was intentionally replaced.
 
 **Credentials to test flow:**
 - **Admin/Coach User**:  / 
 - **Trainee User**:  / 
-- **New Test Trainee**:  (password not specified, but this user was used for testing recent booking/chat fixes).
 
 **What agent forgot to execute**
-- The agent has correctly prioritized the user's latest requests. The older, lower-priority tasks that remain un-executed are:
-    - The full application audit for styling and broken links.
-    - Implementing full edit and delete functionality for the admin-managed Resources.
-    - Fixing the long-standing Admin Package Deletion bug.
+- The agent has not yet implemented the user's requirement to disable the Subscribe button for packages where the user already has an active subscription. This is a crucial piece of business logic for the new system.
+- The old, deprecated API endpoints and Pydantic models for  and  have not been removed or commented out from , which could cause confusion or potential future conflicts.
 
 </analysis>
